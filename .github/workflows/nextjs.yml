@@ -2,8 +2,8 @@
 # See: https://nextjs.org/docs/app/building-your-application/deploying/static-exports
 #
 # Pages: repo → Settings → Pages → Build and deployment → Source: GitHub Actions.
-# If the site is served from https://<user>.github.io/<repo>/, NEXT_PUBLIC_BASE_PATH
-# must match /<repo> (set below from the repository name).
+# Static hosting has no server — app/api proxy is stripped at build time; set
+# repository variable NEXT_PUBLIC_API_URL to your Spring API (e.g. https://api.example.com).
 #
 name: Deploy Next.js site to Pages
 
@@ -20,6 +20,9 @@ permissions:
 concurrency:
   group: "pages"
   cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -49,11 +52,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: ${{ steps.detect-package-manager.outputs.manager }}
 
-      # Required before upload-pages-artifact. We keep next.config.mjs as the source of
-      # truth for basePath/static export (not static_site_generator: next, which targets next.config.js).
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
@@ -68,11 +69,13 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
 
-      - name: Build with Next.js
-        run: ${{ steps.detect-package-manager.outputs.runner }} next build
+      - name: Build with Next.js (static export)
+        run: npm run build:static
         env:
           NEXT_STATIC_EXPORT: "true"
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          NEXT_PUBLIC_API_DIRECT: "true"
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
