@@ -1,11 +1,8 @@
+import { getAppOrigin } from "./appBasePath";
+
 /** Build the public responder URL for a published form slug. */
 export function buildPublicUrl(slug: string): string {
-  const base =
-    typeof process !== "undefined" && process.env.NEXT_PUBLIC_APP_URL
-      ? process.env.NEXT_PUBLIC_APP_URL.replace(/\/+$/, "")
-      : typeof window !== "undefined"
-        ? window.location.origin
-        : "";
+  const base = getAppOrigin();
   return `${base}/r/${slug}`;
 }
 

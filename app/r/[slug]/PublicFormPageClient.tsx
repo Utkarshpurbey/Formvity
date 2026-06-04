@@ -1,15 +1,28 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { MultiPageForm } from "../../../src/components/page-def/runtime/MultiPageForm";
 import { PageLoader } from "../../../src/components/ui/PageLoader";
 import { useFormDef } from "../../../src/hooks/useFormDef";
 import { normalizeFormDef } from "../../../src/lib/normalizeFormDef";
+import { getPublicFormSlugFromLocation } from "../../../src/utils/publicFormSlug";
+
+function resolveSlug(paramSlug: string): string {
+  const fromUrl = getPublicFormSlugFromLocation();
+  if (fromUrl) return fromUrl;
+  if (paramSlug && paramSlug !== "_") return paramSlug;
+  return "";
+}
 
 function PublicFormPageInner() {
   const params = useParams();
-  const slug = typeof params.slug === "string" ? params.slug : "";
+  const paramSlug = typeof params.slug === "string" ? params.slug : "";
+  const [slug, setSlug] = useState(() => resolveSlug(paramSlug));
+
+  useEffect(() => {
+    setSlug(resolveSlug(paramSlug));
+  }, [paramSlug]);
 
   const loadSource = useMemo(
     () => (slug ? ({ type: "public" as const, slug }) : null),

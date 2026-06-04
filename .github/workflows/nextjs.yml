@@ -69,11 +69,24 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
 
+      - name: Resolve GitHub Pages base path
+        id: pages-base
+        run: |
+          REPO="${{ github.event.repository.name }}"
+          if [[ "$REPO" == *.github.io ]]; then
+            echo "base_path=" >> "$GITHUB_OUTPUT"
+            echo "app_url=https://${{ github.repository_owner }}.github.io" >> "$GITHUB_OUTPUT"
+          else
+            echo "base_path=/$REPO" >> "$GITHUB_OUTPUT"
+            echo "app_url=https://${{ github.repository_owner }}.github.io/$REPO" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build with Next.js (static export)
         run: npm run build:static
         env:
           NEXT_STATIC_EXPORT: "true"
-          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages-base.outputs.base_path }}
+          NEXT_PUBLIC_APP_URL: ${{ steps.pages-base.outputs.app_url }}
           NEXT_PUBLIC_API_DIRECT: "true"
           NEXT_PUBLIC_API_URL: https://formvity-backend.onrender.com
 

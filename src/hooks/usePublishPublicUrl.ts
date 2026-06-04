@@ -16,7 +16,7 @@ export function usePublishPublicUrl(workspaceId: string, formId: string, enabled
       .getPublishStatus(workspaceId, formId)
       .then((status) => {
         if (cancelled) return;
-        const url = status.publicUrl ?? (status.slug ? buildPublicUrl(status.slug) : "");
+        const url = status.slug ? buildPublicUrl(status.slug) : (status.publicUrl ?? "");
         setPublicUrl(url);
         if (!url) setError("No public link available yet.");
       })

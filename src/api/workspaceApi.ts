@@ -1,8 +1,10 @@
 import { apiData } from "./http";
 import type { WorkspaceMember, WorkspaceSummary } from "./types";
+import { normalizeWorkspaceList, normalizeWorkspaceSummary } from "../lib/normalizeWorkspace";
 
-export function listWorkspaces() {
-  return apiData<WorkspaceSummary[]>("workspaces");
+export async function listWorkspaces(): Promise<WorkspaceSummary[]> {
+  const raw = await apiData<unknown>("workspaces");
+  return normalizeWorkspaceList(raw);
 }
 
 export function createWorkspace(workSpaceName: string) {

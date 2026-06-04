@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:static": "node scripts/prepare-static-export.mjs && next build",
+    "build:static": "node scripts/prepare-static-export.mjs && next build && node scripts/patch-static-export.mjs",
     "start": "next start",
     "lint": "eslint .",
     "preview": "next start"

@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import * as workspaceApi from "../../api/workspaceApi";
+import { normalizeWorkspaceSummary, normalizeWorkspaceList } from "../../lib/normalizeWorkspace";
 import type { WorkspaceMember, WorkspaceSummary } from "../../api/types";
 
 type WorkspaceState = {
@@ -67,8 +68,8 @@ const workspaceSlice = createSlice({
       })
       .addCase(fetchWorkspaces.fulfilled, (s, a) => {
         s.loading = false;
-        s.list = a.payload;
-        if (!s.activeId && a.payload[0]) s.activeId = a.payload[0].workSpaceId;
+        s.list = normalizeWorkspaceList(a.payload);
+        if (!s.activeId && s.list[0]) s.activeId = s.list[0].workSpaceId;
       })
       .addCase(fetchWorkspaces.rejected, (s, a) => {
         s.loading = false;
@@ -80,12 +81,10 @@ const workspaceSlice = createSlice({
       })
       .addCase(createWorkspace.fulfilled, (s, a) => {
         s.creating = false;
-        const p = a.payload as Record<string, unknown>;
-        const id = String(p.id ?? p.workSpaceId ?? "");
-        const name = String(p.name ?? p.workSpaceName ?? "Workspace");
-        if (id) {
-          s.list.unshift({ workSpaceId: id, workSpaceName: name });
-          s.activeId = id;
+        const normalized = normalizeWorkspaceSummary(a.payload);
+        if (normalized.workSpaceId) {
+          s.list.unshift(normalized);
+          s.activeId = normalized.workSpaceId;
         }
       })
       .addCase(createWorkspace.rejected, (s, a) => {
