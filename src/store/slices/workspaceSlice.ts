@@ -6,7 +6,9 @@ type WorkspaceState = {
   list: WorkspaceSummary[];
   activeId: string | null;
   membersByWorkspace: Record<string, WorkspaceMember[]>;
+  membersLoadingByWorkspace: Record<string, boolean>;
   loading: boolean;
+  creating: boolean;
   error: string | null;
 };
 
@@ -14,12 +16,17 @@ const initialState: WorkspaceState = {
   list: [],
   activeId: null,
   membersByWorkspace: {},
+  membersLoadingByWorkspace: {},
   loading: false,
+  creating: false,
   error: null,
 };
 
 export const selectMembersForWorkspace = (state: { workspace: WorkspaceState }, workspaceId: string | null) =>
   workspaceId ? (state.workspace.membersByWorkspace[workspaceId] ?? []) : [];
+
+export const selectMembersLoading = (state: { workspace: WorkspaceState }, workspaceId: string | null) =>
+  Boolean(workspaceId && state.workspace.membersLoadingByWorkspace[workspaceId]);
 
 export const fetchWorkspaces = createAsyncThunk("workspace/list", workspaceApi.listWorkspaces);
 
@@ -67,7 +74,12 @@ const workspaceSlice = createSlice({
         s.loading = false;
         s.error = a.error.message ?? "Could not load workspaces";
       })
+      .addCase(createWorkspace.pending, (s) => {
+        s.creating = true;
+        s.error = null;
+      })
       .addCase(createWorkspace.fulfilled, (s, a) => {
+        s.creating = false;
         const p = a.payload as Record<string, unknown>;
         const id = String(p.id ?? p.workSpaceId ?? "");
         const name = String(p.name ?? p.workSpaceName ?? "Workspace");
@@ -76,8 +88,19 @@ const workspaceSlice = createSlice({
           s.activeId = id;
         }
       })
+      .addCase(createWorkspace.rejected, (s, a) => {
+        s.creating = false;
+        s.error = a.error.message ?? "Could not create workspace";
+      })
+      .addCase(fetchMembers.pending, (s, a) => {
+        s.membersLoadingByWorkspace[a.meta.arg] = true;
+      })
       .addCase(fetchMembers.fulfilled, (s, a) => {
+        s.membersLoadingByWorkspace[a.meta.arg] = false;
         s.membersByWorkspace[a.meta.arg] = a.payload;
+      })
+      .addCase(fetchMembers.rejected, (s, a) => {
+        s.membersLoadingByWorkspace[a.meta.arg] = false;
       })
       .addCase(removeWorkspace.fulfilled, (s, a) => {
         s.list = s.list.filter((w) => w.workSpaceId !== a.payload);

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
+import { Spinner } from "./ui/Spinner";
 
 /** Signed-in maker nav — shared forms for respondents will live on public links later, not here. */
 const workspaceNav = [
@@ -77,8 +78,9 @@ export function AppShellHeader() {
   if (!ready) {
     return (
       <header className="sticky top-0 z-40 h-14 shrink-0 border-b border-slate-200/90 bg-white/90 backdrop-blur-md">
-        <div className="mx-auto flex h-full max-w-6xl items-center px-4">
+        <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
           <div className="h-8 w-32 animate-pulse rounded-lg bg-slate-100" aria-hidden />
+          <Spinner size="sm" label="Loading account" />
         </div>
       </header>
     );

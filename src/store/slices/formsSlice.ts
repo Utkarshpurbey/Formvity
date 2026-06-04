@@ -7,6 +7,7 @@ import { buildPublicUrl } from "../../utils/publicUrl";
 type FormsState = {
   byWorkspace: Record<string, FormSummary[]>;
   loadingByWorkspace: Record<string, boolean>;
+  archivingFormIds: Record<string, boolean>;
   saving: boolean;
   publishing: boolean;
   error: string | null;
@@ -18,6 +19,7 @@ type FormsState = {
 const initialState: FormsState = {
   byWorkspace: {},
   loadingByWorkspace: {},
+  archivingFormIds: {},
   saving: false,
   publishing: false,
   error: null,
@@ -155,8 +157,15 @@ const formsSlice = createSlice({
         s.saving = false;
         s.error = a.error.message ?? "Save failed";
       })
+      .addCase(archiveForm.pending, (s, a) => {
+        s.archivingFormIds[a.meta.arg.formId] = true;
+      })
       .addCase(archiveForm.fulfilled, (s, a) => {
+        delete s.archivingFormIds[a.meta.arg.formId];
         removeForm(s, a.payload);
+      })
+      .addCase(archiveForm.rejected, (s, a) => {
+        delete s.archivingFormIds[a.meta.arg.formId];
       })
       .addCase(fetchPublishStatus.fulfilled, (s, a) => {
         s.publishStatus = a.payload;

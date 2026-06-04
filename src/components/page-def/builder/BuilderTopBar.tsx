@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { PublishStatus } from "../../../api/types";
+import { Spinner } from "../../ui/Spinner";
 
 export type CenterView = "preview" | "json";
 export type SaveState = "saving" | "saved" | "unsaved";
@@ -18,11 +19,17 @@ type BuilderTopBarProps = {
   onShare: () => void;
   onUpdateLive: () => void;
   saving: boolean;
+  publishing?: boolean;
 };
 
 function SaveIndicator({ state }: { state: SaveState }) {
   if (state === "saving") {
-    return <span className="text-xs text-slate-500">Saving…</span>;
+    return (
+      <span className="flex items-center gap-1.5 text-xs text-slate-500">
+        <Spinner size="sm" />
+        Saving…
+      </span>
+    );
   }
   if (state === "unsaved") {
     return <span className="text-xs font-medium text-amber-600">Unsaved changes</span>;
@@ -47,6 +54,7 @@ export function BuilderTopBar({
   onShare,
   onUpdateLive,
   saving,
+  publishing = false,
 }: BuilderTopBarProps) {
   const isPublished = publishStatus?.status === "published";
   const hasDraftDrift = Boolean(publishStatus?.draftChangedSincePublish);
@@ -130,9 +138,17 @@ export function BuilderTopBar({
               <button
                 type="button"
                 onClick={onPublish}
-                className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700"
+                disabled={publishing}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                Publish
+                {publishing ? (
+                  <>
+                    <Spinner size="sm" className="border-white/30 border-t-white" />
+                    Publishing…
+                  </>
+                ) : (
+                  "Publish"
+                )}
               </button>
             ) : null}
           </>

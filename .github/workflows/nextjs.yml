@@ -2,8 +2,8 @@
 # See: https://nextjs.org/docs/app/building-your-application/deploying/static-exports
 #
 # Pages: repo → Settings → Pages → Build and deployment → Source: GitHub Actions.
-# Static hosting has no server — app/api proxy is stripped at build time; set
-# repository variable NEXT_PUBLIC_API_URL to your Spring API (e.g. https://api.example.com).
+# Static hosting has no server — app/api proxy is stripped at build time; the SPA
+# calls https://formvity-backend.onrender.com directly (NEXT_PUBLIC_API_DIRECT).
 #
 name: Deploy Next.js site to Pages
 
@@ -75,7 +75,7 @@ jobs:
           NEXT_STATIC_EXPORT: "true"
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
           NEXT_PUBLIC_API_DIRECT: "true"
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_API_URL: https://formvity-backend.onrender.com
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

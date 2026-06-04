@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_TARGET = (process.env.API_PROXY_TARGET || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081").replace(
+const API_TARGET = (process.env.API_PROXY_TARGET || process.env.NEXT_PUBLIC_API_URL || "https://formvity-backend.onrender.com").replace(
   /\/+$/,
   "",
 );

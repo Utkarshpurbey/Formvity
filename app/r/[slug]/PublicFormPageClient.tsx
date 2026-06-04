@@ -3,6 +3,7 @@
 import { Suspense, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { MultiPageForm } from "../../../src/components/page-def/runtime/MultiPageForm";
+import { PageLoader } from "../../../src/components/ui/PageLoader";
 import { useFormDef } from "../../../src/hooks/useFormDef";
 import { normalizeFormDef } from "../../../src/lib/normalizeFormDef";
 
@@ -27,11 +28,7 @@ function PublicFormPageInner() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-dvh flex-1 items-center justify-center">
-        <p className="text-sm font-medium text-slate-600">Loading form…</p>
-      </div>
-    );
+    return <PageLoader message="Loading form…" fullScreen />;
   }
 
   if (isError || !formDef) {
@@ -52,13 +49,7 @@ function PublicFormPageInner() {
 
 export default function PublicFormPageClient() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-dvh flex-1 items-center justify-center">
-          <p className="text-sm font-medium text-slate-600">Loading…</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<PageLoader message="Loading…" fullScreen />}>
       <PublicFormPageInner />
     </Suspense>
   );

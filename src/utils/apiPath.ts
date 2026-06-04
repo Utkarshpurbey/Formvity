@@ -9,24 +9,24 @@ function joinUrl(base: string, ...segments: string[]): string {
   return root ? `${root}/${path}` : `/${path}`;
 }
 
+const DEFAULT_API_ORIGIN = "https://formvity-backend.onrender.com";
+
 const API_PATH = (process.env.NEXT_PUBLIC_API_PATH ?? "api/v1").replace(/^\/+|\/+$/g, "");
 
 /**
- * Browser: same-origin `/api/v1/*` (Next route handler proxies to backend and strips
- * strips WWW-Authenticate on 401 to avoid browser auth dialogs).
- * Server: direct backend URL when configured.
+ * Browser: direct `NEXT_PUBLIC_API_URL/api/v1/*` by default (same as GitHub Pages).
+ * Set NEXT_PUBLIC_API_DIRECT=false to use same-origin `/api/v1` Next proxy (local backend only).
  */
 function resolveApiBase(): string {
-  if (typeof window !== "undefined") {
-    if (process.env.NEXT_PUBLIC_API_DIRECT === "true") {
-      const direct = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
-      return direct;
-    }
-    return "";
-  }
-  return (process.env.NEXT_PUBLIC_API_URL ?? process.env.API_PROXY_TARGET ?? "http://localhost:8081")
+  const origin = (process.env.NEXT_PUBLIC_API_URL ?? process.env.API_PROXY_TARGET ?? DEFAULT_API_ORIGIN)
     .trim()
     .replace(/\/+$/, "");
+
+  if (typeof window !== "undefined") {
+    if (process.env.NEXT_PUBLIC_API_DIRECT === "false") return "";
+    return origin;
+  }
+  return origin;
 }
 
 export const getCompleteHost = (endpoint: string) =>
@@ -37,4 +37,4 @@ export const publicFormApi = (slug: string) => getCompleteHost(`public/forms/${s
 
 /** Maker form definition (`GET` → `{ data: { formDef } }`). */
 export const workspaceFormApi = (workspaceId: string, formId: string) =>
-  getCompleteHost(`workspace/${workspaceId}/forms/${formId}`);
+  getCompleteHost(`workspaces/${workspaceId}/forms/${formId}`);

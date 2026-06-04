@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { usePublishPublicUrl } from "../../hooks/usePublishPublicUrl";
 import { PublicLinkPanel } from "./PublicLinkPanel";
+import { Spinner } from "../ui/Spinner";
 
 type ShareLinkPopoverProps = {
   workspaceId: string;
@@ -26,7 +27,10 @@ export function ShareLinkPopover({ workspaceId, formId, onClose }: ShareLinkPopo
     >
       <p className="text-xs font-semibold text-slate-800">Share link</p>
       {loading ? (
-        <p className="mt-2 text-xs text-slate-500">Loading…</p>
+        <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+          <Spinner size="sm" />
+          Fetching share link…
+        </div>
       ) : error ? (
         <p className="mt-2 text-xs text-rose-600">{error}</p>
       ) : (

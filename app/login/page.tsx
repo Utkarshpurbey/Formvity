@@ -4,6 +4,7 @@ import { useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AuthShell } from "@/src/components/layout/AuthShell";
+import { Spinner } from "@/src/components/ui/Spinner";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { clearAuthError, loginUser } from "@/src/store/slices/authSlice";
 
@@ -69,9 +70,16 @@ export default function LoginRoutePage() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400"
           >
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? (
+              <>
+                <Spinner size="sm" className="border-white/30 border-t-white" />
+                Signing in…
+              </>
+            ) : (
+              "Sign in"
+            )}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-500">

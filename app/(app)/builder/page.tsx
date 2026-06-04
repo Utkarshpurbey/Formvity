@@ -9,6 +9,7 @@ import { BuilderTopBar, type SaveState } from "../../../src/components/page-def/
 import PageCanvas from "../../../src/components/page-def/builder/PageCanvas";
 import ComponentConfigPanel from "../../../src/components/page-def/builder/ComponentConfigPanel";
 import { PublishFlowModal, type PublishModalMode } from "../../../src/components/publish/PublishFlowModal";
+import { PageLoader } from "../../../src/components/ui/PageLoader";
 import { EMPTY_FORM_DEF, getActivePage, getPageIndex, normalizeFormDef } from "../../../src/lib/normalizeFormDef";
 import { PAGE_DEF_TEMPLATES } from "../../../src/lib/page-def-templates";
 import { cloneTemplatePageDef, toBuilderFormDef } from "../../../src/lib/template-to-builder-page-def";
@@ -229,9 +230,7 @@ function BuilderPageInner() {
     (existingSlug ? buildPublicUrl(existingSlug) : undefined);
 
   if (apiMode && !loaded) {
-    return (
-      <div className="flex flex-1 items-center justify-center bg-slate-100 text-sm text-slate-600">Loading form…</div>
-    );
+    return <PageLoader message="Loading form from server…" className="bg-slate-100" />;
   }
 
   return (
@@ -258,6 +257,7 @@ function BuilderPageInner() {
           onShare={() => openPublishModal("share")}
           onUpdateLive={() => openPublishModal("republish")}
           saving={saving}
+          publishing={publishing}
         />
         {centerView === "preview" ? (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -323,11 +323,7 @@ function BuilderPageInner() {
 
 export default function BuilderPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex flex-1 items-center justify-center bg-slate-100 text-sm text-slate-600">Loading builder…</div>
-      }
-    >
+    <Suspense fallback={<PageLoader message="Opening builder…" className="bg-slate-100" />}>
       <BuilderPageInner />
     </Suspense>
   );

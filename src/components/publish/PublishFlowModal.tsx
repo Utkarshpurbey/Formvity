@@ -5,6 +5,7 @@ import type { FormDef } from "../page-def/builder/pageDef";
 import type { PublishResponse } from "../../api/types";
 import { buildPublicUrl, slugifyTitle } from "../../utils/publicUrl";
 import { PublicLinkPanel } from "./PublicLinkPanel";
+import { Spinner } from "../ui/Spinner";
 
 export type PublishModalMode = "publish" | "republish" | "share";
 
@@ -157,9 +158,19 @@ export function PublishFlowModal({
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                disabled={publishing}
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {mode === "republish" ? "Update live version" : "Publish form"}
+                {publishing ? (
+                  <>
+                    <Spinner size="sm" className="border-white/30 border-t-white" />
+                    Publishing…
+                  </>
+                ) : mode === "republish" ? (
+                  "Update live version"
+                ) : (
+                  "Publish form"
+                )}
               </button>
             </div>
           </>
@@ -167,8 +178,9 @@ export function PublishFlowModal({
 
         {step === "publishing" ? (
           <div className="py-8 text-center">
-            <div className="mx-auto size-10 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+            <Spinner size="lg" className="mx-auto" />
             <p className="mt-4 text-sm font-medium text-slate-700">Publishing your form…</p>
+            <p className="mt-1 text-xs text-slate-500">This may take a moment on first request.</p>
           </div>
         ) : null}
 

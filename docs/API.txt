@@ -2,7 +2,8 @@
 FORMVITY API REFERENCE
 ================================================================================
 
-Base URL:     http://localhost:8081/api/v1
+Base URL:     https://formvity-backend.onrender.com/api/v1
+              (local dev: http://localhost:3000/api/v1 via Next.js proxy)
               (SPA dev: http://localhost:3000/api/v1 via Next.js proxy)
 
 Content-Type: application/json (for bodies)

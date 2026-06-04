@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { EMPTY_FORM_DEF } from "@/src/lib/normalizeFormDef";
 import { StatCard } from "@/src/components/ui/StatCard";
+import { SkeletonRows } from "@/src/components/ui/Skeleton";
+import { Spinner } from "@/src/components/ui/Spinner";
 import { FormRowActions } from "@/src/components/workspace/FormRowActions";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
@@ -19,6 +21,7 @@ import {
   fetchMembers,
   fetchWorkspaces,
   selectMembersForWorkspace,
+  selectMembersLoading,
   setActiveWorkspace,
 } from "@/src/store/slices/workspaceSlice";
 import type { FormSummary, WorkspaceSummary } from "@/src/api/types";
@@ -27,6 +30,7 @@ const WorkspaceListPanel = memo(function WorkspaceListPanel({
   workspaces,
   activeId,
   loading,
+  creating,
   newWsName,
   onNewWsNameChange,
   onSelect,
@@ -35,6 +39,7 @@ const WorkspaceListPanel = memo(function WorkspaceListPanel({
   workspaces: WorkspaceSummary[];
   activeId: string | null;
   loading: boolean;
+  creating: boolean;
   newWsName: string;
   onNewWsNameChange: (value: string) => void;
   onSelect: (id: string) => void;
@@ -44,11 +49,7 @@ const WorkspaceListPanel = memo(function WorkspaceListPanel({
     <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
       <h2 className="text-sm font-semibold text-slate-900">Workspaces</h2>
       {loading ? (
-        <div className="mt-4 space-y-2">
-          {[1, 2].map((i) => (
-            <div key={i} className="h-11 animate-pulse rounded-xl bg-slate-100" />
-          ))}
-        </div>
+        <SkeletonRows count={2} className="mt-4" rowClassName="h-11" />
       ) : (
         <ul className="mt-4 space-y-1.5">
           {workspaces.map((w) => (
@@ -81,9 +82,17 @@ const WorkspaceListPanel = memo(function WorkspaceListPanel({
         <button
           type="button"
           onClick={onCreate}
-          className="shrink-0 rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+          disabled={creating || !newWsName.trim()}
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
-          Add
+          {creating ? (
+            <>
+              <Spinner size="sm" className="border-white/30 border-t-white" />
+              Adding…
+            </>
+          ) : (
+            "Add"
+          )}
         </button>
       </div>
     </section>
@@ -114,7 +123,12 @@ const WorkspaceFormsPanel = memo(function WorkspaceFormsPanel({
           <h2 className="text-lg font-semibold text-slate-900">Forms</h2>
           <p className="text-sm text-slate-500">
             {activeName ?? "Select a workspace"}
-            {refreshing ? <span className="ml-2 text-xs text-indigo-600">Updating…</span> : null}
+            {refreshing ? (
+              <span className="ml-2 inline-flex items-center gap-1 text-xs text-indigo-600">
+                <Spinner size="sm" />
+                Updating…
+              </span>
+            ) : null}
           </p>
         </div>
         <button
@@ -123,19 +137,24 @@ const WorkspaceFormsPanel = memo(function WorkspaceFormsPanel({
           onClick={onNewForm}
           className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
         >
-          <span className="text-lg leading-none">+</span>
-          {creatingForm ? "Creating…" : "New form"}
+          {creatingForm ? (
+            <>
+              <Spinner size="sm" className="border-white/30 border-t-white" />
+              Creating…
+            </>
+          ) : (
+            <>
+              <span className="text-lg leading-none">+</span>
+              New form
+            </>
+          )}
         </button>
       </div>
 
       {!activeId ? (
         <p className="px-6 py-10 text-center text-sm text-slate-500">Select or create a workspace to see forms.</p>
       ) : initialLoading ? (
-        <div className="space-y-3 px-6 py-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-100" />
-          ))}
-        </div>
+        <SkeletonRows count={3} className="px-6 py-6" rowClassName="h-16" />
       ) : forms.length === 0 ? (
         <div className="px-6 py-14 text-center">
           <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
@@ -170,11 +189,12 @@ export default function WorkspacePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user, ready } = useAppSelector((s) => s.auth);
-  const { list: workspaces, activeId, loading: wsLoading } = useAppSelector((s) => s.workspace);
+  const { list: workspaces, activeId, loading: wsLoading, creating: wsCreating } = useAppSelector((s) => s.workspace);
   const forms = useAppSelector((s) => selectFormsForWorkspace(s, activeId));
   const formsInitialLoading = useAppSelector((s) => selectFormsInitialLoading(s, activeId));
   const formsRefreshing = useAppSelector((s) => selectFormsRefreshing(s, activeId));
   const members = useAppSelector((s) => selectMembersForWorkspace(s, activeId));
+  const membersLoading = useAppSelector((s) => selectMembersLoading(s, activeId));
   const [newWsName, setNewWsName] = useState("");
   const [creatingForm, setCreatingForm] = useState(false);
 
@@ -258,6 +278,7 @@ export default function WorkspacePage() {
             workspaces={workspaces}
             activeId={activeId}
             loading={wsLoading}
+            creating={wsCreating}
             newWsName={newWsName}
             onNewWsNameChange={setNewWsName}
             onSelect={handleSelectWorkspace}
@@ -274,17 +295,21 @@ export default function WorkspacePage() {
           />
         </div>
 
-        {activeId && members.length > 0 ? (
+        {activeId && (membersLoading || members.length > 0) ? (
           <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-900/[0.03]">
             <h2 className="text-sm font-semibold text-slate-900">Team members</h2>
-            <ul className="mt-4 flex flex-wrap gap-2">
-              {members.map((m) => (
-                <li key={m.userId} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
-                  <span className="font-semibold text-slate-800">{m.role}</span>
-                  <span className="ml-2 text-slate-500">{m.userId.slice(0, 8)}…</span>
-                </li>
-              ))}
-            </ul>
+            {membersLoading ? (
+              <SkeletonRows count={2} className="mt-4" rowClassName="h-10 w-48" />
+            ) : (
+              <ul className="mt-4 flex flex-wrap gap-2">
+                {members.map((m) => (
+                  <li key={m.userId} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+                    <span className="font-semibold text-slate-800">{m.role}</span>
+                    <span className="ml-2 text-slate-500">{m.userId.slice(0, 8)}…</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         ) : null}
       </div>

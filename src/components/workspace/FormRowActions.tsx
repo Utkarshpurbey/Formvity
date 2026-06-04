@@ -6,7 +6,8 @@ import { toast } from "react-toastify";
 import type { FormSummary } from "../../api/types";
 import { FormStatusBadge } from "../ui/FormStatusBadge";
 import { ShareLinkPopover } from "../publish/ShareLinkPopover";
-import { useAppDispatch } from "../../store/hooks";
+import { Spinner } from "../ui/Spinner";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { archiveForm } from "../../store/slices/formsSlice";
 import { useClickOutside } from "../../hooks/useClickOutside";
 
@@ -17,6 +18,7 @@ type FormRowActionsProps = {
 
 export function FormRowActions({ form, workspaceId }: FormRowActionsProps) {
   const dispatch = useAppDispatch();
+  const archiving = useAppSelector((s) => Boolean(s.forms.archivingFormIds[form.id]));
   const [shareOpen, setShareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -25,6 +27,7 @@ export function FormRowActions({ form, workspaceId }: FormRowActionsProps) {
   useClickOutside(menuRef, () => setMenuOpen(false), menuOpen);
 
   const handleArchive = () => {
+    if (archiving) return;
     setMenuOpen(false);
     dispatch(archiveForm({ workspaceId, formId: form.id }))
       .unwrap()
@@ -79,9 +82,17 @@ export function FormRowActions({ form, workspaceId }: FormRowActionsProps) {
               type="button"
               role="menuitem"
               onClick={handleArchive}
-              className="w-full px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50"
+              disabled={archiving}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Archive
+              {archiving ? (
+                <>
+                  <Spinner size="sm" />
+                  Archiving…
+                </>
+              ) : (
+                "Archive"
+              )}
             </button>
           </div>
         ) : null}
