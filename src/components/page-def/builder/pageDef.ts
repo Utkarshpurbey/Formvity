@@ -36,12 +36,44 @@ export interface FormSettings {
   appearance?: FormAppearanceSettings;
 }
 
+/** One step in a multi-page form. */
+export interface FormPageDef {
+  id: string;
+  title: string;
+  description?: string;
+  components: PageComponentDef[];
+  /** Reserved for branching; linear v1 uses array order for Next. */
+  navigation?: {
+    defaultNextPageId?: string;
+  };
+}
+
+/** Root document stored in draftPageDef / published snapshot. */
+export interface FormDef {
+  version: 1;
+  id: string;
+  title: string;
+  description?: string;
+  formSettings?: FormSettings;
+  /** Key = actionId, value = JS function body (receives `ctx`). */
+  actions?: Record<string, string>;
+  pages: FormPageDef[];
+  /** Respondent entry; defaults to first page. */
+  startPageId?: string;
+}
+
+/**
+ * Legacy single-page document (components at root).
+ * @deprecated Use FormDef with pages[] — normalized on load via normalizeFormDef.
+ */
 export interface PageDef {
   id: string;
   title: string;
   description?: string;
   components: PageComponentDef[];
   formSettings?: FormSettings;
-  /** Key = actionId, value = JS function body (receives `ctx`). */
   actions?: Record<string, string>;
 }
+
+/** Anything with form-level appearance for theming helpers. */
+export type FormAppearanceSource = Pick<FormDef, "formSettings">;

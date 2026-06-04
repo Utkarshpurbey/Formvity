@@ -1,4 +1,4 @@
-import type { FormAppearanceSettings, PageDef, PageComponentDef } from "./pageDef";
+import type { FormAppearanceSettings, FormDef, FormPageDef, PageComponentDef } from "./pageDef";
 import { COMPONENT_SPECS, getTypeGroup } from "../../../reference/component-reference-data";
 
 const inputClass =
@@ -86,23 +86,25 @@ const APPEARANCE_PRESETS: { name: string; tag: string; appearance: FormAppearanc
 ];
 
 interface ComponentConfigPanelProps {
-  pageDef: PageDef;
+  formDef: FormDef;
   selectedComponent: PageComponentDef | null;
-  onPageDefChange: (updater: (prev: PageDef) => PageDef) => void;
+  onFormDefChange: (updater: (prev: FormDef) => FormDef) => void;
+  onPageChange: (updater: (prev: FormPageDef) => FormPageDef) => void;
   onClearSelection: () => void;
   onDeleteSelected?: () => void;
 }
 
 export default function ComponentConfigPanel({
-  pageDef,
+  formDef,
   selectedComponent,
-  onPageDefChange,
+  onFormDefChange,
+  onPageChange,
   onClearSelection,
   onDeleteSelected,
 }: ComponentConfigPanelProps) {
   const updateSelected = (updates: Partial<PageComponentDef>) => {
     if (!selectedComponent) return;
-    onPageDefChange((prev) => ({
+    onPageChange((prev) => ({
       ...prev,
       components: prev.components.map((c) =>
         c.id === selectedComponent.id ? { ...c, ...updates } : c
@@ -111,9 +113,9 @@ export default function ComponentConfigPanel({
   };
 
   if (!selectedComponent) {
-    const appearance = pageDef.formSettings?.appearance ?? {};
+    const appearance = formDef.formSettings?.appearance ?? {};
     const updateAppearance = (updates: Record<string, unknown>) => {
-      onPageDefChange((prev) => ({
+      onFormDefChange((prev) => ({
         ...prev,
         formSettings: {
           ...prev.formSettings,
@@ -126,7 +128,7 @@ export default function ComponentConfigPanel({
     };
 
     const applyPreset = (preset: FormAppearanceSettings) => {
-      onPageDefChange((prev) => ({
+      onFormDefChange((prev) => ({
         ...prev,
         formSettings: {
           ...prev.formSettings,
@@ -140,7 +142,7 @@ export default function ComponentConfigPanel({
         <header className="shrink-0 border-b border-slate-200/80 bg-white/90 px-4 py-3 backdrop-blur-sm">
           <h2 className="text-sm font-semibold text-slate-900">Look &amp; feel</h2>
           <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
-            Curated themes first — then fine-tune. This is what respondents see in preview.
+            Themes and colors for the respondent preview.
           </p>
         </header>
         <div className="min-h-0 flex-1 space-y-5 overflow-auto p-4">

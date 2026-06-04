@@ -1,6 +1,6 @@
 import type {
   FormAppearanceSettings,
-  PageDef as BuilderPageDef,
+  FormDef,
   PageComponentType,
 } from "../components/page-def/builder/pageDef";
 import type { PageDef as TemplatePageDef } from "./page-def";
@@ -75,7 +75,7 @@ const TEMPLATE_FORM_APPEARANCE: Record<string, FormAppearanceSettings> = {
 export const cloneTemplatePageDef = (template: TemplatePageDef): TemplatePageDef =>
   JSON.parse(JSON.stringify(template)) as TemplatePageDef;
 
-export const toBuilderPageDef = (template: TemplatePageDef): BuilderPageDef => {
+export const toBuilderFormDef = (template: TemplatePageDef): FormDef => {
   const components = template.components.map((component) => {
     const mappedType = COMPONENT_TYPE_MAP[String(component.type)];
     if (!mappedType) {
@@ -91,13 +91,24 @@ export const toBuilderPageDef = (template: TemplatePageDef): BuilderPageDef => {
   });
 
   return {
+    version: 1,
     id: template.id,
     title: template.title,
     description: template.description,
-    components,
     actions: template.actions,
     formSettings: {
       appearance: TEMPLATE_FORM_APPEARANCE[template.id] ?? DEFAULT_TEMPLATE_APPEARANCE,
     },
+    pages: [
+      {
+        id: "page-1",
+        title: template.title,
+        description: template.description,
+        components,
+      },
+    ],
   };
 };
+
+/** @deprecated Use toBuilderFormDef */
+export const toBuilderPageDef = toBuilderFormDef;

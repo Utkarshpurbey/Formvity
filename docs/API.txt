@@ -1,0 +1,192 @@
+================================================================================
+FORMVITY API REFERENCE
+================================================================================
+
+Base URL:     http://localhost:8081/api/v1
+              (SPA dev: http://localhost:3000/api/v1 via Next.js proxy)
+
+Content-Type: application/json (for bodies)
+
+Auth:         JWT Bearer — see INTEGRATION STATUS below.
+              POST /auth/login returns { token, id, displayName }.
+              Protected routes: Authorization: Bearer <token>
+              Public: POST /auth/login, POST /auth/register, GET /public/**
+
+Success wrapper (most endpoints):
+  { "status": 200, "data": <T>, "message": "Success" }
+
+Error wrapper:
+  { "status": 4xx/5xx, "error": "<reason>", "errorMessage": "<detail>" }
+
+Form statuses: DRAFT | PUBLISHED | EXPIRED | ARCHIVED
+Workspace roles: ADMIN | EDITOR | VIEWER | ATTENDEE (not enforced on APIs yet)
+
+================================================================================
+INTEGRATION STATUS (backend + Form-Builder-UI)
+================================================================================
+
+DONE
+----
+  JWT login/logout/me/register
+  Bearer on all /workspace/** maker calls
+  Workspaces: list, create, get, delete, members
+  Forms: list, create, get draft, PATCH autosave, archive, publish, publish-status
+  Public read: GET /public/forms/:slug → /r/[slug] in UI
+  Next.js dev proxy :3000/api/v1 → :8081
+
+PENDING
+-------
+  POST /auth/refresh (refresh tokens)
+  Rich GET /auth/me (workspaces[] + role per workspace)
+  RBAC enforcement (owner/editor/viewer) on all routes
+  POST /public/forms/:slug/submissions (responder persist)
+  Submissions inbox APIs + UI
+  POST /workspace/{id}/forms { templateId } (templates are client-static today)
+  GET /users, password reset, SSO, webhooks, analytics
+
+See docs/README-BACKEND-APIs.md#integration-status for full table.
+
+================================================================================
+1. AUTH
+================================================================================
+
+POST /auth/register
+  Auth: Public
+  Body: { displayName, email, password (min 8) }
+  Response: ApiResponse with UserInputDto
+
+POST /auth/login
+  Auth: Public
+  Body: { userName, password }
+  Response (no wrapper): { token, id, displayName }
+  token = JWT access token for Authorization: Bearer header
+
+GET /auth/me
+  Auth: Bearer JWT
+  Response: { id, displayName } or wrapped in ApiResponse; 401 if invalid/expired
+
+POST /auth/logout
+  Auth: Bearer JWT (optional strictness)
+  Response: ApiResponse "Logged out successfully"
+
+POST /auth/refresh
+  Auth: refresh token (PENDING — not wired in UI)
+
+================================================================================
+2. USERS
+================================================================================
+
+GET /users
+  Auth: Bearer JWT
+  Response data: [{ id, displayName, email }]
+  Status: API exists; not used by SPA yet
+
+================================================================================
+3. WORKSPACES  (prefix: /workspace)
+================================================================================
+
+All routes below require: Authorization: Bearer <token>
+
+GET /workspace
+  Response: [{ workSpaceId, workSpaceName }]
+
+POST /workspace
+  Body: { workSpaceName }
+  Response: WorkSpacesEntity
+
+GET /workspace/{workSpaceId}
+  Response: WorkSpacesEntity
+
+DELETE /workspace/{workSpaceId}
+  Soft-delete (active = false)
+
+GET /workspace/{workSpaceId}/members
+  Response: [{ userId, workSpaceName, role }]
+
+================================================================================
+4. FORMS  (prefix: /workspace/{workspaceId}/forms)
+================================================================================
+
+All routes below require: Authorization: Bearer <token>
+
+GET /workspace/{workspaceId}/forms
+  List non-ARCHIVED forms (no draftPageDef in list)
+
+POST /workspace/{workspaceId}/forms
+  Body: { title, draftPageDef }
+  Creates DRAFT form
+
+GET /workspace/{workspaceId}/forms/{formId}
+  Returns draftPageDef only (in data)
+
+PATCH /workspace/{workspaceId}/forms/{formId}
+  Body: { title?, draftPageDef? } (at least one required)
+
+PUT /workspace/{workspaceId}/forms/{formId}
+  Body: { title, draftPageDef } (full replace)
+
+DELETE /workspace/{workspaceId}/forms/{formId}
+  Query: hard=false (archive, default) | hard=true (permanent)
+
+================================================================================
+5. PUBLISH
+================================================================================
+
+POST /workspace/{workspaceId}/forms/{formId}/publish
+  Auth: Bearer JWT
+  Body (optional): { slug?, regenerateSlug? }
+  Response: { formId, slug, publicUrl, version, publishedAt }
+
+GET /workspace/{workspaceId}/forms/{formId}/publish-status
+  Auth: Bearer JWT
+  Response: publish status + slug/publicUrl when published
+
+================================================================================
+6. PUBLIC (responders — no JWT)
+================================================================================
+
+GET /public/forms/{slug}
+  Auth: Public
+  Response: { data: { formDef } } — sanitized published PageDef
+
+POST /public/forms/{slug}/submissions
+  Auth: Public
+  Body: { respondent?, answers }
+  Status: PENDING in UI (thank-you shown locally only)
+
+================================================================================
+QUICK FLOW (typical editor)
+================================================================================
+
+1. POST /auth/login                    → store token
+2. GET  /workspace                     (Bearer)
+3. GET  /workspace/{id}/forms          (Bearer)
+4. POST /workspace/{id}/forms          (Bearer, new form)
+5. GET  /workspace/{id}/forms/{formId} (Bearer)
+6. PATCH /workspace/{id}/forms/{formId} (Bearer, autosave)
+7. POST /workspace/{id}/forms/{formId}/publish (Bearer)
+8. Share GET /public/forms/{slug} via /r/{slug} (no auth)
+
+Notes:
+- Paths use /workspace (singular), not /workspaces.
+- SPA sends Authorization: Bearer on maker routes; no session cookies.
+- Role checks planned but not enforced on form mutations yet.
+
+================================================================================
+JWT EXAMPLE (curl)
+================================================================================
+
+# Login
+curl -s -X POST http://localhost:8081/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"userName":"you@email.com","password":"secret"}'
+
+# Workspace list (replace TOKEN)
+curl -s http://localhost:8081/api/v1/workspace \
+  -H 'Accept: application/json' \
+  -H 'Authorization: Bearer TOKEN'
+
+# Via Next dev proxy (same token)
+curl -s http://localhost:3000/api/v1/workspace \
+  -H 'Accept: application/json' \
+  -H 'Authorization: Bearer TOKEN'

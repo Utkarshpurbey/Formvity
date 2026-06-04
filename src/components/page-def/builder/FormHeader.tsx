@@ -12,6 +12,14 @@ interface FormHeaderStaticProps {
   pageDef: Pick<PageDef, "title" | "description">;
   /** Slightly smaller title (e.g. template modal). */
   compact?: boolean;
+  /** Badge text; set to `false` to hide (e.g. section headers). */
+  badge?: string | false;
+  /** Lighter header without gradient hero (section blocks). */
+  section?: boolean;
+  /** Render title block (default true). Use false when only page description differs. */
+  showTitle?: boolean;
+  /** Render description block (default true). */
+  showDescription?: boolean;
 }
 
 interface FormHeaderEditableProps {
@@ -28,22 +36,36 @@ export type FormHeaderProps = FormHeaderStaticProps | FormHeaderEditableProps;
  * (clear hierarchy, hero tint, optional description callout) rather than a plain card title.
  */
 export function FormHeader(props: FormHeaderProps) {
-  const compact = props.variant === "static" && props.compact;
+  const isStatic = props.variant === "static";
+  const compact = isStatic && props.compact;
+  const section = isStatic && props.section;
+  const badge = isStatic && props.badge !== false ? (props.badge ?? "Form") : null;
+  const showTitle = !isStatic || props.showTitle !== false;
+  const showDescription = !isStatic || props.showDescription !== false;
+  const titleText = isStatic ? props.pageDef.title?.trim() : props.pageDef.title;
+  const descText = isStatic ? props.pageDef.description?.trim() : props.pageDef.description;
 
-  const titleTypography = compact ? titleClassCompact : titleClassStatic;
+  const titleTypography = compact || section ? titleClassCompact : titleClassStatic;
+  const TitleTag = section ? "h2" : "h1";
 
   return (
-    <header className="shrink-0 border-b border-[color:color-mix(in_srgb,var(--fb-text)_9%,var(--fb-surface))]">
+    <header
+      className={`shrink-0 ${section ? "border-b border-[color:color-mix(in_srgb,var(--fb-text)_6%,var(--fb-surface))]" : "border-b border-[color:color-mix(in_srgb,var(--fb-text)_9%,var(--fb-surface))]"}`}
+    >
       <div
-        className="relative px-5 py-6 sm:px-8 sm:py-8"
-        style={{
-          background: `linear-gradient(
+        className={`relative ${section ? "px-5 py-4 sm:px-8 sm:py-5" : "px-5 py-6 sm:px-8 sm:py-8"}`}
+        style={
+          section
+            ? { background: "var(--fb-surface)" }
+            : {
+                background: `linear-gradient(
             168deg,
             color-mix(in srgb, var(--fb-primary) 16%, var(--fb-surface)) 0%,
             color-mix(in srgb, var(--fb-primary) 5%, var(--fb-surface)) 42%,
             var(--fb-surface) 72%
           )`,
-        }}
+              }
+        }
       >
         <div
           aria-hidden
@@ -53,24 +75,30 @@ export function FormHeader(props: FormHeaderProps) {
           }}
         />
         <div className="relative">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <span
-              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.18em] text-[color:var(--fb-primary)] ring-1 ring-[color:color-mix(in_srgb,var(--fb-primary)_35%,transparent)]"
-              style={{
-                backgroundColor: "color-mix(in srgb, var(--fb-primary) 10%, var(--fb-surface))",
-              }}
-            >
-              Form
-            </span>
-            <span className="hidden h-px min-w-[2rem] flex-1 bg-[color:color-mix(in_srgb,var(--fb-text)_10%,var(--fb-surface))] sm:block" aria-hidden />
-          </div>
+          {badge ? (
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span
+                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.18em] text-[color:var(--fb-primary)] ring-1 ring-[color:color-mix(in_srgb,var(--fb-primary)_35%,transparent)]"
+                style={{
+                  backgroundColor: "color-mix(in srgb, var(--fb-primary) 10%, var(--fb-surface))",
+                }}
+              >
+                {badge}
+              </span>
+              <span className="hidden h-px min-w-[2rem] flex-1 bg-[color:color-mix(in_srgb,var(--fb-text)_10%,var(--fb-surface))] sm:block" aria-hidden />
+            </div>
+          ) : null}
 
           {props.variant === "static" ? (
             <>
-              <h1 className={titleTypography}>{props.pageDef.title}</h1>
-              {props.pageDef.description?.trim() ? (
-                <div className="mt-4 rounded-r-[calc(var(--fb-radius)*0.85)] border-l-[3px] border-[color:var(--fb-primary)] bg-[color:color-mix(in_srgb,var(--fb-text)_3%,var(--fb-surface))] py-2.5 pl-4 pr-3 sm:py-3 sm:pl-5">
-                  <p className={`${descClassStatic} whitespace-pre-wrap`}>{props.pageDef.description}</p>
+              {showTitle && titleText ? (
+                <TitleTag className={titleTypography}>{titleText}</TitleTag>
+              ) : null}
+              {showDescription && descText ? (
+                <div
+                  className={`${showTitle && titleText ? "mt-4" : ""} rounded-r-[calc(var(--fb-radius)*0.85)] border-l-[3px] border-[color:var(--fb-primary)] bg-[color:color-mix(in_srgb,var(--fb-text)_3%,var(--fb-surface))] py-2.5 pl-4 pr-3 sm:py-3 sm:pl-5`}
+                >
+                  <p className={`${descClassStatic} whitespace-pre-wrap`}>{descText}</p>
                 </div>
               ) : null}
             </>

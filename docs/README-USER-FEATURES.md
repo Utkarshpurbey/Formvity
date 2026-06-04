@@ -146,14 +146,15 @@ That keeps a clear story: responders only ever see the **published** experience 
 
 ## What this repository ships today
 
-This UI repo is a **frontend demo**:
+This UI repo is a **Next.js frontend** integrated with the Spring API:
 
-- No login; **one** saved definition per browser via `localStorage` (`savedPageDef`).
-- Templates are **static** in code; “Edit in builder” injects via `injectedPageDefTemplate`.
-- Submit in preview **does not** call an API or store responses.
-- Global nav still exposes builder, templates, reference, and the JSON preview for development.
+- **JWT auth** — login/register, Bearer token on maker routes, protected dashboard/builder.
+- **Workspaces & forms** — list, create, autosave, publish, archive via `/workspace/**` APIs.
+- **Public responder** — `/r/[slug]` loads `GET /public/forms/:slug`.
+- **Templates** — static gallery; fork into builder client-side.
+- **Submit** on public forms is **local thank-you only** until `POST …/submissions` is wired.
 
-Use it to prove **PageDef**, widgets, and theming; pair it with a backend that implements the target flows above.
+See [Integration status](./README-BACKEND-APIs.md#integration-status) for the full done/pending matrix.
 
 ---
 
@@ -161,13 +162,13 @@ Use it to prove **PageDef**, widgets, and theming; pair it with a backend that i
 
 | Target capability | Today (repo) | Build |
 |-------------------|--------------|--------|
-| Login / session | None | Auth service + protected routes |
-| My forms list | None | Dashboard + `GET …/forms` |
-| Template → owned form | Client-side fork into builder | `POST …/forms { templateId }` + redirect to editor |
-| Publish + share link | None | Publish API + public route + slug |
-| Responder intake + form | Only form fields in preview | Form settings + public wizard |
-| Stored submissions | None | `POST …/submissions` + inbox UI |
-| Dev-only JSON QA | Live preview tab | Keep behind role flag or separate `/dev` route post-launch |
+| Login / JWT | **Done** — register, login, Bearer on maker APIs | `POST /auth/refresh`, richer `/auth/me` |
+| My forms list | **Done** — dashboard + workspace APIs | Filters, search |
+| Template → owned form | Client-side fork into builder | `POST …/forms { templateId }` |
+| Publish + share link | **Done** — publish modal + **`/r/[slug]`** | Harden publish-status edge cases |
+| Responder intake + form | Form fields only on `/r/[slug]` | Intake step + settings |
+| Stored submissions | **Pending** — local thank-you only | `POST …/submissions` + inbox UI |
+| Dev-only JSON QA | **Removed** (`/live-preview`, `/forms`) | Builder Preview/JSON tab only |
 
 ---
 
@@ -207,6 +208,7 @@ These are practical additions that help you ship, sell, and stay safe—not extr
 
 ## Related docs
 
-- [README-BACKEND-APIs.md](./README-BACKEND-APIs.md) — start with **[Which APIs to build first](./README-BACKEND-APIs.md#which-apis-to-build-first)** (steps 1→15), then Spring Boot guide, why/where, and full endpoint tables.
+- [README-BACKEND-APIs.md](./README-BACKEND-APIs.md) — **[Integration status](./README-BACKEND-APIs.md#integration-status)** (done vs pending), [JWT auth catalog](./README-BACKEND-APIs.md#jwt-api-by-category), [Which APIs to build first](./README-BACKEND-APIs.md#which-apis-to-build-first), Spring Boot guide, endpoint tables.
+- [API.txt](./API.txt) — quick reference aligned with JWT integration.
 - [README-DATABASE-SCHEMA.md](./README-DATABASE-SCHEMA.md) — relational tables, field list per table, and MVP SQL sketch.
 - Repository root [README.md](../README.md) — build and deploy notes.

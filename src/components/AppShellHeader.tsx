@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthContext";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { logoutUser } from "../store/slices/authSlice";
 
 /** Signed-in maker nav — shared forms for respondents will live on public links later, not here. */
 const workspaceNav = [
   { href: "/workspace", label: "Workspace" },
   { href: "/builder", label: "Builder" },
-  { href: "/forms", label: "Forms" },
   { href: "/templates", label: "Templates" },
 ];
 
@@ -26,19 +26,20 @@ function navLinkClass(active: boolean) {
   }`;
 }
 
-function initials(user: { name: string; email: string }) {
-  const parts = user.name.trim().split(/\s+/).filter(Boolean);
+function initials(user: { displayName: string; email?: string }) {
+  const parts = user.displayName.trim().split(/\s+/).filter(Boolean);
   if (parts.length >= 2) {
     return `${parts[0]![0]!}${parts[parts.length - 1]![0]!}`.toUpperCase();
   }
-  if (user.name.trim().length >= 2) return user.name.trim().slice(0, 2).toUpperCase();
-  return user.email.slice(0, 2).toUpperCase();
+  if (user.displayName.trim().length >= 2) return user.displayName.trim().slice(0, 2).toUpperCase();
+  return (user.email ?? "U").slice(0, 2).toUpperCase();
 }
 
 export function AppShellHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, ready, logout } = useAuth();
+  const dispatch = useAppDispatch();
+  const { user, ready } = useAppSelector((s) => s.auth);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const guestMenuRef = useRef<HTMLDivElement>(null);
@@ -63,12 +64,15 @@ export function AppShellHeader() {
   }, [menuOpen, closeMenus]);
 
   const handleLogout = () => {
-    logout();
+    dispatch(logoutUser());
     closeMenus();
     toast.info("Signed out.");
     router.push("/home");
-    router.refresh();
   };
+
+  const isHome = pathname === "/home";
+  const userLabel = isHome ? "Account" : user?.displayName;
+  const primaryNav = user && !isHome ? workspaceNav : exploreNav;
 
   if (!ready) {
     return (
@@ -100,11 +104,16 @@ export function AppShellHeader() {
           </Link>
 
           <nav className="hidden min-w-0 items-center gap-0.5 md:flex" aria-label="Primary">
-            {(user ? workspaceNav : exploreNav).map(({ href, label }) => (
+            {primaryNav.map(({ href, label }) => (
               <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined} className={navLinkClass(pathname === href)}>
                 {label}
               </Link>
             ))}
+            {user && isHome ? (
+              <Link href="/workspace" className={navLinkClass(false)}>
+                Dashboard
+              </Link>
+            ) : null}
           </nav>
         </div>
 
@@ -121,7 +130,7 @@ export function AppShellHeader() {
                   <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white shadow-sm">
                     {initials(user)}
                   </span>
-                  <span className="max-w-[9rem] truncate text-sm font-medium text-slate-800">{user.name}</span>
+                  <span className="max-w-[9rem] truncate text-sm font-medium text-slate-800">{userLabel}</span>
                   <span className="text-slate-400" aria-hidden>
                     ▾
                   </span>
@@ -131,8 +140,10 @@ export function AppShellHeader() {
                     role="menu"
                     className="absolute right-0 top-full z-50 mt-1 w-52 rounded-xl border border-slate-200/80 bg-white py-1.5 shadow-lg shadow-slate-900/10"
                   >
-                    <p className="border-b border-slate-100 px-3 py-2 text-xs text-slate-500">Signed in as</p>
-                    <p className="truncate px-3 pb-2 text-sm font-medium text-slate-900">{user.email}</p>
+                    <p className="border-b border-slate-100 px-3 py-2 text-xs text-slate-500">Signed in</p>
+                    {!isHome && user.email ? (
+                      <p className="truncate px-3 pb-2 text-sm font-medium text-slate-900">{user.email}</p>
+                    ) : null}
                     <button
                       type="button"
                       role="menuitem"
@@ -207,12 +218,17 @@ export function AppShellHeader() {
 
       {menuOpen && user ? (
         <div ref={userMobilePanelRef} className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
-          <nav className="flex flex-col gap-1" aria-label="Mobile workspace">
-            {workspaceNav.map(({ href, label }) => (
+          <nav className="flex flex-col gap-1" aria-label="Mobile">
+            {(isHome ? exploreNav : workspaceNav).map(({ href, label }) => (
               <Link key={href} href={href} className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => setMenuOpen(false)}>
                 {label}
               </Link>
             ))}
+            {user && isHome ? (
+              <Link href="/workspace" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => setMenuOpen(false)}>
+                Dashboard
+              </Link>
+            ) : null}
             <button type="button" className="rounded-lg px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-rose-50" onClick={handleLogout}>
               Sign out
             </button>

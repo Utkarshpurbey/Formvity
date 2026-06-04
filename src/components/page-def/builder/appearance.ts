@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { FormAppearanceSettings, PageDef } from "./pageDef";
+import type { FormAppearanceSettings, FormAppearanceSource } from "./pageDef";
 
 const FALLBACK_APPEARANCE: Required<FormAppearanceSettings> = {
   primaryColor: "#4f46e5",
@@ -11,10 +11,10 @@ const FALLBACK_APPEARANCE: Required<FormAppearanceSettings> = {
   inputStyle: "outline",
 };
 
-export function getAppearance(pageDef: PageDef): Required<FormAppearanceSettings> {
+export function getAppearance(source: FormAppearanceSource): Required<FormAppearanceSettings> {
   return {
     ...FALLBACK_APPEARANCE,
-    ...(pageDef.formSettings?.appearance ?? {}),
+    ...(source.formSettings?.appearance ?? {}),
   };
 }
 
@@ -27,8 +27,8 @@ function radiusToCss(appearance: Required<FormAppearanceSettings>): string {
 }
 
 /** CSS variables consumed by form shell + `inputStyles` in widgets. */
-export function getAppearanceStyles(pageDef: PageDef): CSSProperties {
-  const appearance = getAppearance(pageDef);
+export function getAppearanceStyles(source: FormAppearanceSource): CSSProperties {
+  const appearance = getAppearance(source);
   const radius = radiusToCss(appearance);
   const fieldBg =
     appearance.inputStyle === "filled"
@@ -51,8 +51,8 @@ export function getAppearanceStyles(pageDef: PageDef): CSSProperties {
 }
 
 /** Layered shadow + hairline ring so the form reads as a product surface, not a flat card. */
-export function getFormCardBoxShadow(pageDef: PageDef): string {
-  const { textColor, primaryColor } = getAppearance(pageDef);
+export function getFormCardBoxShadow(source: FormAppearanceSource): string {
+  const { textColor, primaryColor } = getAppearance(source);
   return [
     `0 28px 56px -22px color-mix(in srgb, ${textColor} 22%, transparent)`,
     `0 0 0 1px color-mix(in srgb, ${textColor} 7%, transparent)`,

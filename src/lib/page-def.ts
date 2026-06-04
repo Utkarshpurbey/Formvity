@@ -21,9 +21,5 @@ export interface PageDef {
   title: string;
   description?: string;
   components: PageComponentDef[];
-  /**
-   * Key = actionId, value = JS function body (receives `ctx`).
-   * E.g. { "logName": "console.log('changed', ctx.value);" }
-   */
   actions?: Record<string, string>;
 }

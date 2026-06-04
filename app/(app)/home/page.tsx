@@ -3,14 +3,6 @@
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
-function IconCode({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22 12l-4.75 5.25M6.75 17.25 2 12l4.75-5.25" />
-    </svg>
-  );
-}
-
 function IconLayout({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
@@ -28,14 +20,6 @@ function IconSpark({ className }: { className?: string }) {
   );
 }
 
-function IconBook({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6.75 3.75c-1.052 0-2.062.18-3 .512v15.128A9.257 9.257 0 0 1 6.75 18c1.719 0 3.348.415 4.5 1.08M12 6.042A8.967 8.967 0 0 1 17.25 3.75c1.052 0 2.062.18 3 .512v15.128a9.257 9.257 0 0 0-3-.512c-1.719 0-3.348.415-4.5 1.08M12 6.042v15.128" />
-    </svg>
-  );
-}
-
 const productCards: {
   title: string;
   description: string;
@@ -43,14 +27,6 @@ const productCards: {
   cta: string;
   icon: ReactNode;
 }[] = [
-  {
-    title: "Live form preview",
-    description:
-      "Preview the exact end-user experience, test validations, and confirm submissions before sharing with customers or teams.",
-    path: "/live-preview",
-    cta: "Open live preview",
-    icon: <IconCode className="size-6" />,
-  },
   {
     title: "Visual builder",
     description:
@@ -66,14 +42,6 @@ const productCards: {
     path: "/templates",
     cta: "Browse library",
     icon: <IconSpark className="size-6" />,
-  },
-  {
-    title: "Component reference",
-    description:
-      "Props, types, and live demos for every control—so your team ships consistent forms without guesswork.",
-    path: "/components",
-    cta: "View docs",
-    icon: <IconBook className="size-6" />,
   },
 ];
 
@@ -96,7 +64,7 @@ export default function HomePage() {
   const router = useRouter();
 
   return (
-    <div className="flex-1 overflow-y-auto scroll-smooth">
+    <div className="min-h-0 flex-1 overflow-y-auto scroll-smooth">
       <section className="relative overflow-hidden bg-slate-950 text-white">
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_-30%,rgba(99,102,241,0.35),transparent)]"
@@ -146,7 +114,7 @@ export default function HomePage() {
               ["Rich", "Field types & validation"],
               ["Custom", "Brand and workflow control"],
               ["Reliable", "Built for business use"],
-              ["Live", "What you preview is what users get"],
+              ["Share", "Publish links for responders"],
             ].map(([k, v]) => (
               <div key={v}>
                 <dt className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{k}</dt>
@@ -196,20 +164,11 @@ export default function HomePage() {
 
       <section className="border-y border-slate-200 bg-white py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900">Everything in one workspace</h2>
-              <p className="mt-2 max-w-xl text-slate-600">
-                Build, preview, and launch from one place. Advanced teams can still use schema editing when needed.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => router.push("/live-preview")}
-              className="shrink-0 self-start rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 sm:self-auto"
-            >
-              Try live preview
-            </button>
+          <div className="mx-auto max-w-2xl text-center sm:text-left">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900">Everything in one workspace</h2>
+            <p className="mt-2 text-slate-600">
+              Build in the visual editor, publish share links, and manage forms from your dashboard.
+            </p>
           </div>
           <div className="mt-12 grid gap-6 sm:grid-cols-2">
             {productCards.map((card) => (
@@ -242,8 +201,8 @@ export default function HomePage() {
           <ol className="mx-auto mt-14 grid max-w-4xl gap-10 sm:grid-cols-3">
             {[
               { step: "01", title: "Design", desc: "Start from templates or build forms visually." },
-              { step: "02", title: "Preview", desc: "Test validations, labels, and user flow before launch." },
-              { step: "03", title: "Launch", desc: "Ship forms that look professional and support real business workflows." },
+              { step: "02", title: "Publish", desc: "Share a public link when your form is ready." },
+              { step: "03", title: "Collect", desc: "Responders fill the form—no account required." },
             ].map((item) => (
               <li key={item.step} className="relative text-center sm:text-left">
                 <span className="text-5xl font-black tabular-nums text-indigo-100">{item.step}</span>
@@ -270,7 +229,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 text-center sm:flex-row sm:justify-between sm:text-left">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Ready to try Formvity?</h2>
-            <p className="mt-2 text-slate-600">Start in the visual builder and refine themes, fields, and JSON when you need to.</p>
+            <p className="mt-2 text-slate-600">Start in the visual builder and publish when you are ready.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
@@ -282,10 +241,10 @@ export default function HomePage() {
             </button>
             <button
               type="button"
-              onClick={() => router.push("/live-preview")}
+              onClick={() => router.push("/templates")}
               className="h-11 rounded-xl border border-slate-200 px-6 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
             >
-              Live preview
+              Browse templates
             </button>
           </div>
         </div>

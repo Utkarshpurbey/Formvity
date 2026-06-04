@@ -1,16 +1,51 @@
 @import "tailwindcss";
 
-/* Base typography and focus for form aesthetic */
 @layer base {
   html {
-    @apply antialiased;
-    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+    @apply antialiased scroll-smooth;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   }
   body {
     @apply text-slate-800 bg-slate-50;
   }
-  /* Smooth focus ring for keyboard users */
   *:focus-visible {
     @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes form-step-enter {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.form-step-enter {
+  animation: form-step-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .form-step-enter {
+    animation: none;
   }
 }

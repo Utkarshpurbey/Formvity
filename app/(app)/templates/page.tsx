@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PAGE_DEF_TEMPLATES } from "../../../src/lib/page-def-templates";
 import { StyledFormPreview } from "../../../src/components/page-def/builder/StyledFormPreview";
-import { cloneTemplatePageDef, toBuilderPageDef } from "../../../src/lib/template-to-builder-page-def";
+import { cloneTemplatePageDef, toBuilderFormDef } from "../../../src/lib/template-to-builder-page-def";
 
 type TemplateEntry = [string, (typeof PAGE_DEF_TEMPLATES)[string]];
 
@@ -86,8 +86,8 @@ export default function TemplatesRoutePage() {
     return PAGE_DEF_TEMPLATES[previewKey] ?? null;
   }, [previewKey]);
 
-  const previewBuilderPageDef = useMemo(
-    () => (previewKey ? toBuilderPageDef(cloneTemplatePageDef(PAGE_DEF_TEMPLATES[previewKey])) : null),
+  const previewBuilderFormDef = useMemo(
+    () => (previewKey ? toBuilderFormDef(cloneTemplatePageDef(PAGE_DEF_TEMPLATES[previewKey])) : null),
     [previewKey],
   );
 
@@ -163,7 +163,7 @@ export default function TemplatesRoutePage() {
         })}
       </div>
 
-      {previewKey && previewTemplate && previewBuilderPageDef && (
+      {previewKey && previewTemplate && previewBuilderFormDef && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
           role="presentation"
@@ -200,7 +200,7 @@ export default function TemplatesRoutePage() {
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
-              <StyledFormPreview pageDef={previewBuilderPageDef} />
+              <StyledFormPreview formDef={previewBuilderFormDef} />
             </div>
 
             <div className="shrink-0 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-200 bg-white px-5 py-4">

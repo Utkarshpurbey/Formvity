@@ -1,49 +1,57 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { AuthShell } from "@/src/components/layout/AuthShell";
+import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
+import { clearAuthError, registerUser } from "@/src/store/slices/authSlice";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useAppDispatch();
+  const { loading, error, user } = useAppSelector((s) => s.auth);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) router.replace("/workspace");
+  }, [user, router]);
 
   const handleRegister = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLocalError(null);
+    dispatch(clearAuthError());
     const formData = new FormData(event.currentTarget);
-    const name = String(formData.get("name") ?? "").trim();
+    const displayName = String(formData.get("name") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
     const password = String(formData.get("password") ?? "");
 
-    setIsSubmitting(true);
-    const hasValidEmail = /\S+@\S+\.\S+/.test(email);
-    const hasValidPassword = password.length >= 6;
-
-    if (!name || !hasValidEmail || !hasValidPassword) {
-      setErrorMessage("Enter name, a valid email, and a password of at least 6 characters.");
-      toast.error("Registration details are incomplete.");
-      setTimeout(() => setIsSubmitting(false), 300);
+    if (!displayName || !/\S+@\S+\.\S+/.test(email) || password.length < 8) {
+      setLocalError("Enter name, valid email, and password (min 8 characters).");
       return;
     }
 
-    setErrorMessage(null);
-    toast.success("Account created. You are all set!");
-    router.push("/workspace");
-    router.refresh();
-    setTimeout(() => setIsSubmitting(false), 300);
+    dispatch(registerUser({ displayName, email, password }))
+      .unwrap()
+      .then(() => {
+        toast.success("Account created. Welcome!");
+        router.push("/workspace");
+      })
+      .catch((e: Error) => toast.error(e.message ?? "Registration failed"));
   };
 
-  return (
-    <div className="flex flex-1 items-center justify-center bg-slate-100 px-4 py-10">
-      <section className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-7 shadow-sm sm:p-8">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600">Get started</p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-900">Create your Formvity account</h2>
-          <p className="mt-2 text-sm text-slate-500">Connect this flow to your registration API when you are ready.</p>
-        </div>
+  const message = localError ?? error;
 
-        <form className="mt-7 space-y-4" onSubmit={handleRegister}>
+  return (
+    <AuthShell
+      badge="Get started"
+      title="Create your Formvity account"
+      subtitle="Start with a workspace, build your first form, and publish when you are ready."
+    >
+      <section className="page-enter w-full max-w-lg rounded-2xl border border-slate-200/80 bg-white p-8 shadow-xl shadow-slate-900/5">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Sign up</h2>
+        <p className="mt-1 text-sm text-slate-500">Free to start — no credit card required.</p>
+        <form className="mt-8 space-y-4" onSubmit={handleRegister}>
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-slate-700">Full name</span>
             <input
@@ -51,11 +59,10 @@ export default function RegisterPage() {
               type="text"
               required
               autoComplete="name"
-              placeholder="Utkarsh Sharma"
-              className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              placeholder="Jane Doe"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 text-sm transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200"
             />
           </label>
-
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-slate-700">Work email</span>
             <input
@@ -64,20 +71,9 @@ export default function RegisterPage() {
               required
               autoComplete="email"
               placeholder="you@company.com"
-              className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 text-sm transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200"
             />
           </label>
-
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-slate-700">Company (optional)</span>
-            <input
-              name="company"
-              type="text"
-              placeholder="Formvity Labs"
-              className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-            />
-          </label>
-
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-slate-700">Password</span>
             <input
@@ -85,35 +81,28 @@ export default function RegisterPage() {
               type="password"
               required
               autoComplete="new-password"
-              placeholder="At least 6 characters"
-              className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              placeholder="At least 8 characters"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 text-sm transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200"
             />
           </label>
-
-          {errorMessage ? (
-            <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{errorMessage}</p>
+          {message ? (
+            <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-700">{message}</p>
           ) : null}
-
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400"
+            disabled={loading}
+            className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-md shadow-indigo-600/20 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400"
           >
-            {isSubmitting ? "Creating account..." : "Create account"}
+            {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
-
-        <p className="mt-4 text-center text-sm text-slate-500">
+        <p className="mt-6 text-center text-sm text-slate-500">
           Already registered?{" "}
-          <button
-            type="button"
-            onClick={() => router.push("/login")}
-            className="font-semibold text-indigo-600 hover:text-indigo-700"
-          >
+          <button type="button" onClick={() => router.push("/login")} className="font-semibold text-indigo-600 hover:text-indigo-700">
             Log in
           </button>
         </p>
       </section>
-    </div>
+    </AuthShell>
   );
 }

@@ -1,33 +1,26 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
-import type { PageDef } from "../../../src/components/page-def/builder/pageDef";
-import ComponentPalette from "../../../src/components/page-def/builder/ComponentPalette";
+import type { FormDef, FormPageDef } from "../../../src/components/page-def/builder/pageDef";
+import BuilderLeftPanel from "../../../src/components/page-def/builder/BuilderLeftPanel";
+import { BuilderTopBar, type SaveState } from "../../../src/components/page-def/builder/BuilderTopBar";
 import PageCanvas from "../../../src/components/page-def/builder/PageCanvas";
 import ComponentConfigPanel from "../../../src/components/page-def/builder/ComponentConfigPanel";
-import { useFormBuilderDraft } from "../../../src/context/FormBuilderDraftContext";
+import { PublishFlowModal, type PublishModalMode } from "../../../src/components/publish/PublishFlowModal";
+import { EMPTY_FORM_DEF, getActivePage, getPageIndex, normalizeFormDef } from "../../../src/lib/normalizeFormDef";
 import { PAGE_DEF_TEMPLATES } from "../../../src/lib/page-def-templates";
-import { cloneTemplatePageDef, toBuilderPageDef } from "../../../src/lib/template-to-builder-page-def";
-
-const INITIAL_PAGE_DEF: PageDef = {
-  id: "page-1",
-  title: "New page",
-  description: "",
-  formSettings: {
-    appearance: {
-      primaryColor: "#4f46e5",
-      backgroundColor: "#eef2ff",
-      surfaceColor: "#ffffff",
-      textColor: "#0f172a",
-      borderRadius: "md",
-      submitStyle: "solid",
-      inputStyle: "outline",
-    },
-  },
-  components: [],
-};
+import { cloneTemplatePageDef, toBuilderFormDef } from "../../../src/lib/template-to-builder-page-def";
+import { useAppDispatch, useAppSelector } from "../../../src/store/hooks";
+import {
+  clearFormsError,
+  fetchPublishStatus,
+  loadFormDraft,
+  publishForm,
+  saveFormDraft,
+} from "../../../src/store/slices/formsSlice";
+import { buildPublicUrl } from "../../../src/utils/publicUrl";
 
 type CenterView = "preview" | "json";
 
@@ -36,13 +29,90 @@ const DEBOUNCE_MS = 400;
 function BuilderPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setSavedFormDef } = useFormBuilderDraft();
+  const dispatch = useAppDispatch();
+  const saving = useAppSelector((s) => s.forms.saving);
+  const publishing = useAppSelector((s) => s.forms.publishing);
+  const publishStatus = useAppSelector((s) => s.forms.publishStatus);
+  const lastPublishResult = useAppSelector((s) => s.forms.lastPublishResult);
+  const publishError = useAppSelector((s) => s.forms.error);
 
-  const [pageDef, setPageDef] = useState<PageDef>(INITIAL_PAGE_DEF);
+  const workspaceId = searchParams.get("workspaceId") ?? "";
+  const formId = searchParams.get("formId") ?? "";
+  const apiMode = Boolean(workspaceId && formId);
+
+  const formFromList = useAppSelector((s) =>
+    workspaceId ? (s.forms.byWorkspace[workspaceId] ?? []).find((f) => f.id === formId) : undefined,
+  );
+
+  const [formDef, setFormDef] = useState<FormDef>(EMPTY_FORM_DEF);
+  const [activePageId, setActivePageId] = useState(EMPTY_FORM_DEF.pages[0]!.id);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [centerView, setCenterView] = useState<CenterView>("preview");
-  const [jsonInput, setJsonInput] = useState(JSON.stringify(INITIAL_PAGE_DEF, null, 2));
+  const [jsonInput, setJsonInput] = useState(JSON.stringify(EMPTY_FORM_DEF, null, 2));
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(!apiMode);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [publishModalMode, setPublishModalMode] = useState<PublishModalMode>("publish");
+
+  const activePage = useMemo(
+    () => getActivePage(formDef, activePageId) ?? formDef.pages[0]!,
+    [formDef, activePageId],
+  );
+
+  const pageIndex = useMemo(() => getPageIndex(formDef, activePage.id), [formDef, activePage.id]);
+  const isLastPage = pageIndex === formDef.pages.length - 1;
+  const isFirstPage = pageIndex <= 0;
+
+  const formDefJson = useMemo(() => JSON.stringify(formDef), [formDef]);
+
+  const saveState: SaveState = useMemo(() => {
+    if (saving) return "saving";
+    if (apiMode && savedSnapshot !== null && formDefJson !== savedSnapshot) return "unsaved";
+    return "saved";
+  }, [saving, apiMode, savedSnapshot, formDefJson]);
+
+  const effectivePublishStatus = useMemo(() => {
+    if (publishStatus) return publishStatus;
+    if (formFromList?.status === "PUBLISHED") {
+      return {
+        status: "published" as const,
+        draftChangedSincePublish: saveState === "unsaved",
+      };
+    }
+    return null;
+  }, [publishStatus, formFromList?.status, saveState]);
+
+  const updateActivePage = useCallback((updater: (prev: FormPageDef) => FormPageDef) => {
+    setFormDef((prev) => ({
+      ...prev,
+      pages: prev.pages.map((p) => (p.id === activePageId ? updater(p) : p)),
+    }));
+  }, [activePageId]);
+
+  useEffect(() => {
+    if (!apiMode) return;
+    dispatch(loadFormDraft({ workspaceId, formId }))
+      .unwrap()
+      .then(({ draft }) => {
+        const parsed = normalizeFormDef(draft);
+        if (parsed) {
+          setFormDef(parsed);
+          setActivePageId(parsed.pages[0]!.id);
+          setSavedSnapshot(JSON.stringify(parsed));
+        }
+        setLoaded(true);
+      })
+      .catch((e: Error) => {
+        toast.error(e.message ?? "Could not load form");
+        setLoaded(true);
+      });
+  }, [apiMode, workspaceId, formId, dispatch]);
+
+  useEffect(() => {
+    if (!apiMode || !loaded) return;
+    dispatch(fetchPublishStatus({ workspaceId, formId }));
+  }, [apiMode, loaded, workspaceId, formId, dispatch]);
 
   useEffect(() => {
     const templateKey = searchParams.get("template");
@@ -56,8 +126,9 @@ function BuilderPageInner() {
     }
 
     try {
-      const parsed = toBuilderPageDef(cloneTemplatePageDef(template));
-      setPageDef(parsed);
+      const parsed = toBuilderFormDef(cloneTemplatePageDef(template));
+      setFormDef(parsed);
+      setActivePageId(parsed.pages[0]!.id);
       setSelectedId(null);
       setCenterView("preview");
       setJsonError(null);
@@ -70,19 +141,19 @@ function BuilderPageInner() {
   }, [searchParams, router]);
 
   useEffect(() => {
-    setJsonInput(JSON.stringify(pageDef, null, 2));
-  }, [pageDef]);
+    setJsonInput(JSON.stringify(formDef, null, 2));
+  }, [formDef]);
 
   useEffect(() => {
     if (centerView !== "json") return;
     const t = setTimeout(() => {
       setJsonError(null);
       try {
-        const parsed = JSON.parse(jsonInput) as PageDef;
-        if (!parsed?.id || !parsed?.title || !Array.isArray(parsed.components)) {
-          throw new Error("Need id, title, and components array.");
-        }
-        setPageDef(parsed);
+        const parsed = JSON.parse(jsonInput) as unknown;
+        const normalized = normalizeFormDef(parsed);
+        if (!normalized) throw new Error("Need version 1 FormDef with pages[], or legacy single-page shape.");
+        setFormDef(normalized);
+        setActivePageId(normalized.pages[0]!.id);
       } catch (e) {
         setJsonError(e instanceof Error ? e.message : "Invalid JSON");
       }
@@ -90,105 +161,162 @@ function BuilderPageInner() {
     return () => clearTimeout(t);
   }, [centerView, jsonInput]);
 
-  const selectedComponent = pageDef.components.find((c) => c.id === selectedId) ?? null;
+  const selectedComponent = activePage.components.find((c) => c.id === selectedId) ?? null;
 
   const deleteSelected = useCallback(() => {
     if (!selectedId) return;
-    setPageDef((prev) => ({
+    updateActivePage((prev) => ({
       ...prev,
       components: prev.components.filter((c) => c.id !== selectedId),
     }));
     setSelectedId(null);
-  }, [selectedId]);
+  }, [selectedId, updateActivePage]);
+
+  const persistDraft = useCallback(async () => {
+    if (!apiMode) {
+      toast.success("Draft saved.");
+      return;
+    }
+    await dispatch(
+      saveFormDraft({ workspaceId, formId, title: formDef.title, draftPageDef: formDef }),
+    ).unwrap();
+    setSavedSnapshot(formDefJson);
+  }, [apiMode, dispatch, formDef, formDefJson, formId, workspaceId]);
 
   const handleSave = () => {
-    setSavedFormDef(pageDef);
-      toast.success("Draft saved in memory for this session. Open Workspace to continue, or connect your API for persistence.");
+    persistDraft()
+      .then(() => {
+        if (apiMode) toast.success("Saved to API.");
+      })
+      .catch((e: Error) => toast.error(e.message));
   };
 
+  useEffect(() => {
+    if (!apiMode || !loaded) return;
+    const t = setTimeout(() => {
+      dispatch(saveFormDraft({ workspaceId, formId, title: formDef.title, draftPageDef: formDef }))
+        .unwrap()
+        .then(() => setSavedSnapshot(JSON.stringify(formDef)))
+        .catch(() => undefined);
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [apiMode, loaded, workspaceId, formId, formDef, dispatch]);
+
+  const openPublishModal = (mode: PublishModalMode) => {
+    dispatch(clearFormsError());
+    setPublishModalMode(mode);
+    setPublishModalOpen(true);
+  };
+
+  const closePublishModal = () => {
+    setPublishModalOpen(false);
+    dispatch(clearFormsError());
+  };
+
+  const handlePublish = async (slug?: string) => {
+    if (!apiMode) return;
+    await dispatch(
+      saveFormDraft({ workspaceId, formId, title: formDef.title, draftPageDef: formDef }),
+    ).unwrap();
+    setSavedSnapshot(formDefJson);
+    return dispatch(publishForm({ workspaceId, formId, slug })).unwrap();
+  };
+
+  const existingSlug = effectivePublishStatus?.slug ?? lastPublishResult?.slug;
+  const existingPublicUrl =
+    effectivePublishStatus?.publicUrl ??
+    lastPublishResult?.publicUrl ??
+    (existingSlug ? buildPublicUrl(existingSlug) : undefined);
+
+  if (apiMode && !loaded) {
+    return (
+      <div className="flex flex-1 items-center justify-center bg-slate-100 text-sm text-slate-600">Loading form…</div>
+    );
+  }
+
   return (
-    <div className="flex flex-1 min-h-0 bg-slate-100">
-      <aside className="w-64 shrink-0 bg-white border-r border-slate-200 shadow-sm overflow-hidden flex flex-col">
-        <ComponentPalette />
+    <div className="flex min-h-0 flex-1 bg-slate-100">
+      <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white shadow-sm">
+        <BuilderLeftPanel
+          formDef={formDef}
+          activePageId={activePageId}
+          onActivePageChange={setActivePageId}
+          onFormDefChange={setFormDef}
+          onClearSelection={() => setSelectedId(null)}
+        />
       </aside>
-      <main className="flex-1 min-w-0 p-4 overflow-hidden flex flex-col">
-        <div
-          className="mb-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-600 shadow-sm"
-          role="region"
-          aria-label="Builder tips"
-        >
-          <span className="font-semibold text-slate-800">Tips: </span>
-          Drag a field from the left onto the page. Click a field to edit it in the right panel. Use{" "}
-          <strong className="text-slate-800">Save</strong> to keep your draft in this session (see Workspace when you wire persistence).
-        </div>
-        <div className="flex gap-1 mb-3 items-center justify-between">
-          <div className="flex gap-1">
-            <button
-              type="button"
-              onClick={() => setCenterView("preview")}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                centerView === "preview"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              Preview
-            </button>
-            <button
-              type="button"
-              onClick={() => setCenterView("json")}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                centerView === "json"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              JSON
-            </button>
-          </div>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="px-4 py-2 rounded-xl text-sm font-medium bg-emerald-600 text-white shadow-md hover:bg-emerald-700"
-          >
-            Save
-          </button>
-        </div>
+      <main className="flex min-w-0 flex-1 flex-col overflow-hidden p-4">
+        <BuilderTopBar
+          formTitle={formDef.title}
+          centerView={centerView}
+          onCenterViewChange={setCenterView}
+          saveState={saveState}
+          apiMode={apiMode}
+          publishStatus={effectivePublishStatus}
+          onSave={handleSave}
+          onPublish={() => openPublishModal("publish")}
+          onShare={() => openPublishModal("share")}
+          onUpdateLive={() => openPublishModal("republish")}
+          saving={saving}
+        />
         {centerView === "preview" ? (
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <PageCanvas
-              pageDef={pageDef}
+              key={activePage.id}
+              formDef={formDef}
+              page={activePage}
+              pageIndex={pageIndex}
+              totalPages={formDef.pages.length}
               selectedId={selectedId}
               onSelect={setSelectedId}
-              onPageDefChange={setPageDef}
+              onFormDefChange={setFormDef}
+              onPageChange={updateActivePage}
+              isLastPage={isLastPage}
+              isFirstPage={isFirstPage}
             />
           </div>
         ) : (
-          <div className="flex-1 min-h-0 flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden">
-            <div className="p-3 border-b border-slate-200">
-              <span className="text-sm text-slate-600">PageDef JSON — edits update the form automatically</span>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div className="border-b border-slate-200 p-3">
+              <span className="text-sm text-slate-600">FormDef JSON — full document including all pages</span>
             </div>
             <textarea
               value={jsonInput}
               onChange={(e) => setJsonInput(e.target.value)}
-              className="flex-1 w-full p-4 font-mono text-sm text-slate-800 bg-slate-50 focus:outline-none resize-none"
+              className="w-full flex-1 resize-none bg-slate-50 p-4 font-mono text-sm text-slate-800 focus:outline-none"
               spellCheck={false}
             />
-            {jsonError && (
-              <p className="px-4 py-2 text-sm text-rose-600 bg-rose-50 border-t border-rose-100">{jsonError}</p>
-            )}
+            {jsonError ? (
+              <p className="border-t border-rose-100 bg-rose-50 px-4 py-2 text-sm text-rose-600">{jsonError}</p>
+            ) : null}
           </div>
         )}
       </main>
-      <aside className="w-72 shrink-0 bg-white border-l border-slate-200 shadow-sm overflow-hidden flex flex-col">
+      <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-l border-slate-200 bg-white shadow-sm">
         <ComponentConfigPanel
-          pageDef={pageDef}
+          formDef={formDef}
           selectedComponent={selectedComponent}
-          onPageDefChange={setPageDef}
+          onFormDefChange={setFormDef}
+          onPageChange={updateActivePage}
           onClearSelection={() => setSelectedId(null)}
           onDeleteSelected={selectedId ? deleteSelected : undefined}
         />
       </aside>
+
+      {apiMode ? (
+        <PublishFlowModal
+          open={publishModalOpen}
+          mode={publishModalMode}
+          formDef={formDef}
+          existingSlug={existingSlug}
+          existingPublicUrl={existingPublicUrl}
+          publishing={publishing}
+          onClose={closePublishModal}
+          onPublish={handlePublish}
+          publishResult={lastPublishResult}
+          error={publishError}
+        />
+      ) : null}
     </div>
   );
 }
