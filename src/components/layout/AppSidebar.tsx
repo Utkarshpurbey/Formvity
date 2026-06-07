@@ -6,11 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { logoutUser } from "../../store/slices/authSlice";
+import { stripAppBasePath } from "../../utils/appBasePath";
 
 const nav = [
-  { href: "/workspace", label: "Dashboard", icon: "grid" },
-  { href: "/builder", label: "Builder", icon: "layout" },
+  { href: "/workspaces", label: "Workspaces", icon: "grid" },
   { href: "/templates", label: "Templates", icon: "spark" },
+  { href: "/builder", label: "Builder", icon: "layout" },
 ];
 
 function NavIcon({ name }: { name: string }) {
@@ -40,8 +41,19 @@ function initials(name: string) {
   return name.slice(0, 2).toUpperCase();
 }
 
+function isNavActive(routePath: string, href: string): boolean {
+  if (href === "/workspaces") {
+    return routePath === "/workspaces" || routePath.startsWith("/workspaces/") || routePath === "/workspace";
+  }
+  if (href === "/builder") {
+    return routePath === "/builder" || routePath.startsWith("/builder/");
+  }
+  return routePath === href || routePath.startsWith(`${href}/`);
+}
+
 export const AppSidebar = memo(function AppSidebar() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
+  const routePath = stripAppBasePath(pathname);
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
@@ -55,24 +67,26 @@ export const AppSidebar = memo(function AppSidebar() {
   return (
     <aside className="hidden w-[240px] shrink-0 flex-col border-r border-slate-200/80 bg-white lg:flex">
       <div className="flex h-14 items-center gap-2.5 border-b border-slate-100 px-5">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25">
-          <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z" />
-          </svg>
-        </div>
-        <span className="text-sm font-bold tracking-tight text-slate-900">Formvity</span>
+        <Link href="/workspaces" className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/25">
+            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z" />
+            </svg>
+          </div>
+          <span className="text-sm font-bold tracking-tight text-slate-900">Formvity</span>
+        </Link>
       </div>
 
-      <nav className="flex-1 space-y-0.5 p-3" aria-label="App">
+      <nav className="flex-1 space-y-0.5 p-3" aria-label="Main navigation">
         {nav.map(({ href, label, icon }) => {
-          const active = pathname === href || (href !== "/workspace" && pathname.startsWith(href));
+          const active = isNavActive(routePath, href);
           return (
             <Link
               key={href}
               href={href}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                 active
-                  ? "bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-500/5"
+                  ? "bg-violet-50 text-violet-700 shadow-sm shadow-violet-500/5"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
@@ -86,7 +100,7 @@ export const AppSidebar = memo(function AppSidebar() {
       {user ? (
         <div className="border-t border-slate-100 p-3">
           <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-bold text-white">
               {initials(user.displayName)}
             </span>
             <div className="min-w-0 flex-1">

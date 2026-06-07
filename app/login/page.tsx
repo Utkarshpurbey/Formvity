@@ -14,7 +14,7 @@ export default function LoginRoutePage() {
   const { loading, error, user } = useAppSelector((s) => s.auth);
 
   useEffect(() => {
-    if (user) router.replace("/workspace");
+    if (user) router.replace("/workspaces");
   }, [user, router]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -27,7 +27,7 @@ export default function LoginRoutePage() {
       .unwrap()
       .then(() => {
         toast.success("Signed in successfully.");
-        router.push("/workspace");
+        router.push("/workspaces");
       })
       .catch((e: Error) => toast.error(e.message ?? "Sign in failed"));
   };

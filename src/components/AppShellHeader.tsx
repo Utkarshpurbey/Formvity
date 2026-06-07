@@ -6,13 +6,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
+import { stripAppBasePath } from "../utils/appBasePath";
 import { Spinner } from "./ui/Spinner";
 
 /** Signed-in maker nav — shared forms for respondents will live on public links later, not here. */
 const workspaceNav = [
-  { href: "/workspace", label: "Workspace" },
-  { href: "/builder", label: "Builder" },
+  { href: "/workspaces", label: "Workspaces" },
   { href: "/templates", label: "Templates" },
+  { href: "/builder", label: "Builder" },
 ];
 
 /** Marketing / signed-out only (no internal dev tools). */
@@ -37,7 +38,8 @@ function initials(user: { displayName: string; email?: string }) {
 }
 
 export function AppShellHeader() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
+  const routePath = stripAppBasePath(pathname);
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user, ready } = useAppSelector((s) => s.auth);
@@ -71,9 +73,9 @@ export function AppShellHeader() {
     router.push("/home");
   };
 
-  const isHome = pathname === "/home";
-  const userLabel = isHome ? "Account" : user?.displayName;
-  const primaryNav = user && !isHome ? workspaceNav : exploreNav;
+  const isHome = routePath === "/home";
+  const userLabel = user?.displayName ?? "Account";
+  const primaryNav = user ? workspaceNav : exploreNav;
 
   if (!ready) {
     return (
@@ -107,13 +109,13 @@ export function AppShellHeader() {
 
           <nav className="hidden min-w-0 items-center gap-0.5 md:flex" aria-label="Primary">
             {primaryNav.map(({ href, label }) => (
-              <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined} className={navLinkClass(pathname === href)}>
+              <Link key={href} href={href} aria-current={routePath === href ? "page" : undefined} className={navLinkClass(routePath === href || (href === "/workspaces" && routePath.startsWith("/workspaces")))}>
                 {label}
               </Link>
             ))}
             {user && isHome ? (
-              <Link href="/workspace" className={navLinkClass(false)}>
-                Dashboard
+              <Link href="/home" className={navLinkClass(true)}>
+                Home
               </Link>
             ) : null}
           </nav>
@@ -221,14 +223,14 @@ export function AppShellHeader() {
       {menuOpen && user ? (
         <div ref={userMobilePanelRef} className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
           <nav className="flex flex-col gap-1" aria-label="Mobile">
-            {(isHome ? exploreNav : workspaceNav).map(({ href, label }) => (
+            {(user ? workspaceNav : exploreNav).map(({ href, label }) => (
               <Link key={href} href={href} className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => setMenuOpen(false)}>
                 {label}
               </Link>
             ))}
             {user && isHome ? (
-              <Link href="/workspace" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => setMenuOpen(false)}>
-                Dashboard
+              <Link href="/home" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => setMenuOpen(false)}>
+                Home
               </Link>
             ) : null}
             <button type="button" className="rounded-lg px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-rose-50" onClick={handleLogout}>

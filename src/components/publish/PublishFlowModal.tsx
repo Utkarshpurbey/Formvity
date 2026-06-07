@@ -85,8 +85,7 @@ export function PublishFlowModal({
 
   const handleSubmit = async () => {
     setStep("publishing");
-    const slugToSend = slugLocked ? undefined : slug.trim() || suggestedSlug;
-    await onPublish(slugToSend);
+    await onPublish();
   };
 
   if (!open) return null;
@@ -126,25 +125,17 @@ export function PublishFlowModal({
               </div>
             </dl>
 
-            <div className="mt-4">
-              <label htmlFor="publish-slug" className="mb-1 block text-xs font-medium text-slate-600">
-                Public URL slug
-              </label>
-              <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                <span className="shrink-0 text-xs text-slate-400">/r/</span>
-                <input
-                  id="publish-slug"
-                  type="text"
-                  value={slugLocked ? existingSlug ?? effectiveSlug : slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                  readOnly={slugLocked}
-                  className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 focus:outline-none"
-                  placeholder={suggestedSlug}
-                />
-              </div>
-              {!slugLocked ? (
-                <p className="mt-1 text-[11px] text-slate-400">Lowercase letters, numbers, and hyphens only.</p>
-              ) : null}
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-xs font-medium text-slate-600">Public link</p>
+              <p className="mt-1 text-sm text-slate-700">
+                {slugLocked && existingSlug ? (
+                  <>
+                    Your form stays at <span className="font-mono text-xs">/r/{existingSlug}</span>
+                  </>
+                ) : (
+                  "The server will assign a unique public URL when you publish."
+                )}
+              </p>
             </div>
 
             <div className="mt-6 flex justify-end gap-2">

@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) router.replace("/workspace");
+    if (user) router.replace("/workspaces");
   }, [user, router]);
 
   const handleRegister = (event: FormEvent<HTMLFormElement>) => {
@@ -36,7 +36,7 @@ export default function RegisterPage() {
       .unwrap()
       .then(() => {
         toast.success("Account created. Welcome!");
-        router.push("/workspace");
+        router.push("/workspaces");
       })
       .catch((e: Error) => toast.error(e.message ?? "Registration failed"));
   };

@@ -1,5 +1,7 @@
 import { apiData } from "./http";
-import type { WorkspaceMember, WorkspaceSummary } from "./types";
+import type { WorkspaceDashboard, WorkspaceMember, WorkspaceSummary } from "./types";
+import { normalizeWorkspaceDashboard } from "../lib/normalizeDashboard";
+import { normalizeMemberList } from "../lib/normalizeMember";
 import { normalizeWorkspaceList, normalizeWorkspaceSummary } from "../lib/normalizeWorkspace";
 
 export async function listWorkspaces(): Promise<WorkspaceSummary[]> {
@@ -22,6 +24,12 @@ export function deleteWorkspace(workSpaceId: string) {
   return apiData<string>(`workspaces/${workSpaceId}`, { method: "DELETE" });
 }
 
-export function listMembers(workSpaceId: string) {
-  return apiData<WorkspaceMember[]>(`workspaces/${workSpaceId}/members`);
+export async function getWorkspaceDashboard(workSpaceId: string): Promise<WorkspaceDashboard> {
+  const raw = await apiData<unknown>(`workspaces/${workSpaceId}/dashboard`);
+  return normalizeWorkspaceDashboard(raw);
+}
+
+export async function listMembers(workSpaceId: string): Promise<WorkspaceMember[]> {
+  const raw = await apiData<unknown>(`workspaces/${workSpaceId}/members`);
+  return normalizeMemberList(raw);
 }

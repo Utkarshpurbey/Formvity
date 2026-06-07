@@ -158,7 +158,7 @@ export default function PageCanvas({
       />
       <div className="relative mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col p-3 sm:p-4">
         <p className="mb-2 text-center text-[11px] font-medium uppercase tracking-[0.12em] text-[color:var(--fb-muted)]">
-          Preview · Page {pageIndex + 1} of {totalPages}
+          Page {pageIndex + 1} of {totalPages}
         </p>
         <div
           className={`${formCardShellClass} flex min-h-0 flex-1 flex-col overflow-hidden bg-[color:var(--fb-surface)] text-[color:var(--fb-text)]`}

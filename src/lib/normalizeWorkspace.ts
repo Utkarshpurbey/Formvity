@@ -3,9 +3,11 @@ import type { WorkspaceSummary } from "../api/types";
 /** Map backend field names (workspaceId / workspaceName) to app shape. */
 export function normalizeWorkspaceSummary(raw: unknown): WorkspaceSummary {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const formCountRaw = r.formCount;
   return {
     workSpaceId: String(r.workSpaceId ?? r.workspaceId ?? r.id ?? ""),
     workSpaceName: String(r.workSpaceName ?? r.workspaceName ?? r.name ?? "Workspace"),
+    formCount: typeof formCountRaw === "number" ? formCountRaw : undefined,
   };
 }
 

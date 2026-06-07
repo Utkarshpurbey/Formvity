@@ -3,6 +3,7 @@ import type { FormStatus } from "../../api/types";
 const STATUS_CLASS: Record<FormStatus, string> = {
   PUBLISHED: "bg-emerald-50 text-emerald-700 ring-emerald-600/10",
   DRAFT: "bg-amber-50 text-amber-800 ring-amber-600/10",
+  UNPUBLISHED: "bg-amber-50 text-amber-800 ring-amber-600/15",
   EXPIRED: "bg-slate-100 text-slate-600 ring-slate-500/10",
   ARCHIVED: "bg-slate-100 text-slate-600 ring-slate-500/10",
 };

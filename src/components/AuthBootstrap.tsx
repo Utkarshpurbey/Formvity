@@ -4,12 +4,11 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { loadMe, markAuthReady } from "../store/slices/authSlice";
-import { isPublicAuthPath } from "../lib/auth/publicPaths";
 import { getAuthToken } from "../utils/authHeaders";
 
 /**
- * Public routes: mark ready without /auth/me.
- * Protected routes: hydrate user from JWT via GET /auth/me when token exists.
+ * Hydrate the signed-in user whenever a JWT exists — including on marketing
+ * routes like /home and /templates so navigation does not appear to log out.
  */
 export function AuthBootstrap() {
   const dispatch = useAppDispatch();
@@ -18,12 +17,9 @@ export function AuthBootstrap() {
   const ready = useAppSelector((s) => s.auth.ready);
 
   useEffect(() => {
-    if (isPublicAuthPath(pathname)) {
-      dispatch(markAuthReady());
-      return;
-    }
+    const token = getAuthToken();
 
-    if (!getAuthToken()) {
+    if (!token) {
       if (!ready) dispatch(markAuthReady());
       return;
     }

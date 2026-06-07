@@ -1,5 +1,9 @@
 import type { FormDef } from "../components/page-def/builder/pageDef";
-import { apiData } from "./http";
+import {
+  normalizePublicationResponse,
+  normalizeUnpublishResponse,
+} from "../lib/normalizePublication";
+import { ApiError, apiData } from "./http";
 import type { DraftPageDef, FormEntity, FormSummary, PublishResponse, PublishStatus } from "./types";
 
 export function listForms(workspaceId: string) {
@@ -40,17 +44,30 @@ export function deleteForm(workspaceId: string, formId: string, hard = false) {
   return apiData<string>(`workspaces/${workspaceId}/forms/${formId}${q}`, { method: "DELETE" });
 }
 
-export function getPublishStatus(workspaceId: string, formId: string) {
-  return apiData<PublishStatus>(`workspaces/${workspaceId}/forms/${formId}/publish-status`);
-}
-
-export function publishForm(
+/** Optional endpoint — returns null when backend has no publish-status route (404). */
+export async function getPublishStatus(
   workspaceId: string,
   formId: string,
-  body?: { slug?: string; regenerateSlug?: boolean },
-) {
-  return apiData<PublishResponse>(`workspaces/${workspaceId}/forms/${formId}/publish`, {
+): Promise<PublishStatus | null> {
+  try {
+    return await apiData<PublishStatus>(`workspaces/${workspaceId}/forms/${formId}/publish-status`);
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) return null;
+    throw e;
+  }
+}
+
+/** Backend generates slug; no request body required. */
+export async function publishForm(workspaceId: string, formId: string): Promise<PublishResponse> {
+  const raw = await apiData<unknown>(`workspaces/${workspaceId}/forms/${formId}/publish`, {
     method: "POST",
-    body: body ? JSON.stringify(body) : undefined,
   });
+  return normalizePublicationResponse(raw, formId);
+}
+
+export async function unpublishForm(workspaceId: string, formId: string): Promise<PublishStatus> {
+  const raw = await apiData<unknown>(`workspaces/${workspaceId}/forms/${formId}/unpublish`, {
+    method: "POST",
+  });
+  return normalizeUnpublishResponse(raw);
 }

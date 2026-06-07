@@ -31,18 +31,37 @@ export type UserDto = {
   email: string;
 };
 
+export type WorkspaceRole = "ADMIN" | "EDITOR" | "VIEWER" | "ATTENDEE";
+
 export type WorkspaceSummary = {
   workSpaceId: string;
   workSpaceName: string;
+  formCount?: number;
+};
+
+export type WorkspaceDashboard = {
+  workspaceId: string;
+  workspaceName: string;
+  formCount: number;
+  recentForms: FormSummary[];
 };
 
 export type WorkspaceMember = {
   userId: string;
-  workSpaceName?: string;
-  role: string;
+  displayName?: string;
+  email?: string;
+  role: WorkspaceRole;
 };
 
-export type FormStatus = "DRAFT" | "PUBLISHED" | "EXPIRED" | "ARCHIVED";
+export type PublicationMeta = {
+  slug?: string;
+  publicUrl?: string;
+  publishedAt?: string;
+  lastPublishedAt?: string;
+  isLive?: boolean;
+};
+
+export type FormStatus = "DRAFT" | "PUBLISHED" | "UNPUBLISHED" | "EXPIRED" | "ARCHIVED";
 
 export type FormSummary = {
   id: string;

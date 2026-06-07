@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import type { PublishStatus } from "../../../api/types";
+import type { FormLifecycle } from "../../../lib/formLifecycle";
+import { FormLifecycleBadge } from "../../ui/FormLifecycleBadge";
+import { PublicLinkPanel } from "../../publish/PublicLinkPanel";
 import { Spinner } from "../../ui/Spinner";
 
-export type CenterView = "preview" | "json";
 export type SaveState = "saving" | "saved" | "unsaved";
 
 type BuilderTopBarProps = {
   formTitle: string;
-  centerView: CenterView;
-  onCenterViewChange: (view: CenterView) => void;
   saveState: SaveState;
   apiMode: boolean;
-  publishStatus: PublishStatus | null;
+  lifecycle: FormLifecycle | null;
+  showJson: boolean;
+  onToggleJson: () => void;
   onSave: () => void;
   onPublish: () => void;
   onShare: () => void;
@@ -44,11 +45,11 @@ function SaveIndicator({ state }: { state: SaveState }) {
 
 export function BuilderTopBar({
   formTitle,
-  centerView,
-  onCenterViewChange,
   saveState,
   apiMode,
-  publishStatus,
+  lifecycle,
+  showJson,
+  onToggleJson,
   onSave,
   onPublish,
   onShare,
@@ -56,104 +57,94 @@ export function BuilderTopBar({
   saving,
   publishing = false,
 }: BuilderTopBarProps) {
-  const isPublished = publishStatus?.status === "published";
-  const hasDraftDrift = Boolean(publishStatus?.draftChangedSincePublish);
+  const isLive = lifecycle?.kind === "live";
+  const hasDraftDrift = Boolean(lifecycle?.draftChangedSincePublish);
+  const isUnpublished = lifecycle?.kind === "unpublished";
+  const isNeverPublished = lifecycle?.kind === "never_published";
 
   return (
-    <header className="mb-3 flex shrink-0 flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <Link
-          href="/workspace"
-          className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
-        >
-          ← Workspace
-        </Link>
-        <span className="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden />
-        <p className="min-w-0 truncate text-sm font-semibold text-slate-900">{formTitle.trim() || "Untitled form"}</p>
-        {apiMode && isPublished ? (
-          <span className="hidden shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-600/15 sm:inline-flex">
-            <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden />
-            Live
-          </span>
-        ) : null}
-      </div>
+    <header className="mb-3 flex shrink-0 flex-col gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <Link
+            href="/workspaces"
+            className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+          >
+            ← Workspace
+          </Link>
+          <span className="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden />
+          <p className="min-w-0 truncate text-sm font-semibold text-slate-900">{formTitle.trim() || "Untitled form"}</p>
+          {apiMode && lifecycle ? <FormLifecycleBadge lifecycle={lifecycle} /> : null}
+        </div>
 
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={() => onCenterViewChange("preview")}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-            centerView === "preview"
-              ? "bg-indigo-600 text-white shadow-sm"
-              : "text-slate-600 hover:bg-slate-50"
-          }`}
-        >
-          Preview
-        </button>
-        <button
-          type="button"
-          onClick={() => onCenterViewChange("json")}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-            centerView === "json"
-              ? "bg-indigo-600 text-white shadow-sm"
-              : "text-slate-600 hover:bg-slate-50"
-          }`}
-        >
-          JSON
-        </button>
-      </div>
-
-      <div className="flex items-center gap-2 sm:gap-3">
-        <SaveIndicator state={saveState} />
-        {!apiMode ? (
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
-            onClick={onSave}
-            disabled={saving}
-            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+            onClick={onToggleJson}
+            className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+              showJson ? "bg-slate-800 text-white" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+            }`}
+            title="Edit raw FormDef JSON"
           >
-            Save
+            JSON
           </button>
-        ) : (
-          <>
-            {isPublished && !hasDraftDrift ? (
-              <button
-                type="button"
-                onClick={onShare}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Share
-              </button>
-            ) : null}
-            {isPublished && hasDraftDrift ? (
-              <button
-                type="button"
-                onClick={onUpdateLive}
-                className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
-              >
-                Update live
-              </button>
-            ) : null}
-            {!isPublished ? (
-              <button
-                type="button"
-                onClick={onPublish}
-                disabled={publishing}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {publishing ? (
-                  <>
-                    <Spinner size="sm" className="border-white/30 border-t-white" />
-                    Publishing…
-                  </>
-                ) : (
-                  "Publish"
-                )}
-              </button>
-            ) : null}
-          </>
-        )}
+          <SaveIndicator state={saveState} />
+          {!apiMode ? (
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={saving}
+              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+            >
+              Save
+            </button>
+          ) : (
+            <>
+              {isLive && !hasDraftDrift ? (
+                <button
+                  type="button"
+                  onClick={onShare}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Share
+                </button>
+              ) : null}
+              {isLive && hasDraftDrift ? (
+                <button
+                  type="button"
+                  onClick={onUpdateLive}
+                  className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
+                >
+                  Update live
+                </button>
+              ) : null}
+              {(isNeverPublished || isUnpublished) && !isLive ? (
+                <button
+                  type="button"
+                  onClick={onPublish}
+                  disabled={publishing}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {publishing ? (
+                    <>
+                      <Spinner size="sm" className="border-white/30 border-t-white" />
+                      Publishing…
+                    </>
+                  ) : isUnpublished ? (
+                    "Publish again"
+                  ) : (
+                    "Publish"
+                  )}
+                </button>
+              ) : null}
+            </>
+          )}
+        </div>
       </div>
+
+      {apiMode && isLive && lifecycle.publicUrl ? (
+        <PublicLinkPanel publicUrl={lifecycle.publicUrl} compact />
+      ) : null}
     </header>
   );
 }

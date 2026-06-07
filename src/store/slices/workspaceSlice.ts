@@ -1,13 +1,16 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import * as workspaceApi from "../../api/workspaceApi";
 import { normalizeWorkspaceSummary, normalizeWorkspaceList } from "../../lib/normalizeWorkspace";
-import type { WorkspaceMember, WorkspaceSummary } from "../../api/types";
+import type { WorkspaceDashboard, WorkspaceMember, WorkspaceSummary } from "../../api/types";
 
 type WorkspaceState = {
   list: WorkspaceSummary[];
   activeId: string | null;
+  dashboardByWorkspace: Record<string, WorkspaceDashboard | undefined>;
+  dashboardLoadingByWorkspace: Record<string, boolean>;
   membersByWorkspace: Record<string, WorkspaceMember[]>;
   membersLoadingByWorkspace: Record<string, boolean>;
+  deletingWorkspaceIds: Record<string, boolean>;
   loading: boolean;
   creating: boolean;
   error: string | null;
@@ -16,8 +19,11 @@ type WorkspaceState = {
 const initialState: WorkspaceState = {
   list: [],
   activeId: null,
+  dashboardByWorkspace: {},
+  dashboardLoadingByWorkspace: {},
   membersByWorkspace: {},
   membersLoadingByWorkspace: {},
+  deletingWorkspaceIds: {},
   loading: false,
   creating: false,
   error: null,
@@ -29,7 +35,20 @@ export const selectMembersForWorkspace = (state: { workspace: WorkspaceState }, 
 export const selectMembersLoading = (state: { workspace: WorkspaceState }, workspaceId: string | null) =>
   Boolean(workspaceId && state.workspace.membersLoadingByWorkspace[workspaceId]);
 
+export const selectDashboardForWorkspace = (
+  state: { workspace: WorkspaceState },
+  workspaceId: string | null,
+) => (workspaceId ? state.workspace.dashboardByWorkspace[workspaceId] : undefined);
+
+export const selectDashboardLoading = (state: { workspace: WorkspaceState }, workspaceId: string | null) =>
+  Boolean(workspaceId && state.workspace.dashboardLoadingByWorkspace[workspaceId]);
+
 export const fetchWorkspaces = createAsyncThunk("workspace/list", workspaceApi.listWorkspaces);
+
+export const fetchWorkspaceDashboard = createAsyncThunk(
+  "workspace/dashboard",
+  (workSpaceId: string) => workspaceApi.getWorkspaceDashboard(workSpaceId),
+);
 
 export const createWorkspace = createAsyncThunk(
   "workspace/create",
@@ -48,6 +67,17 @@ export const removeWorkspace = createAsyncThunk(
     return workSpaceId;
   },
 );
+
+function upsertWorkspaceMeta(state: WorkspaceState, dashboard: WorkspaceDashboard) {
+  const idx = state.list.findIndex((w) => w.workSpaceId === dashboard.workspaceId);
+  const entry: WorkspaceSummary = {
+    workSpaceId: dashboard.workspaceId,
+    workSpaceName: dashboard.workspaceName,
+    formCount: dashboard.formCount,
+  };
+  if (idx >= 0) state.list[idx] = { ...state.list[idx]!, ...entry };
+  else state.list.unshift(entry);
+}
 
 const workspaceSlice = createSlice({
   name: "workspace",
@@ -75,6 +105,19 @@ const workspaceSlice = createSlice({
         s.loading = false;
         s.error = a.error.message ?? "Could not load workspaces";
       })
+      .addCase(fetchWorkspaceDashboard.pending, (s, a) => {
+        s.dashboardLoadingByWorkspace[a.meta.arg] = true;
+        s.error = null;
+      })
+      .addCase(fetchWorkspaceDashboard.fulfilled, (s, a) => {
+        s.dashboardLoadingByWorkspace[a.meta.arg] = false;
+        s.dashboardByWorkspace[a.meta.arg] = a.payload;
+        upsertWorkspaceMeta(s, a.payload);
+      })
+      .addCase(fetchWorkspaceDashboard.rejected, (s, a) => {
+        s.dashboardLoadingByWorkspace[a.meta.arg] = false;
+        s.error = a.error.message ?? "Could not load workspace dashboard";
+      })
       .addCase(createWorkspace.pending, (s) => {
         s.creating = true;
         s.error = null;
@@ -101,9 +144,20 @@ const workspaceSlice = createSlice({
       .addCase(fetchMembers.rejected, (s, a) => {
         s.membersLoadingByWorkspace[a.meta.arg] = false;
       })
+      .addCase(removeWorkspace.pending, (s, a) => {
+        s.deletingWorkspaceIds[a.meta.arg] = true;
+        s.error = null;
+      })
       .addCase(removeWorkspace.fulfilled, (s, a) => {
+        delete s.deletingWorkspaceIds[a.payload];
         s.list = s.list.filter((w) => w.workSpaceId !== a.payload);
+        delete s.dashboardByWorkspace[a.payload];
+        delete s.membersByWorkspace[a.payload];
         if (s.activeId === a.payload) s.activeId = s.list[0]?.workSpaceId ?? null;
+      })
+      .addCase(removeWorkspace.rejected, (s, a) => {
+        delete s.deletingWorkspaceIds[a.meta.arg];
+        s.error = a.error.message ?? "Could not delete workspace";
       });
   },
 });

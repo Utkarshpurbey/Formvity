@@ -1,5 +1,5 @@
 /** Known app route segments (first segment after optional GitHub Pages repo prefix). */
-const APP_ROUTE = "(?:workspace|builder|login|register|templates|home|r)";
+const APP_ROUTE = "(?:workspaces|workspace|builder|login|register|templates|home|r)";
 
 /** Infer `/RepoName` prefix when env was not baked in at build time (GitHub Pages project sites). */
 function inferBasePathFromLocation(pathname: string): string {

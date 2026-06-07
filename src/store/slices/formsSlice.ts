@@ -1,31 +1,40 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { FormDef } from "../../components/page-def/builder/pageDef";
 import * as formsApi from "../../api/formsApi";
-import type { FormSummary, PublishResponse, PublishStatus } from "../../api/types";
+import { derivePublishStatusFromForm } from "../../lib/normalizePublication";
+import { filterActiveForms } from "../../lib/formLifecycle";
+import type { FormSummary, PublicationMeta, PublishResponse, PublishStatus } from "../../api/types";
 import { buildPublicUrl } from "../../utils/publicUrl";
+import { fetchWorkspaceDashboard } from "./workspaceSlice";
 
 type FormsState = {
   byWorkspace: Record<string, FormSummary[]>;
   loadingByWorkspace: Record<string, boolean>;
   archivingFormIds: Record<string, boolean>;
+  unpublishingFormIds: Record<string, boolean>;
   saving: boolean;
   publishing: boolean;
+  unpublishing: boolean;
   error: string | null;
   currentFormId: string | null;
   publishStatus: PublishStatus | null;
   lastPublishResult: PublishResponse | null;
+  publicationByForm: Record<string, PublicationMeta>;
 };
 
 const initialState: FormsState = {
   byWorkspace: {},
   loadingByWorkspace: {},
   archivingFormIds: {},
+  unpublishingFormIds: {},
   saving: false,
   publishing: false,
+  unpublishing: false,
   error: null,
   currentFormId: null,
   publishStatus: null,
   lastPublishResult: null,
+  publicationByForm: {},
 };
 
 function upsertForm(state: FormsState, form: FormSummary) {
@@ -45,6 +54,9 @@ function removeForm(state: FormsState, formId: string) {
 
 export const selectFormsForWorkspace = (state: { forms: FormsState }, workspaceId: string | null) =>
   workspaceId ? (state.forms.byWorkspace[workspaceId] ?? []) : [];
+
+export const selectActiveFormsForWorkspace = (state: { forms: FormsState }, workspaceId: string | null) =>
+  filterActiveForms(selectFormsForWorkspace(state, workspaceId));
 
 export const selectFormsInitialLoading = (state: { forms: FormsState }, workspaceId: string | null) =>
   Boolean(workspaceId && state.forms.loadingByWorkspace[workspaceId] && !state.forms.byWorkspace[workspaceId]?.length);
@@ -96,21 +108,30 @@ export const archiveForm = createAsyncThunk(
 
 export const fetchPublishStatus = createAsyncThunk(
   "forms/fetchPublishStatus",
-  async ({ workspaceId, formId }: { workspaceId: string; formId: string }) =>
-    formsApi.getPublishStatus(workspaceId, formId),
+  async (
+    { workspaceId, formId }: { workspaceId: string; formId: string },
+    { getState },
+  ) => {
+    const remote = await formsApi.getPublishStatus(workspaceId, formId);
+    if (remote) return remote;
+
+    const state = getState() as { forms: FormsState };
+    const form = state.forms.byWorkspace[workspaceId]?.find((f) => f.id === formId);
+    const pub = state.forms.publicationByForm[formId];
+    return derivePublishStatusFromForm(form?.status, pub?.slug, pub?.lastPublishedAt);
+  },
 );
 
 export const publishForm = createAsyncThunk(
   "forms/publish",
-  async ({
-    workspaceId,
-    formId,
-    slug,
-  }: {
-    workspaceId: string;
-    formId: string;
-    slug?: string;
-  }) => formsApi.publishForm(workspaceId, formId, slug ? { slug } : undefined),
+  async ({ workspaceId, formId }: { workspaceId: string; formId: string }) =>
+    formsApi.publishForm(workspaceId, formId),
+);
+
+export const unpublishForm = createAsyncThunk(
+  "forms/unpublish",
+  async ({ workspaceId, formId }: { workspaceId: string; formId: string }) =>
+    formsApi.unpublishForm(workspaceId, formId),
 );
 
 const formsSlice = createSlice({
@@ -130,13 +151,23 @@ const formsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchWorkspaceDashboard.pending, (s, a) => {
+        s.loadingByWorkspace[a.meta.arg] = true;
+      })
+      .addCase(fetchWorkspaceDashboard.fulfilled, (s, a) => {
+        s.loadingByWorkspace[a.payload.workspaceId] = false;
+        s.byWorkspace[a.payload.workspaceId] = filterActiveForms(a.payload.recentForms);
+      })
+      .addCase(fetchWorkspaceDashboard.rejected, (s, a) => {
+        s.loadingByWorkspace[a.meta.arg] = false;
+      })
       .addCase(fetchForms.pending, (s, a) => {
         s.loadingByWorkspace[a.meta.arg] = true;
         s.error = null;
       })
       .addCase(fetchForms.fulfilled, (s, a) => {
         s.loadingByWorkspace[a.meta.arg] = false;
-        s.byWorkspace[a.meta.arg] = a.payload;
+        s.byWorkspace[a.meta.arg] = filterActiveForms(a.payload);
       })
       .addCase(fetchForms.rejected, (s, a) => {
         s.loadingByWorkspace[a.meta.arg] = false;
@@ -184,6 +215,13 @@ const formsSlice = createSlice({
           publicUrl: a.payload.publicUrl || (a.payload.slug ? buildPublicUrl(a.payload.slug) : ""),
         };
         s.lastPublishResult = payload;
+        s.publicationByForm[a.meta.arg.formId] = {
+          slug: payload.slug,
+          publicUrl: payload.publicUrl,
+          publishedAt: payload.publishedAt,
+          lastPublishedAt: payload.publishedAt,
+          isLive: true,
+        };
         s.publishStatus = {
           status: "published",
           slug: payload.slug,
@@ -194,13 +232,51 @@ const formsSlice = createSlice({
         const wsId = a.meta.arg.workspaceId;
         const list = s.byWorkspace[wsId];
         if (list) {
-          const idx = list.findIndex((f) => f.id === payload.formId);
+          const idx = list.findIndex((f) => f.id === payload.formId || f.id === a.meta.arg.formId);
           if (idx >= 0) list[idx] = { ...list[idx]!, status: "PUBLISHED" };
         }
       })
       .addCase(publishForm.rejected, (s, a) => {
         s.publishing = false;
         s.error = a.error.message ?? "Publish failed";
+      })
+      .addCase(unpublishForm.pending, (s, a) => {
+        s.unpublishing = true;
+        s.unpublishingFormIds[a.meta.arg.formId] = true;
+        s.error = null;
+      })
+      .addCase(unpublishForm.fulfilled, (s, a) => {
+        s.unpublishing = false;
+        delete s.unpublishingFormIds[a.meta.arg.formId];
+        const existing = s.publicationByForm[a.meta.arg.formId];
+        const lastAt = existing?.lastPublishedAt ?? existing?.publishedAt ?? a.payload.lastPublishedAt;
+        const slug = existing?.slug ?? a.payload.slug;
+        s.publicationByForm[a.meta.arg.formId] = {
+          slug,
+          publicUrl: existing?.publicUrl ?? a.payload.publicUrl,
+          publishedAt: existing?.publishedAt,
+          lastPublishedAt: lastAt,
+          isLive: false,
+        };
+        s.publishStatus = {
+          status: "unpublished",
+          slug,
+          publicUrl: a.payload.publicUrl,
+          lastPublishedAt: lastAt,
+          draftChangedSincePublish: false,
+        };
+        s.lastPublishResult = null;
+        const wsId = a.meta.arg.workspaceId;
+        const list = s.byWorkspace[wsId];
+        if (list) {
+          const idx = list.findIndex((f) => f.id === a.meta.arg.formId);
+          if (idx >= 0) list[idx] = { ...list[idx]!, status: "UNPUBLISHED" };
+        }
+      })
+      .addCase(unpublishForm.rejected, (s, a) => {
+        s.unpublishing = false;
+        delete s.unpublishingFormIds[a.meta.arg.formId];
+        s.error = a.error.message ?? "Unpublish failed";
       });
   },
 });

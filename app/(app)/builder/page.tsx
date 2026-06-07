@@ -10,6 +10,8 @@ import PageCanvas from "../../../src/components/page-def/builder/PageCanvas";
 import ComponentConfigPanel from "../../../src/components/page-def/builder/ComponentConfigPanel";
 import { PublishFlowModal, type PublishModalMode } from "../../../src/components/publish/PublishFlowModal";
 import { PageLoader } from "../../../src/components/ui/PageLoader";
+import { ApiError } from "../../../src/api/http";
+import { deriveFormLifecycle, isEditableFormLifecycle } from "../../../src/lib/formLifecycle";
 import { EMPTY_FORM_DEF, getActivePage, getPageIndex, normalizeFormDef } from "../../../src/lib/normalizeFormDef";
 import { PAGE_DEF_TEMPLATES } from "../../../src/lib/page-def-templates";
 import { cloneTemplatePageDef, toBuilderFormDef } from "../../../src/lib/template-to-builder-page-def";
@@ -23,8 +25,6 @@ import {
 } from "../../../src/store/slices/formsSlice";
 import { buildPublicUrl } from "../../../src/utils/publicUrl";
 
-type CenterView = "preview" | "json";
-
 const DEBOUNCE_MS = 400;
 
 function BuilderPageInner() {
@@ -34,6 +34,7 @@ function BuilderPageInner() {
   const saving = useAppSelector((s) => s.forms.saving);
   const publishing = useAppSelector((s) => s.forms.publishing);
   const publishStatus = useAppSelector((s) => s.forms.publishStatus);
+  const publication = useAppSelector((s) => s.forms.publicationByForm);
   const lastPublishResult = useAppSelector((s) => s.forms.lastPublishResult);
   const publishError = useAppSelector((s) => s.forms.error);
 
@@ -48,10 +49,11 @@ function BuilderPageInner() {
   const [formDef, setFormDef] = useState<FormDef>(EMPTY_FORM_DEF);
   const [activePageId, setActivePageId] = useState(EMPTY_FORM_DEF.pages[0]!.id);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [centerView, setCenterView] = useState<CenterView>("preview");
+  const [showJson, setShowJson] = useState(false);
   const [jsonInput, setJsonInput] = useState(JSON.stringify(EMPTY_FORM_DEF, null, 2));
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(!apiMode);
+  const [loadBlocked, setLoadBlocked] = useState(false);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [publishModalMode, setPublishModalMode] = useState<PublishModalMode>("publish");
@@ -73,16 +75,18 @@ function BuilderPageInner() {
     return "saved";
   }, [saving, apiMode, savedSnapshot, formDefJson]);
 
-  const effectivePublishStatus = useMemo(() => {
-    if (publishStatus) return publishStatus;
-    if (formFromList?.status === "PUBLISHED") {
-      return {
-        status: "published" as const,
-        draftChangedSincePublish: saveState === "unsaved",
-      };
+  const lifecycle = useMemo(() => {
+    const base = deriveFormLifecycle({
+      formStatus: formFromList?.status,
+      publishStatus: publishStatus?.status ? publishStatus : null,
+      publication: formId ? publication[formId] : null,
+      lastPublishResult,
+    });
+    if (base.kind === "live" && saveState === "unsaved") {
+      return { ...base, draftChangedSincePublish: true };
     }
-    return null;
-  }, [publishStatus, formFromList?.status, saveState]);
+    return base;
+  }, [formFromList?.status, publishStatus, publication, formId, lastPublishResult, saveState]);
 
   const updateActivePage = useCallback((updater: (prev: FormPageDef) => FormPageDef) => {
     setFormDef((prev) => ({
@@ -104,16 +108,28 @@ function BuilderPageInner() {
         }
         setLoaded(true);
       })
-      .catch((e: Error) => {
-        toast.error(e.message ?? "Could not load form");
+      .catch((e: unknown) => {
+        const status = e instanceof ApiError ? e.status : 0;
+        if (status === 404) {
+          toast.error("This form was not found or has been archived.");
+          router.replace(workspaceId ? `/workspaces/${workspaceId}` : "/workspaces");
+        } else {
+          toast.error(e instanceof Error ? e.message : "Could not load form");
+        }
+        setLoadBlocked(true);
         setLoaded(true);
       });
-  }, [apiMode, workspaceId, formId, dispatch]);
+  }, [apiMode, workspaceId, formId, dispatch, router]);
 
   useEffect(() => {
-    if (!apiMode || !loaded) return;
+    if (!apiMode || !loaded || loadBlocked) return;
+    if (formFromList?.status === "ARCHIVED") {
+      toast.info("Archived forms cannot be edited.");
+      router.replace(`/workspaces/${workspaceId}`);
+      return;
+    }
     dispatch(fetchPublishStatus({ workspaceId, formId }));
-  }, [apiMode, loaded, workspaceId, formId, dispatch]);
+  }, [apiMode, loaded, loadBlocked, formFromList?.status, workspaceId, formId, dispatch, router]);
 
   useEffect(() => {
     const templateKey = searchParams.get("template");
@@ -131,7 +147,7 @@ function BuilderPageInner() {
       setFormDef(parsed);
       setActivePageId(parsed.pages[0]!.id);
       setSelectedId(null);
-      setCenterView("preview");
+      setShowJson(false);
       setJsonError(null);
       toast.success("Template loaded into Formvity.");
     } catch {
@@ -146,7 +162,7 @@ function BuilderPageInner() {
   }, [formDef]);
 
   useEffect(() => {
-    if (centerView !== "json") return;
+    if (!showJson) return;
     const t = setTimeout(() => {
       setJsonError(null);
       try {
@@ -160,7 +176,7 @@ function BuilderPageInner() {
       }
     }, DEBOUNCE_MS);
     return () => clearTimeout(t);
-  }, [centerView, jsonInput]);
+  }, [showJson, jsonInput]);
 
   const selectedComponent = activePage.components.find((c) => c.id === selectedId) ?? null;
 
@@ -193,7 +209,7 @@ function BuilderPageInner() {
   };
 
   useEffect(() => {
-    if (!apiMode || !loaded) return;
+    if (!apiMode || !loaded || loadBlocked) return;
     const t = setTimeout(() => {
       dispatch(saveFormDraft({ workspaceId, formId, title: formDef.title, draftPageDef: formDef }))
         .unwrap()
@@ -201,7 +217,7 @@ function BuilderPageInner() {
         .catch(() => undefined);
     }, 1500);
     return () => clearTimeout(t);
-  }, [apiMode, loaded, workspaceId, formId, formDef, dispatch]);
+  }, [apiMode, loaded, loadBlocked, workspaceId, formId, formDef, dispatch]);
 
   const openPublishModal = (mode: PublishModalMode) => {
     dispatch(clearFormsError());
@@ -214,23 +230,29 @@ function BuilderPageInner() {
     dispatch(clearFormsError());
   };
 
-  const handlePublish = async (slug?: string) => {
+  const handlePublish = async (_slug?: string) => {
     if (!apiMode) return;
     await dispatch(
       saveFormDraft({ workspaceId, formId, title: formDef.title, draftPageDef: formDef }),
     ).unwrap();
     setSavedSnapshot(formDefJson);
-    return dispatch(publishForm({ workspaceId, formId, slug })).unwrap();
+    return dispatch(publishForm({ workspaceId, formId })).unwrap();
   };
 
-  const existingSlug = effectivePublishStatus?.slug ?? lastPublishResult?.slug;
+  const existingSlug = lifecycle.slug ?? lastPublishResult?.slug;
   const existingPublicUrl =
-    effectivePublishStatus?.publicUrl ??
-    lastPublishResult?.publicUrl ??
-    (existingSlug ? buildPublicUrl(existingSlug) : undefined);
+    lifecycle.publicUrl ?? lastPublishResult?.publicUrl ?? (existingSlug ? buildPublicUrl(existingSlug) : undefined);
 
   if (apiMode && !loaded) {
     return <PageLoader message="Loading form from server…" className="bg-slate-100" />;
+  }
+
+  if (apiMode && loadBlocked) {
+    return <PageLoader message="Redirecting…" className="bg-slate-100" />;
+  }
+
+  if (apiMode && formFromList && !isEditableFormLifecycle(lifecycle)) {
+    return <PageLoader message="Redirecting…" className="bg-slate-100" />;
   }
 
   return (
@@ -247,11 +269,11 @@ function BuilderPageInner() {
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden p-4">
         <BuilderTopBar
           formTitle={formDef.title}
-          centerView={centerView}
-          onCenterViewChange={setCenterView}
           saveState={saveState}
           apiMode={apiMode}
-          publishStatus={effectivePublishStatus}
+          lifecycle={apiMode ? lifecycle : null}
+          showJson={showJson}
+          onToggleJson={() => setShowJson((v) => !v)}
           onSave={handleSave}
           onPublish={() => openPublishModal("publish")}
           onShare={() => openPublishModal("share")}
@@ -259,7 +281,7 @@ function BuilderPageInner() {
           saving={saving}
           publishing={publishing}
         />
-        {centerView === "preview" ? (
+        {!showJson ? (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <PageCanvas
               key={activePage.id}
