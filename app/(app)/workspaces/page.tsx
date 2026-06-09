@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { RouterNavButton } from "@/src/components/ui/index";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { PageLoader, SkeletonRows, Spinner } from "@/src/components/ui/index";
@@ -17,9 +17,9 @@ import type { WorkspaceSummary } from "@/src/api/types";
 
 function WorkspaceCard({ workspace, formCount }: { workspace: WorkspaceSummary; formCount: number }) {
   return (
-    <Link
+    <RouterNavButton
       href={`/workspaces/${workspace.workSpaceId}`}
-      className="group flex flex-col rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-900/[0.03] transition hover:border-violet-200 hover:shadow-md hover:shadow-violet-500/5"
+      className="group flex w-full flex-col rounded-2xl border border-slate-200/80 bg-white p-6 text-left shadow-sm ring-1 ring-slate-900/[0.03] transition hover:border-violet-200 hover:shadow-md hover:shadow-violet-500/5"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 text-violet-700">
@@ -35,7 +35,7 @@ function WorkspaceCard({ workspace, formCount }: { workspace: WorkspaceSummary; 
         {workspace.workSpaceName}
       </h3>
       <p className="mt-1 text-xs text-slate-500">Open workspace →</p>
-    </Link>
+    </RouterNavButton>
   );
 }
 

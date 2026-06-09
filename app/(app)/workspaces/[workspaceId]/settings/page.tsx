@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
@@ -14,7 +13,7 @@ import {
   useWorkspaceRole,
   workspaceCan,
 } from "@/src/components/workspace/index";
-import { PageLoader } from "@/src/components/ui/index";
+import { PageLoader, RouterNavButton } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
   fetchMembers,
@@ -97,13 +96,13 @@ export default function WorkspaceSettingsPage() {
   return (
     <AppPageContainer>
       <nav className="text-sm text-slate-500">
-        <Link href="/workspaces" className="hover:text-violet-600">
+        <RouterNavButton href="/workspaces" className="hover:text-violet-600">
           Workspaces
-        </Link>
+        </RouterNavButton>
         <span className="mx-2">/</span>
-        <Link href={`/workspaces/${workspaceId}`} className="hover:text-violet-600">
+        <RouterNavButton href={`/workspaces/${workspaceId}`} className="hover:text-violet-600">
           {workspaceName}
-        </Link>
+        </RouterNavButton>
         <span className="mx-2">/</span>
         <span className="font-medium text-slate-800">Settings</span>
       </nav>

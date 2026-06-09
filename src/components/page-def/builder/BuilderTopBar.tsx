@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import type { FormLifecycle } from "../../../lib/publish";
 import { FormLifecycleBadge } from "../../ui/FormLifecycleBadge";
 import { PublicLinkPanel } from "../../publish/PublicLinkPanel";
-import { Spinner } from "../../ui/index";
+import { RouterNavButton, Spinner } from "../../ui/index";
 
 export type SaveState = "saving" | "saved" | "unsaved";
 
@@ -66,12 +65,12 @@ export function BuilderTopBar({
     <header className="mb-3 flex shrink-0 flex-col gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <Link
+          <RouterNavButton
             href="/workspaces"
             className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
           >
             ← Workspace
-          </Link>
+          </RouterNavButton>
           <span className="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden />
           <p className="min-w-0 truncate text-sm font-semibold text-slate-900">{formTitle.trim() || "Untitled form"}</p>
           {apiMode && lifecycle ? <FormLifecycleBadge lifecycle={lifecycle} /> : null}

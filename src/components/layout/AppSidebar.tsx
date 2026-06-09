@@ -1,12 +1,12 @@
 "use client";
 
 import { memo } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { logoutUser } from "../../store/slices/authSlice";
 import { stripAppBasePath } from "../../utils/appBasePath";
+import { RouterNavButton } from "../ui/RouterNavButton";
 
 const nav = [
   { href: "/workspaces", label: "Workspaces", icon: "grid" },
@@ -83,7 +83,7 @@ export const AppSidebar = memo(function AppSidebar({ collapsed, onToggle }: AppS
           collapsed ? "justify-center px-2" : "gap-2.5 px-5"
         }`}
       >
-        <Link
+        <RouterNavButton
           href="/workspaces"
           title="Formvity"
           className={`flex items-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
@@ -96,14 +96,14 @@ export const AppSidebar = memo(function AppSidebar({ collapsed, onToggle }: AppS
             </svg>
           </div>
           {!collapsed ? <span className="text-sm font-bold tracking-tight text-slate-900">Formvity</span> : null}
-        </Link>
+        </RouterNavButton>
       </div>
 
       <nav className={`flex-1 space-y-0.5 ${collapsed ? "p-2" : "p-3"}`} aria-label="Main navigation">
         {nav.map(({ href, label, icon }) => {
           const active = isNavActive(routePath, href);
           return (
-            <Link
+            <RouterNavButton
               key={href}
               href={href}
               title={collapsed ? label : undefined}
@@ -118,7 +118,7 @@ export const AppSidebar = memo(function AppSidebar({ collapsed, onToggle }: AppS
             >
               <NavIcon name={icon} />
               {!collapsed ? label : null}
-            </Link>
+            </RouterNavButton>
           );
         })}
       </nav>

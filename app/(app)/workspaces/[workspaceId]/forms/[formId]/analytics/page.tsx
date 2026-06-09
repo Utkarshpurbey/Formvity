@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import {
@@ -11,7 +10,7 @@ import {
   SubmissionsTable,
 } from "@/src/components/form/index";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
-import { PageLoader, Skeleton, Spinner, StatCard } from "@/src/components/ui/index";
+import { PageLoader, RouterNavButton, Skeleton, Spinner, StatCard } from "@/src/components/ui/index";
 import { useFormAnalytics } from "@/src/hooks/useFormAnalytics";
 import { deriveFormLifecycle } from "@/src/lib/publish";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
@@ -95,9 +94,9 @@ export default function FormAnalyticsPage() {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 px-4 text-center">
         <p className="font-semibold text-slate-900">Form not available</p>
-        <Link href={`/workspaces/${workspaceId}`} className="text-sm text-violet-600 hover:underline">
+        <RouterNavButton href={`/workspaces/${workspaceId}`} className="text-sm text-violet-600 hover:underline">
           Back to workspace
-        </Link>
+        </RouterNavButton>
       </div>
     );
   }
@@ -105,17 +104,17 @@ export default function FormAnalyticsPage() {
   return (
     <AppPageContainer>
       <nav className="text-sm text-slate-500">
-        <Link href="/workspaces" className="hover:text-violet-600">
+        <RouterNavButton href="/workspaces" className="hover:text-violet-600">
           Workspaces
-        </Link>
+        </RouterNavButton>
         <span className="mx-2">/</span>
-        <Link href={`/workspaces/${workspaceId}`} className="hover:text-violet-600">
+        <RouterNavButton href={`/workspaces/${workspaceId}`} className="hover:text-violet-600">
           {workspace?.workSpaceName ?? "Workspace"}
-        </Link>
+        </RouterNavButton>
         <span className="mx-2">/</span>
-        <Link href={`/workspaces/${workspaceId}/forms/${formId}`} className="hover:text-violet-600">
+        <RouterNavButton href={`/workspaces/${workspaceId}/forms/${formId}`} className="hover:text-violet-600">
           {form.title.trim() || "Untitled form"}
-        </Link>
+        </RouterNavButton>
         <span className="mx-2">/</span>
         <span className="font-medium text-slate-800">Analytics</span>
       </nav>
@@ -141,13 +140,12 @@ export default function FormAnalyticsPage() {
             {refreshing ? <Spinner size="sm" /> : null}
             Refresh
           </button>
-          <button
-            type="button"
-            onClick={() => router.push(`/builder/v2?workspaceId=${workspaceId}&formId=${formId}`)}
+          <RouterNavButton
+            href={`/builder/v2?workspaceId=${workspaceId}&formId=${formId}`}
             className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
             Open in builder
-          </button>
+          </RouterNavButton>
         </div>
       </div>
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
@@ -9,7 +8,7 @@ import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { PublishFlowModal, type PublishModalMode } from "@/src/components/publish/PublishFlowModal";
 import { FormPublishingPanel } from "@/src/components/publish/FormPublishingPanel";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
-import { PageLoader } from "@/src/components/ui/index";
+import { PageLoader, RouterNavButton } from "@/src/components/ui/index";
 import { deriveFormLifecycle, isEditableFormLifecycle } from "@/src/lib/publish";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
@@ -142,9 +141,9 @@ export default function FormDetailPage() {
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 px-4 text-center">
         <p className="font-semibold text-slate-900">Form not available</p>
         <p className="text-sm text-slate-500">It may have been archived or removed.</p>
-        <Link href={`/workspaces/${workspaceId}`} className="text-sm text-violet-600 hover:underline">
+        <RouterNavButton href={`/workspaces/${workspaceId}`} className="text-sm text-violet-600 hover:underline">
           Back to workspace
-        </Link>
+        </RouterNavButton>
       </div>
     );
   }
@@ -152,13 +151,13 @@ export default function FormDetailPage() {
   return (
     <AppPageContainer>
       <nav className="text-sm text-slate-500">
-        <Link href="/workspaces" className="hover:text-violet-600">
+        <RouterNavButton href="/workspaces" className="hover:text-violet-600">
           Workspaces
-        </Link>
+        </RouterNavButton>
         <span className="mx-2">/</span>
-        <Link href={`/workspaces/${workspaceId}`} className="hover:text-violet-600">
+        <RouterNavButton href={`/workspaces/${workspaceId}`} className="hover:text-violet-600">
           {workspace?.workSpaceName ?? "Workspace"}
-        </Link>
+        </RouterNavButton>
         <span className="mx-2">/</span>
         <span className="font-medium text-slate-800">{form.title.trim() || "Untitled form"}</span>
       </nav>
@@ -176,13 +175,12 @@ export default function FormDetailPage() {
             {new Date(form.updatedAt).toLocaleString()}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => router.push(`/builder/v2?workspaceId=${workspaceId}&formId=${formId}`)}
+        <RouterNavButton
+          href={`/builder/v2?workspaceId=${workspaceId}&formId=${formId}`}
           className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
         >
           Open in builder
-        </button>
+        </RouterNavButton>
       </div>
 
         <FormSubNav workspaceId={workspaceId} formId={formId} />

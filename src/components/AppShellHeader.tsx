@@ -1,13 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
 import { stripAppBasePath } from "../utils/appBasePath";
-import { Spinner } from "./ui/index";
+import { RouterNavButton, Spinner } from "./ui/index";
 
 /** Signed-in maker nav — shared forms for respondents will live on public links later, not here. */
 const workspaceNav = [
@@ -92,7 +91,10 @@ export function AppShellHeader() {
     <header className="sticky top-0 z-40 shrink-0 border-b border-slate-200/90 bg-white/90 shadow-sm backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 flex-1 items-center gap-6 md:gap-8">
-          <Link href="/home" className="flex shrink-0 items-center gap-2.5 rounded-lg outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <RouterNavButton
+            href="/home"
+            className="flex shrink-0 items-center gap-2.5 rounded-lg outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-indigo-500"
+          >
             <div
               className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20"
               aria-hidden
@@ -105,18 +107,23 @@ export function AppShellHeader() {
               <p className="text-sm font-semibold tracking-tight text-slate-900">Formvity</p>
               <p className="hidden text-[11px] font-medium text-slate-500 sm:block">Form builder</p>
             </div>
-          </Link>
+          </RouterNavButton>
 
           <nav className="hidden min-w-0 items-center gap-0.5 md:flex" aria-label="Primary">
             {primaryNav.map(({ href, label }) => (
-              <Link key={href} href={href} aria-current={routePath === href ? "page" : undefined} className={navLinkClass(routePath === href || (href === "/workspaces" && routePath.startsWith("/workspaces")))}>
+              <RouterNavButton
+                key={href}
+                href={href}
+                aria-current={routePath === href ? "page" : undefined}
+                className={navLinkClass(routePath === href || (href === "/workspaces" && routePath.startsWith("/workspaces")))}
+              >
                 {label}
-              </Link>
+              </RouterNavButton>
             ))}
             {user && isHome ? (
-              <Link href="/home" className={navLinkClass(true)}>
+              <RouterNavButton href="/home" className={navLinkClass(true)}>
                 Home
-              </Link>
+              </RouterNavButton>
             ) : null}
           </nav>
         </div>
@@ -172,18 +179,18 @@ export function AppShellHeader() {
             </div>
           ) : (
             <>
-              <Link
+              <RouterNavButton
                 href="/login"
                 className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:inline-flex"
               >
                 Log in
-              </Link>
-              <Link
+              </RouterNavButton>
+              <RouterNavButton
                 href="/register"
                 className="inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
               >
                 Get started
-              </Link>
+              </RouterNavButton>
               <button
                 type="button"
                 data-guest-menu-trigger
@@ -209,13 +216,22 @@ export function AppShellHeader() {
         <div ref={guestMenuRef} className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {exploreNav.map(({ href, label }) => (
-              <Link key={href} href={href} className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => setMenuOpen(false)}>
+              <RouterNavButton
+                key={href}
+                href={href}
+                onNavigate={closeMenus}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
                 {label}
-              </Link>
+              </RouterNavButton>
             ))}
-            <Link href="/login" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => setMenuOpen(false)}>
+            <RouterNavButton
+              href="/login"
+              onNavigate={closeMenus}
+              className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
               Log in
-            </Link>
+            </RouterNavButton>
           </nav>
         </div>
       ) : null}
@@ -224,14 +240,23 @@ export function AppShellHeader() {
         <div ref={userMobilePanelRef} className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {(user ? workspaceNav : exploreNav).map(({ href, label }) => (
-              <Link key={href} href={href} className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => setMenuOpen(false)}>
+              <RouterNavButton
+                key={href}
+                href={href}
+                onNavigate={closeMenus}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
                 {label}
-              </Link>
+              </RouterNavButton>
             ))}
             {user && isHome ? (
-              <Link href="/home" className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => setMenuOpen(false)}>
+              <RouterNavButton
+                href="/home"
+                onNavigate={closeMenus}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
                 Home
-              </Link>
+              </RouterNavButton>
             ) : null}
             <button type="button" className="rounded-lg px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-rose-50" onClick={handleLogout}>
               Sign out

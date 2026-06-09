@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { RouterNavButton } from "@/src/components/ui/index";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
@@ -28,7 +28,6 @@ import type { FormSummary } from "@/src/api/types";
 import { useFormResponseCount } from "@/src/hooks/useFormAnalytics";
 
 function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: string }) {
-  const router = useRouter();
   const publication = useAppSelector((s) => s.forms.publicationByForm[form.id]);
   const lifecycle = deriveFormLifecycle({ formStatus: form.status, publication });
   const responseCount = useFormResponseCount(workspaceId, form.id, lifecycle.isLive);
@@ -36,12 +35,12 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
   return (
     <tr className="group border-b border-slate-100 last:border-0 hover:bg-slate-50/80">
       <td className="px-6 py-4">
-        <Link
+        <RouterNavButton
           href={`/workspaces/${workspaceId}/forms/${form.id}`}
           className="font-semibold text-slate-900 hover:text-violet-700"
         >
           {form.title.trim() || "Untitled form"}
-        </Link>
+        </RouterNavButton>
         <p className="mt-0.5 text-xs text-slate-500">
           Updated {new Date(form.updatedAt).toLocaleString()}
           {responseCount != null ? ` · ${responseCount} response${responseCount === 1 ? "" : "s"}` : null}
@@ -52,25 +51,24 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
       </td>
       <td className="px-6 py-4 text-right">
         <div className="flex items-center justify-end gap-2 opacity-100 transition sm:opacity-70 sm:group-hover:opacity-100">
-          <button
-            type="button"
-            onClick={() => router.push(`/builder/v2?workspaceId=${workspaceId}&formId=${form.id}`)}
+          <RouterNavButton
+            href={`/builder/v2?workspaceId=${workspaceId}&formId=${form.id}`}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Edit
-          </button>
-          <Link
+          </RouterNavButton>
+          <RouterNavButton
             href={`/workspaces/${workspaceId}/forms/${form.id}`}
             className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
           >
             Manage
-          </Link>
-          <Link
+          </RouterNavButton>
+          <RouterNavButton
             href={`/workspaces/${workspaceId}/forms/${form.id}/analytics`}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Analytics
-          </Link>
+          </RouterNavButton>
         </div>
       </td>
     </tr>
@@ -158,9 +156,9 @@ export default function WorkspaceDetailPage() {
   return (
     <AppPageContainer>
       <nav className="text-sm text-slate-500">
-        <Link href="/workspaces" className="hover:text-violet-600">
+        <RouterNavButton href="/workspaces" className="hover:text-violet-600">
           Workspaces
-        </Link>
+        </RouterNavButton>
         <span className="mx-2">/</span>
         <span className="font-medium text-slate-800">{workspaceName}</span>
       </nav>
