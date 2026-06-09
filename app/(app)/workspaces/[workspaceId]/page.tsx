@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppRouter } from "@/src/hooks/useAppRouter";
+import { useRouter } from "next/navigation";
 import { useWorkspaceId } from "@/src/hooks/useRouteIds";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
@@ -28,7 +28,7 @@ import type { FormSummary } from "@/src/api/types";
 import { useFormResponseCount } from "@/src/hooks/useFormAnalytics";
 
 function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: string }) {
-  const router = useAppRouter();
+  const router = useRouter();
   const publication = useAppSelector((s) => s.forms.publicationByForm[form.id]);
   const lifecycle = deriveFormLifecycle({ formStatus: form.status, publication });
   const responseCount = useFormResponseCount(workspaceId, form.id, lifecycle.isLive);
@@ -81,10 +81,9 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
 }
 
 export default function WorkspaceDetailPage() {
-  const router = useAppRouter();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const workspaceId = useWorkspaceId();
-  console.log("workspaceId", workspaceId);
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);
   const dashboard = useAppSelector((s) => selectDashboardForWorkspace(s, workspaceId));

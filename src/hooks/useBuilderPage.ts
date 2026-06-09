@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useAppRouter } from "@/src/hooks/useAppRouter";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import type { FormDef, FormPageDef } from "../components/page-def/builder/pageDef";
 import type { SaveState } from "../components/page-def/builder/BuilderTopBar";
@@ -32,7 +32,7 @@ function readQueryParam(searchParams: URLSearchParams, key: string): string {
 }
 
 export function useBuilderPage(builderBasePath = "/builder") {
-  const router = useAppRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const saving = useAppSelector((s) => s.forms.saving);

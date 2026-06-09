@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useAppRouter } from "@/src/hooks/useAppRouter";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AuthShell } from "@/src/components/layout/AuthShell";
 import { Spinner } from "@/src/components/ui/index";
@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { clearAuthError, registerUser } from "@/src/store/slices/authSlice";
 
 export default function RegisterPage() {
-  const router = useAppRouter();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const { loading, error, user } = useAppSelector((s) => s.auth);
   const [localError, setLocalError] = useState<string | null>(null);

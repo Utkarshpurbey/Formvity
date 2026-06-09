@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppRouter } from "@/src/hooks/useAppRouter";
+import { useRouter } from "next/navigation";
 import { useFormId, useWorkspaceId } from "@/src/hooks/useRouteIds";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
@@ -29,7 +29,7 @@ import { FormSubNav } from "@/src/components/form/index";
 import { buildPublicUrl } from "@/src/utils/publicUrl";
 
 export default function FormDetailPage() {
-  const router = useAppRouter();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const workspaceId = useWorkspaceId();
   const formId = useFormId();

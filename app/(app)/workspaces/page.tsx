@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useAppRouter } from "@/src/hooks/useAppRouter";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { PageLoader, SkeletonRows, Spinner } from "@/src/components/ui/index";
@@ -15,7 +15,7 @@ import { normalizeWorkspaceSummary } from "@/src/lib/apiNormalize";
 import type { WorkspaceSummary } from "@/src/api/types";
 
 function WorkspaceCard({ workspace, formCount }: { workspace: WorkspaceSummary; formCount: number }) {
-  const router = useAppRouter();
+  const router = useRouter();
   return (
     <button
       type="button"
@@ -41,7 +41,7 @@ function WorkspaceCard({ workspace, formCount }: { workspace: WorkspaceSummary; 
 }
 
 export default function WorkspacesPage() {
-  const router = useAppRouter();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const { user, ready } = useAppSelector((s) => s.auth);
   const { list: workspaces, loading, creating } = useAppSelector((s) => s.workspace);

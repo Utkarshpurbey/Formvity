@@ -1,7 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useAppRouter } from "../../hooks/useAppRouter";
+import { usePathname, useRouter } from "next/navigation";
 import { stripAppBasePath } from "../../utils/appBasePath";
 
 type FormSubNavProps = {
@@ -23,7 +22,7 @@ const tabs = (workspaceId: string, formId: string) => [
 ];
 
 export function FormSubNav({ workspaceId, formId }: FormSubNavProps) {
-  const router = useAppRouter();
+  const router = useRouter();
   const pathname = stripAppBasePath(usePathname() ?? "/");
 
   return (

@@ -1,19 +1,20 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { restoreDeepLinkUrl } from "../utils/routeParams";
 
 /**
- * Restores the real URL after GitHub Pages 404 redirect or in-app shell navigation.
- * Uses history.replaceState only — never router.replace (avoids missing RSC *.txt fetches).
+ * One-time restore for direct links / bookmarks (GitHub Pages 404 → shell redirect).
+ * Not used for in-app navigation — that uses normal router.push with real paths.
  */
 export function DeepLinkRestore() {
-  const pathname = usePathname();
+  const done = useRef(false);
 
   useLayoutEffect(() => {
+    if (done.current) return;
+    done.current = true;
     restoreDeepLinkUrl();
-  }, [pathname]);
+  }, []);
 
   return null;
 }

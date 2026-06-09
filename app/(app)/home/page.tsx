@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useAppRouter } from "@/src/hooks/useAppRouter";
+import { useRouter } from "next/navigation";
 
 function IconLayout({ className }: { className?: string }) {
   return (
@@ -61,7 +61,7 @@ const pillars = [
 ];
 
 export default function HomePage() {
-  const router = useAppRouter();
+  const router = useRouter();
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto scroll-smooth">

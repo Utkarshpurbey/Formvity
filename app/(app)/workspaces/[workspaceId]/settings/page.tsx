@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppRouter } from "@/src/hooks/useAppRouter";
+import { useRouter } from "next/navigation";
 import { useWorkspaceId } from "@/src/hooks/useRouteIds";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
@@ -28,7 +28,7 @@ import {
 } from "@/src/store/slices/workspaceSlice";
 
 export default function WorkspaceSettingsPage() {
-  const router = useAppRouter();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const workspaceId = useWorkspaceId();
   const { user, ready } = useAppSelector((s) => s.auth);
