@@ -18,6 +18,11 @@ export function getAppBasePath(): string {
   return "";
 }
 
+/** Static export shells are files like `/workspaces/_.html`, not `/workspaces/_`. */
+export function stripStaticHtmlSuffix(pathname: string): string {
+  return pathname.replace(/\.html(?=\/|$)/gi, "");
+}
+
 /** Strip GitHub Pages repo prefix so `/Form-Builder-UI/r/x` → `/r/x`. */
 export function stripAppBasePath(pathname: string): string {
   const base = getAppBasePath();

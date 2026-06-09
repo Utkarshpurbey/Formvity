@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useWorkspaceId } from "@/src/hooks/useRouteIds";
+import { isDeepLinkRestorePending } from "@/src/utils/routeParams";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
@@ -76,10 +78,9 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
 }
 
 export default function WorkspaceDetailPage() {
-  const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
+  const workspaceId = useWorkspaceId();
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);
   const dashboard = useAppSelector((s) => selectDashboardForWorkspace(s, workspaceId));
@@ -143,7 +144,7 @@ export default function WorkspaceDetailPage() {
 
   const workspaceName = workspace?.workSpaceName ?? "Workspace";
 
-  if (!ready) return <PageLoader message="Loading workspace…" className="min-h-[50vh]" />;
+  if (!ready || isDeepLinkRestorePending()) return <PageLoader message="Loading workspace…" className="min-h-[50vh]" />;
 
   if (!workspaceId) {
     return (
