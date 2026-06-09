@@ -8,6 +8,12 @@ const basePath =
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  ...(process.env.NEXT_STATIC_EXPORT === "true"
+    ? {
+        output: "export",
+        images: { unoptimized: true },
+      }
+    : {}),
   ...(basePath ? { basePath, assetPrefix: basePath } : {}),
 };
 

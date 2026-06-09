@@ -34,9 +34,9 @@ function formatDateTime(value: string | null): string {
 }
 
 export default function FormAnalyticsPage() {
+  const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const params = useParams();
   const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
   const formId = typeof params.formId === "string" ? params.formId : "";
   const { user, ready } = useAppSelector((s) => s.auth);

@@ -29,9 +29,9 @@ import { FormSubNav } from "@/src/components/form/index";
 import { buildPublicUrl } from "@/src/utils/publicUrl";
 
 export default function FormDetailPage() {
+  const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const params = useParams();
   const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
   const formId = typeof params.formId === "string" ? params.formId : "";
   const { user, ready } = useAppSelector((s) => s.auth);

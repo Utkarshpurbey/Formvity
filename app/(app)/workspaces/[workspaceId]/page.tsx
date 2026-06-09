@@ -76,9 +76,9 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
 }
 
 export default function WorkspaceDetailPage() {
+  const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const params = useParams();
   const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);
