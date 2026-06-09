@@ -4,7 +4,7 @@ import { useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AuthShell } from "@/src/components/layout/AuthShell";
-import { Spinner } from "@/src/components/ui/Spinner";
+import { Spinner } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { clearAuthError, loginUser } from "@/src/store/slices/authSlice";
 

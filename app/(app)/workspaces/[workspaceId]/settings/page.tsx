@@ -5,13 +5,16 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
-import { DeleteWorkspaceModal } from "@/src/components/workspace/DeleteWorkspaceModal";
-import { MembersPanel } from "@/src/components/workspace/MembersPanel";
-import { PermissionGate } from "@/src/components/workspace/PermissionGate";
-import { RoleBadge } from "@/src/components/workspace/RoleBadge";
-import { WorkspaceSubNav } from "@/src/components/workspace/WorkspaceSubNav";
-import { PageLoader } from "@/src/components/ui/PageLoader";
-import { useWorkspacePermissions } from "@/src/hooks/useWorkspacePermissions";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
+import {
+  MembersPanel,
+  PermissionGate,
+  RoleBadge,
+  WorkspaceSubNav,
+  useWorkspaceRole,
+  workspaceCan,
+} from "@/src/components/workspace/index";
+import { PageLoader } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
   fetchMembers,
@@ -35,7 +38,8 @@ export default function WorkspaceSettingsPage() {
   const members = useAppSelector((s) => selectMembersForWorkspace(s, workspaceId));
   const membersLoading = useAppSelector((s) => selectMembersLoading(s, workspaceId));
   const deleting = useAppSelector((s) => Boolean(s.workspace.deletingWorkspaceIds[workspaceId]));
-  const { role, can } = useWorkspacePermissions(workspaceId);
+  const role = useWorkspaceRole(workspaceId);
+  const can = (p: Parameters<typeof workspaceCan>[1]) => workspaceCan(role, p);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -166,10 +170,22 @@ export default function WorkspaceSettingsPage() {
         </PermissionGate>
       </div>
 
-      <DeleteWorkspaceModal
+      <ConfirmDialog
         open={deleteOpen}
-        workspaceName={workspaceName}
-        deleting={deleting}
+        title="Deactivate workspace?"
+        description={
+          <>
+            <span className="font-medium text-slate-800">{workspaceName}</span> will be deactivated. Forms in this
+            workspace will no longer appear in your dashboard. This action can be reversed by an administrator on
+            the backend.
+            <p className="mt-3 text-xs text-slate-500">
+              Type the workspace name in your head — there is no undo button in the UI yet.
+            </p>
+          </>
+        }
+        confirmLabel="Deactivate workspace"
+        confirmingLabel="Deactivating…"
+        confirming={deleting}
         onClose={() => setDeleteOpen(false)}
         onConfirm={handleDelete}
       />

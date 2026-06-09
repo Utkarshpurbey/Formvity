@@ -1,9 +1,7 @@
 import { useState } from "react";
 import type { FormDef, FormPageDef, PageComponentDef } from "./pageDef";
-import { REGISTRY, getVariantProps } from "./registry";
-import type { RegistryKey } from "./registry";
-import { DRAG_TYPE } from "./ComponentPalette";
-import { getDefaultComponentDef } from "./defaults";
+import { REGISTRY, getVariantProps, type RegistryKey } from "../widgets";
+import { DRAG_TYPE, getDefaultComponentDef } from "./BuilderSidebar";
 import { FormHeader } from "./FormHeader";
 import {
   formAccentBarClass,
@@ -44,6 +42,7 @@ interface PageCanvasProps {
   onPageChange: (updater: (prev: FormPageDef) => FormPageDef) => void;
   isLastPage?: boolean;
   isFirstPage?: boolean;
+  builderVersion?: "v1" | "v2";
 }
 
 export default function PageCanvas({
@@ -57,6 +56,7 @@ export default function PageCanvas({
   onPageChange,
   isLastPage = true,
   isFirstPage = true,
+  builderVersion = "v1",
 }: PageCanvasProps) {
   const progressPct = totalPages > 1 ? ((pageIndex + 1) / totalPages) * 100 : 100;
   const appearance = getAppearance(formDef);
@@ -88,7 +88,7 @@ export default function PageCanvas({
       return;
     }
     if (!type) return;
-    const def = getDefaultComponentDef(type);
+    const def = getDefaultComponentDef(type, builderVersion);
     if (!def) return;
     onPageChange((prev) => ({
       ...prev,
@@ -115,7 +115,7 @@ export default function PageCanvas({
       return;
     }
     if (type) {
-      const def = getDefaultComponentDef(type);
+      const def = getDefaultComponentDef(type, builderVersion);
       if (def) {
         const dropIndex = page.components.findIndex((c) => c.id === dropTargetId);
         if (dropIndex === -1) return;

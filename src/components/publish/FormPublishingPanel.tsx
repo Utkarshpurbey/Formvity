@@ -2,8 +2,8 @@
 
 import { PublicLinkPanel } from "../publish/PublicLinkPanel";
 import { FormLifecycleBadge } from "../ui/FormLifecycleBadge";
-import { Spinner } from "../ui/Spinner";
-import type { FormLifecycle } from "../../lib/formLifecycle";
+import { Spinner } from "../ui/index";
+import type { FormLifecycle } from "../../lib/publish";
 
 type FormPublishingPanelProps = {
   lifecycle: FormLifecycle;

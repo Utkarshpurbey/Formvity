@@ -1,7 +1,7 @@
 "use client";
 
-import type { FormLifecycle } from "../../lib/formLifecycle";
-import { lifecycleLabel } from "../../lib/formLifecycle";
+import type { FormLifecycle } from "../../lib/publish";
+import { lifecycleLabel } from "../../lib/publish";
 
 const KIND_CLASS: Record<FormLifecycle["kind"], string> = {
   live: "bg-emerald-50 text-emerald-700 ring-emerald-600/15",

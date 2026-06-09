@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
 import { stripAppBasePath } from "../utils/appBasePath";
-import { Spinner } from "./ui/Spinner";
+import { Spinner } from "./ui/index";
 
 /** Signed-in maker nav — shared forms for respondents will live on public links later, not here. */
 const workspaceNav = [

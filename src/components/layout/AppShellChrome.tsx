@@ -1,11 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppShellHeader } from "../AppShellHeader";
 import { AppSidebar } from "./AppSidebar";
-import { PageTransition } from "./PageTransition";
-import { PageLoader } from "../ui/PageLoader";
+import { PageLoader } from "../ui/index";
 import { stripAppBasePath } from "../../utils/appBasePath";
 import { useAppSelector } from "../../store/hooks";
 
@@ -14,12 +14,35 @@ function isMarketingRoute(path: string): boolean {
   return path === "/" || path === "/home";
 }
 
+const SIDEBAR_COLLAPSED_KEY = "formvity-sidebar-collapsed";
+
 export function AppShellChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
   const routePath = stripAppBasePath(pathname);
   const { user, ready } = useAppSelector((s) => s.auth);
   const isPublicResponder = routePath.startsWith("/r/");
   const showSidebar = Boolean(user) && !isMarketingRoute(routePath) && !isPublicResponder;
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
 
   if (!ready) {
     return (
@@ -31,7 +54,7 @@ export function AppShellChrome({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-[#f8fafc]">
-      {showSidebar ? <AppSidebar /> : null}
+      {showSidebar ? <AppSidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} /> : null}
       <div className="flex min-w-0 flex-1 flex-col">
         {!isPublicResponder ? (
           showSidebar ? (
@@ -42,7 +65,9 @@ export function AppShellChrome({ children }: { children: ReactNode }) {
             <AppShellHeader />
           )
         ) : null}
-        <PageTransition>{children}</PageTransition>
+        <div key={pathname} className="page-enter flex min-h-0 flex-1 flex-col">
+          {children}
+        </div>
       </div>
     </div>
   );

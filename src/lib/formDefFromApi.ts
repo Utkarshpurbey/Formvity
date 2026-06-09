@@ -1,5 +1,5 @@
 import type { FormDef } from "../components/page-def/builder/pageDef";
-import { publicFormApi, workspaceFormApi } from "../utils/apiPath";
+import { apiUrl } from "../utils/apiPath";
 import { getApiHeaders } from "../utils/authHeaders";
 import { normalizeFormDef } from "./normalizeFormDef";
 
@@ -24,8 +24,8 @@ export function formDefFromApiPayload(payload: unknown): FormDef | null {
 }
 
 function urlForSource(source: FormLoadSource): string {
-  if (source.type === "public") return publicFormApi(source.slug);
-  return workspaceFormApi(source.workspaceId, source.formId);
+  if (source.type === "public") return apiUrl.publicForm(source.slug);
+  return apiUrl.workspaceForm(source.workspaceId, source.formId);
 }
 
 export async function fetchFormDef(source: FormLoadSource, signal?: AbortSignal): Promise<FormDef> {

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import * as authApi from "../../api/authApi";
+import * as api from "../../api/client";
 import { ApiError } from "../../api/http";
 import type { CurrentUser } from "../../api/types";
 import { clearAuthToken, setAuthToken } from "../../utils/authHeaders";
@@ -22,7 +22,7 @@ export const loginUser = createAsyncThunk(
   "auth/login",
   async ({ userName, password }: { userName: string; password: string }, { rejectWithValue }) => {
     try {
-      const res = await authApi.login(userName, password);
+      const res = await api.login(userName, password);
       setAuthToken(res.token);
       return { id: res.id, displayName: res.displayName, email: userName };
     } catch (e) {
@@ -36,8 +36,8 @@ export const registerUser = createAsyncThunk(
   "auth/register",
   async ({ displayName, email, password }: { displayName: string; email: string; password: string }, { rejectWithValue }) => {
     try {
-      await authApi.register(displayName, email, password);
-      const res = await authApi.login(email, password);
+      await api.register(displayName, email, password);
+      const res = await api.login(email, password);
       setAuthToken(res.token);
       return { id: res.id, displayName: res.displayName, email };
     } catch (e) {
@@ -47,11 +47,11 @@ export const registerUser = createAsyncThunk(
   },
 );
 
-export const loadMe = createAsyncThunk("auth/me", async () => authApi.fetchMe());
+export const loadMe = createAsyncThunk("auth/me", async () => api.fetchMe());
 
 export const logoutUser = createAsyncThunk("auth/logout", async () => {
   try {
-    await authApi.logout();
+    await api.logout();
   } catch {
     /* token may already be invalid */
   }

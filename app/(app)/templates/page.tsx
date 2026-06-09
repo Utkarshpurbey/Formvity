@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PAGE_DEF_TEMPLATES } from "../../../src/lib/page-def-templates";
-import { StyledFormPreview } from "../../../src/components/page-def/builder/StyledFormPreview";
+import { MultiPageForm } from "../../../src/components/page-def/runtime/MultiPageForm";
 import { cloneTemplatePageDef, toBuilderFormDef } from "../../../src/lib/template-to-builder-page-def";
 
 type TemplateEntry = [string, (typeof PAGE_DEF_TEMPLATES)[string]];
@@ -95,7 +95,7 @@ export default function TemplatesRoutePage() {
 
   const handleEditInBuilder = (templateKey: string) => {
     setPreviewKey(null);
-    router.push(`/builder?template=${encodeURIComponent(templateKey)}`);
+    router.push(`/builder/v2?template=${encodeURIComponent(templateKey)}`);
   };
 
   useEffect(() => {
@@ -200,7 +200,7 @@ export default function TemplatesRoutePage() {
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
-              <StyledFormPreview formDef={previewBuilderFormDef} />
+              <MultiPageForm formDef={previewBuilderFormDef} />
             </div>
 
             <div className="shrink-0 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-200 bg-white px-5 py-4">

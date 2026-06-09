@@ -94,3 +94,64 @@ export type PublishStatus = {
   lastPublishedAt?: string;
   draftChangedSincePublish: boolean;
 };
+
+export type AnalyticsSummary = {
+  totalResponses: number;
+  responsesToday: number;
+  firstResponseAt: string | null;
+  lastResponseAt: string | null;
+  currentPublicationVersion: number | null;
+};
+
+export type AnalyticsTimelinePoint = {
+  date: string;
+  count: number;
+};
+
+export type AnalyticsTimeline = {
+  days: number;
+  points: AnalyticsTimelinePoint[];
+};
+
+export type QuestionDistribution = {
+  value: string;
+  label?: string;
+  count: number;
+  percent: number;
+};
+
+export type QuestionAnalytics = {
+  fieldId: string;
+  label: string;
+  type: string;
+  responseCount: number;
+  skippedCount?: number;
+  average?: number;
+  min?: number;
+  max?: number;
+  distribution: QuestionDistribution[];
+};
+
+export type FormAnalyticsOverview = {
+  summary: AnalyticsSummary;
+  timeline: AnalyticsTimelinePoint[];
+  questions: QuestionAnalytics[];
+};
+
+export type SubmissionRow = {
+  id: string;
+  createdAt: string;
+  publicationVersion?: number;
+  respondent: Record<string, unknown>;
+  answers: Record<string, unknown>;
+};
+
+export type SubmissionsPage = {
+  content: SubmissionRow[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+};

@@ -1,8 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { FormDef } from "../../components/page-def/builder/pageDef";
-import * as formsApi from "../../api/formsApi";
-import { derivePublishStatusFromForm } from "../../lib/normalizePublication";
-import { filterActiveForms } from "../../lib/formLifecycle";
+import * as api from "../../api/client";
+import { normalizeWorkspaceSummary, normalizeWorkspaceList } from "../../lib/apiNormalize";
+import { derivePublishStatusFromForm } from "../../lib/publish";
+import { filterActiveForms } from "../../lib/publish";
 import type { FormSummary, PublicationMeta, PublishResponse, PublishStatus } from "../../api/types";
 import { buildPublicUrl } from "../../utils/publicUrl";
 import { fetchWorkspaceDashboard } from "./workspaceSlice";
@@ -66,19 +67,19 @@ export const selectFormsRefreshing = (state: { forms: FormsState }, workspaceId:
 
 export const fetchForms = createAsyncThunk(
   "forms/list",
-  async (workspaceId: string) => formsApi.listForms(workspaceId),
+  async (workspaceId: string) => api.listForms(workspaceId),
 );
 
 export const createForm = createAsyncThunk(
   "forms/create",
   async ({ workspaceId, title, draftPageDef }: { workspaceId: string; title: string; draftPageDef: FormDef }) =>
-    formsApi.createForm(workspaceId, title, draftPageDef),
+    api.createForm(workspaceId, title, draftPageDef),
 );
 
 export const loadFormDraft = createAsyncThunk(
   "forms/loadDraft",
   async ({ workspaceId, formId }: { workspaceId: string; formId: string }) => {
-    const draft = await formsApi.getFormDraft(workspaceId, formId);
+    const draft = await api.getFormDraft(workspaceId, formId);
     return { formId, draft };
   },
 );
@@ -95,13 +96,13 @@ export const saveFormDraft = createAsyncThunk(
     formId: string;
     title: string;
     draftPageDef: FormDef;
-  }) => formsApi.patchForm(workspaceId, formId, { title, draftPageDef }),
+  }) => api.patchForm(workspaceId, formId, { title, draftPageDef }),
 );
 
 export const archiveForm = createAsyncThunk(
   "forms/archive",
   async ({ workspaceId, formId }: { workspaceId: string; formId: string }) => {
-    await formsApi.deleteForm(workspaceId, formId, false);
+    await api.deleteForm(workspaceId, formId, false);
     return formId;
   },
 );
@@ -112,7 +113,7 @@ export const fetchPublishStatus = createAsyncThunk(
     { workspaceId, formId }: { workspaceId: string; formId: string },
     { getState },
   ) => {
-    const remote = await formsApi.getPublishStatus(workspaceId, formId);
+    const remote = await api.getPublishStatus(workspaceId, formId);
     if (remote) return remote;
 
     const state = getState() as { forms: FormsState };
@@ -125,13 +126,13 @@ export const fetchPublishStatus = createAsyncThunk(
 export const publishForm = createAsyncThunk(
   "forms/publish",
   async ({ workspaceId, formId }: { workspaceId: string; formId: string }) =>
-    formsApi.publishForm(workspaceId, formId),
+    api.publishForm(workspaceId, formId),
 );
 
 export const unpublishForm = createAsyncThunk(
   "forms/unpublish",
   async ({ workspaceId, formId }: { workspaceId: string; formId: string }) =>
-    formsApi.unpublishForm(workspaceId, formId),
+    api.unpublishForm(workspaceId, formId),
 );
 
 const formsSlice = createSlice({

@@ -5,26 +5,27 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { PublishFlowModal, type PublishModalMode } from "@/src/components/publish/PublishFlowModal";
 import { FormPublishingPanel } from "@/src/components/publish/FormPublishingPanel";
-import { UnpublishConfirmModal } from "@/src/components/publish/UnpublishConfirmModal";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
-import { PageLoader } from "@/src/components/ui/PageLoader";
-import { deriveFormLifecycle, isEditableFormLifecycle } from "@/src/lib/formLifecycle";
-import { useFormPublishStatus } from "@/src/hooks/useFormPublishStatus";
-import { useWorkspacePermissions } from "@/src/hooks/useWorkspacePermissions";
+import { PageLoader } from "@/src/components/ui/index";
+import { deriveFormLifecycle, isEditableFormLifecycle } from "@/src/lib/publish";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
   archiveForm,
   clearFormsError,
   fetchForms,
+  fetchPublishStatus,
   publishForm,
   selectFormsForWorkspace,
+  selectFormsInitialLoading,
   unpublishForm,
 } from "@/src/store/slices/formsSlice";
 import { fetchWorkspaces } from "@/src/store/slices/workspaceSlice";
 import { EMPTY_FORM_DEF } from "@/src/lib/normalizeFormDef";
-import { PermissionGate } from "@/src/components/workspace/PermissionGate";
+import { PermissionGate, useWorkspaceRole, workspaceCan } from "@/src/components/workspace/index";
+import { FormSubNav } from "@/src/components/form/index";
 import { buildPublicUrl } from "@/src/utils/publicUrl";
 
 export default function FormDetailPage() {
@@ -36,12 +37,15 @@ export default function FormDetailPage() {
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);
   const forms = useAppSelector((s) => selectFormsForWorkspace(s, workspaceId));
+  const formsLoading = useAppSelector((s) => selectFormsInitialLoading(s, workspaceId));
   const publication = useAppSelector((s) => s.forms.publicationByForm[formId]);
+  const publishStatus = useAppSelector((s) => s.forms.publishStatus);
   const publishing = useAppSelector((s) => s.forms.publishing);
   const unpublishing = useAppSelector((s) => s.forms.unpublishingFormIds[formId]);
   const publishError = useAppSelector((s) => s.forms.error);
   const lastPublishResult = useAppSelector((s) => s.forms.lastPublishResult);
-  const { can } = useWorkspacePermissions(workspaceId);
+  const role = useWorkspaceRole(workspaceId);
+  const can = (p: Parameters<typeof workspaceCan>[1]) => workspaceCan(role, p);
 
   const form = useMemo(() => forms.find((f) => f.id === formId), [forms, formId]);
   const workspace = useMemo(
@@ -49,22 +53,16 @@ export default function FormDetailPage() {
     [workspaces, workspaceId],
   );
 
-  const { status: publishStatus, loading: statusLoading, setStatus } = useFormPublishStatus(
-    workspaceId,
-    formId,
-    Boolean(workspaceId && formId),
-  );
-
   const lifecycle = useMemo(
     () =>
       deriveFormLifecycle({
         formStatus: form?.status,
-        notFound: ready && !statusLoading && !form,
+        notFound: ready && !formsLoading && !form,
         publishStatus,
         publication,
         lastPublishResult,
       }),
-    [form?.status, ready, statusLoading, form, publishStatus, publication, lastPublishResult],
+    [form?.status, ready, formsLoading, form, publishStatus, publication, lastPublishResult],
   );
 
   const [publishModalOpen, setPublishModalOpen] = useState(false);
@@ -90,11 +88,16 @@ export default function FormDetailPage() {
   }, [workspaceId, dispatch]);
 
   useEffect(() => {
-    if (!ready || statusLoading) return;
+    if (!workspaceId || !formId) return;
+    dispatch(fetchPublishStatus({ workspaceId, formId }));
+  }, [workspaceId, formId, dispatch]);
+
+  useEffect(() => {
+    if (!ready || formsLoading) return;
     if (lifecycle.kind === "archived" || lifecycle.kind === "not_found") {
       router.replace(`/workspaces/${workspaceId}`);
     }
-  }, [ready, statusLoading, lifecycle.kind, router, workspaceId]);
+  }, [ready, formsLoading, lifecycle.kind, router, workspaceId]);
 
   const openPublish = (mode: PublishModalMode) => {
     dispatch(clearFormsError());
@@ -103,27 +106,18 @@ export default function FormDetailPage() {
   };
 
   const handlePublish = async (_newSlug?: string) => {
-    const result = await dispatch(publishForm({ workspaceId, formId })).unwrap();
-    setStatus({
-      status: "published",
-      slug: result.slug,
-      publicUrl: result.publicUrl || buildPublicUrl(result.slug),
-      lastPublishedAt: result.publishedAt,
-      draftChangedSincePublish: false,
-    });
-    return result;
+    return dispatch(publishForm({ workspaceId, formId })).unwrap();
   };
 
   const handleUnpublish = useCallback(async () => {
     try {
-      const result = await dispatch(unpublishForm({ workspaceId, formId })).unwrap();
-      setStatus(result);
+      await dispatch(unpublishForm({ workspaceId, formId })).unwrap();
       setUnpublishOpen(false);
       toast.success("Form is now offline.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not unpublish");
     }
-  }, [dispatch, workspaceId, formId, setStatus]);
+  }, [dispatch, workspaceId, formId]);
 
   const handleArchive = useCallback(async () => {
     if (archiving || !can("form.delete")) return;
@@ -139,7 +133,7 @@ export default function FormDetailPage() {
     }
   }, [archiving, can, dispatch, workspaceId, formId, router]);
 
-  if (!ready || (statusLoading && !form)) {
+  if (!ready || (formsLoading && !form)) {
     return <PageLoader message="Loading form…" className="min-h-[50vh]" />;
   }
 
@@ -183,12 +177,14 @@ export default function FormDetailPage() {
           </p>
         </div>
         <Link
-          href={`/builder?workspaceId=${workspaceId}&formId=${formId}`}
+          href={`/builder/v2?workspaceId=${workspaceId}&formId=${formId}`}
           className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
         >
           Open in builder
         </Link>
       </div>
+
+        <FormSubNav workspaceId={workspaceId} formId={formId} />
 
       <div className="mt-8 grid gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3 space-y-6">
@@ -200,7 +196,7 @@ export default function FormDetailPage() {
 
             <FormPublishingPanel
               lifecycle={lifecycle}
-              loading={statusLoading}
+              loading={formsLoading}
               onPublish={() => openPublish("publish")}
               onRepublish={() => openPublish("republish")}
               onShare={() => openPublish("share")}
@@ -264,10 +260,18 @@ export default function FormDetailPage() {
         error={publishError}
       />
 
-      <UnpublishConfirmModal
+      <ConfirmDialog
         open={unpublishOpen}
-        formTitle={form.title}
-        unpublishing={Boolean(unpublishing)}
+        title="Take form offline?"
+        description={
+          <>
+            <span className="font-medium text-slate-800">{form.title.trim() || "Untitled form"}</span> will no
+            longer be available at its public link. Respondents will see an unavailable message.
+          </>
+        }
+        confirmLabel="Unpublish"
+        confirmingLabel="Unpublishing…"
+        confirming={Boolean(unpublishing)}
         onClose={() => setUnpublishOpen(false)}
         onConfirm={handleUnpublish}
       />

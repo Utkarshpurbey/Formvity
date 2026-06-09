@@ -453,6 +453,67 @@ export default function ComponentConfigPanel({
             </div>
           </>
         )}
+        {selectedComponent.type === "rating" && (
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Max stars</label>
+            <input
+              type="number"
+              min={1}
+              max={10}
+              value={Number(comp.maxStars) || 5}
+              onChange={(e) => updateSelected({ maxStars: e.target.value ? Number(e.target.value) : 5 })}
+              className={inputClass}
+            />
+          </div>
+        )}
+        {selectedComponent.type === "scale" && (
+          <>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Min label</label>
+              <input
+                type="text"
+                value={String(comp.minLabel ?? "")}
+                onChange={(e) => updateSelected({ minLabel: e.target.value || undefined })}
+                className={inputClass}
+                placeholder="Not likely"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Max label</label>
+              <input
+                type="text"
+                value={String(comp.maxLabel ?? "")}
+                onChange={(e) => updateSelected({ maxLabel: e.target.value || undefined })}
+                className={inputClass}
+                placeholder="Very likely"
+              />
+            </div>
+          </>
+        )}
+        {selectedComponent.type === "section" && (
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Body text</label>
+            <textarea
+              value={String(comp.body ?? "")}
+              onChange={(e) => updateSelected({ body: e.target.value || undefined })}
+              rows={4}
+              className={inputClass}
+              placeholder="Instructions or description for this section"
+            />
+          </div>
+        )}
+        {selectedComponent.type === "file" && (
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Accepted files</label>
+            <input
+              type="text"
+              value={String(comp.accept ?? "")}
+              onChange={(e) => updateSelected({ accept: e.target.value || undefined })}
+              className={inputClass}
+              placeholder=".pdf,.doc,image/*"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

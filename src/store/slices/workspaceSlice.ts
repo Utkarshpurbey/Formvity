@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import * as workspaceApi from "../../api/workspaceApi";
-import { normalizeWorkspaceSummary, normalizeWorkspaceList } from "../../lib/normalizeWorkspace";
+import * as api from "../../api/client";
+import { normalizeWorkspaceSummary, normalizeWorkspaceList } from "../../lib/apiNormalize";
 import type { WorkspaceDashboard, WorkspaceMember, WorkspaceSummary } from "../../api/types";
 
 type WorkspaceState = {
@@ -43,27 +43,27 @@ export const selectDashboardForWorkspace = (
 export const selectDashboardLoading = (state: { workspace: WorkspaceState }, workspaceId: string | null) =>
   Boolean(workspaceId && state.workspace.dashboardLoadingByWorkspace[workspaceId]);
 
-export const fetchWorkspaces = createAsyncThunk("workspace/list", workspaceApi.listWorkspaces);
+export const fetchWorkspaces = createAsyncThunk("workspace/list", api.listWorkspaces);
 
 export const fetchWorkspaceDashboard = createAsyncThunk(
   "workspace/dashboard",
-  (workSpaceId: string) => workspaceApi.getWorkspaceDashboard(workSpaceId),
+  (workSpaceId: string) => api.getWorkspaceDashboard(workSpaceId),
 );
 
 export const createWorkspace = createAsyncThunk(
   "workspace/create",
-  async (workSpaceName: string) => workspaceApi.createWorkspace(workSpaceName),
+  async (workSpaceName: string) => api.createWorkspace(workSpaceName),
 );
 
 export const fetchMembers = createAsyncThunk(
   "workspace/members",
-  async (workSpaceId: string) => workspaceApi.listMembers(workSpaceId),
+  async (workSpaceId: string) => api.listMembers(workSpaceId),
 );
 
 export const removeWorkspace = createAsyncThunk(
   "workspace/delete",
   async (workSpaceId: string) => {
-    await workspaceApi.deleteWorkspace(workSpaceId);
+    await api.deleteWorkspace(workSpaceId);
     return workSpaceId;
   },
 );

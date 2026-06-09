@@ -155,6 +155,57 @@ export const COMPONENT_SPECS: ComponentSpec[] = [
     ],
     exampleJson: { id: "appointment", type: "time", label: "Preferred time" },
   },
+  {
+    type: "rating",
+    description: "Star rating (1–5 by default).",
+    valueFormat: "string (number)",
+    defaultLabel: "Rating",
+    specificProps: [
+      { name: "maxStars", type: "number", required: false, description: "Max stars (default 5)." },
+    ],
+    exampleJson: { id: "rating1", type: "rating", label: "How was your experience?", required: true, maxStars: 5 },
+  },
+  {
+    type: "scale",
+    description: "Linear scale (0–10 NPS-style).",
+    valueFormat: "string (number)",
+    defaultLabel: "Likelihood to recommend",
+    specificProps: [
+      { name: "min", type: "number", required: false, description: "Min value (default 0)." },
+      { name: "max", type: "number", required: false, description: "Max value (default 10)." },
+      { name: "minLabel", type: "string", required: false, description: "Label for min end." },
+      { name: "maxLabel", type: "string", required: false, description: "Label for max end." },
+    ],
+    exampleJson: { id: "nps", type: "scale", label: "How likely are you to recommend us?", required: true, min: 0, max: 10 },
+  },
+  {
+    type: "section",
+    description: "Section header and body copy (no answer stored).",
+    valueFormat: "none",
+    defaultLabel: "Section",
+    specificProps: [
+      { name: "body", type: "string", required: false, description: "Paragraph text below the title." },
+    ],
+    exampleJson: { id: "section1", type: "section", label: "About this section", body: "Use sections to group questions or add instructions." },
+  },
+  {
+    type: "file",
+    description: "File upload (UI stub until backend presign).",
+    valueFormat: "string (filename)",
+    defaultLabel: "Upload file",
+    specificProps: [
+      { name: "accept", type: "string", required: false, description: "Accepted MIME types, e.g. image/*" },
+    ],
+    exampleJson: { id: "resume", type: "file", label: "Upload resume", accept: ".pdf,.doc,.docx" },
+  },
+  {
+    type: "signature",
+    description: "Drawn signature captured as base64 PNG.",
+    valueFormat: "string (base64 data URL)",
+    defaultLabel: "Signature",
+    specificProps: [],
+    exampleJson: { id: "signature1", type: "signature", label: "Sign here", required: true },
+  },
 ];
 
 /** Shown in the docs as a shape guide (not exhaustive). */
@@ -197,6 +248,19 @@ export const PALETTE_SPECS: PaletteSpec[] = [
   { id: "Checkbox", label: "Checkbox", description: "Single checkbox (yes/no).", defaultType: "checkbox" },
   { id: "DateAndTime", label: "Date & time", description: "Date or time picker.", defaultType: "date", subTypes: ["date", "time"] },
 ];
+
+export const V2_PALETTE_SPECS: PaletteSpec[] = [
+  ...PALETTE_SPECS,
+  { id: "Rating", label: "Rating", description: "1–5 star rating.", defaultType: "rating" },
+  { id: "Scale", label: "Scale", description: "0–10 linear scale (NPS-style).", defaultType: "scale" },
+  { id: "Section", label: "Section", description: "Title and body text block.", defaultType: "section" },
+  { id: "FileUpload", label: "File upload", description: "File picker (preview stub).", defaultType: "file" },
+  { id: "Signature", label: "Signature", description: "Draw a signature.", defaultType: "signature" },
+];
+
+export function getPaletteSpecs(version: "v1" | "v2" = "v1"): PaletteSpec[] {
+  return version === "v2" ? V2_PALETTE_SPECS : PALETTE_SPECS;
+}
 
 /** For Config panel: which types show a Type dropdown and what options they get. */
 export const TYPE_GROUPS: Record<string, string[]> = {

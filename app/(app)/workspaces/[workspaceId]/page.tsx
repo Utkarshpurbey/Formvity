@@ -6,11 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
-import { PageLoader } from "@/src/components/ui/PageLoader";
-import { SkeletonRows } from "@/src/components/ui/Skeleton";
-import { Spinner } from "@/src/components/ui/Spinner";
-import { StatCard } from "@/src/components/ui/StatCard";
-import { deriveFormLifecycle } from "@/src/lib/formLifecycle";
+import { PageLoader, SkeletonRows, Spinner, StatCard } from "@/src/components/ui/index";
+import { deriveFormLifecycle } from "@/src/lib/publish";
 import { EMPTY_FORM_DEF } from "@/src/lib/normalizeFormDef";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
@@ -26,14 +23,14 @@ import {
   selectDashboardForWorkspace,
   setActiveWorkspace,
 } from "@/src/store/slices/workspaceSlice";
-import { PermissionGate } from "@/src/components/workspace/PermissionGate";
-import { WorkspaceSubNav } from "@/src/components/workspace/WorkspaceSubNav";
-import { useWorkspacePermissions } from "@/src/hooks/useWorkspacePermissions";
+import { PermissionGate, WorkspaceSubNav, useWorkspaceRole, workspaceCan } from "@/src/components/workspace/index";
 import type { FormSummary } from "@/src/api/types";
+import { useFormResponseCount } from "@/src/hooks/useFormAnalytics";
 
 function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: string }) {
   const publication = useAppSelector((s) => s.forms.publicationByForm[form.id]);
   const lifecycle = deriveFormLifecycle({ formStatus: form.status, publication });
+  const responseCount = useFormResponseCount(workspaceId, form.id, lifecycle.isLive);
 
   return (
     <tr className="group border-b border-slate-100 last:border-0 hover:bg-slate-50/80">
@@ -44,7 +41,10 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
         >
           {form.title.trim() || "Untitled form"}
         </Link>
-        <p className="mt-0.5 text-xs text-slate-500">Updated {new Date(form.updatedAt).toLocaleString()}</p>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Updated {new Date(form.updatedAt).toLocaleString()}
+          {responseCount != null ? ` · ${responseCount} response${responseCount === 1 ? "" : "s"}` : null}
+        </p>
       </td>
       <td className="px-6 py-4">
         <FormLifecycleBadge lifecycle={lifecycle} />
@@ -52,7 +52,7 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
       <td className="px-6 py-4 text-right">
         <div className="flex items-center justify-end gap-2 opacity-100 transition sm:opacity-70 sm:group-hover:opacity-100">
           <Link
-            href={`/builder?workspaceId=${workspaceId}&formId=${form.id}`}
+            href={`/builder/v2?workspaceId=${workspaceId}&formId=${form.id}`}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Edit
@@ -62,6 +62,12 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
             className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
           >
             Manage
+          </Link>
+          <Link
+            href={`/workspaces/${workspaceId}/forms/${form.id}/analytics`}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Analytics
           </Link>
         </div>
       </td>
@@ -81,7 +87,8 @@ export default function WorkspaceDetailPage() {
   const initialLoading = useAppSelector((s) => selectFormsInitialLoading(s, workspaceId));
   const refreshing = useAppSelector((s) => selectFormsRefreshing(s, workspaceId));
   const [creatingForm, setCreatingForm] = useState(false);
-  const { can } = useWorkspacePermissions(workspaceId);
+  const role = useWorkspaceRole(workspaceId);
+  const can = (p: Parameters<typeof workspaceCan>[1]) => workspaceCan(role, p);
 
   const workspace = useMemo(() => {
     const fromList = workspaces.find((w) => w.workSpaceId === workspaceId);
@@ -126,7 +133,7 @@ export default function WorkspaceDetailPage() {
       const form = await dispatch(
         createForm({ workspaceId, title: "Untitled form", draftPageDef: EMPTY_FORM_DEF }),
       ).unwrap();
-      router.push(`/builder?workspaceId=${workspaceId}&formId=${form.id}`);
+      router.push(`/builder/v2?workspaceId=${workspaceId}&formId=${form.id}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not create form");
     } finally {

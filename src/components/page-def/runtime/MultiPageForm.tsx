@@ -14,7 +14,7 @@ import {
   getSubmitButtonClass,
 } from "../builder/appearance";
 import { FormPageShell } from "../builder/FormPageShell";
-import { REGISTRY, getVariantProps } from "../builder/registry";
+import { REGISTRY, getVariantProps } from "../widgets";
 import { getStartPageId } from "../../../lib/normalizeFormDef";
 import {
   getNextPageId,
@@ -32,31 +32,51 @@ function parseActionRef(val: unknown): string[] | null {
 
 type MultiPageFormProps = {
   formDef: FormDef;
-  onSubmitted?: (values: Record<string, string>) => void;
+  onSubmitted?: (values: Record<string, string>) => void | Promise<void>;
+  onPageVisit?: (pageId: string) => void;
   /** Full viewport without app sidebar/header (e.g. `/forms`). */
   standalone?: boolean;
+  /** When intake precedes form, offset progress (e.g. 1). */
+  progressOffset?: number;
+  /** Total steps including intake when applicable. */
+  totalSteps?: number;
 };
 
-export function MultiPageForm({ formDef, onSubmitted, standalone = false }: MultiPageFormProps) {
+export function MultiPageForm({
+  formDef,
+  onSubmitted,
+  onPageVisit,
+  standalone = false,
+  progressOffset = 0,
+  totalSteps: totalStepsProp,
+}: MultiPageFormProps) {
   const startPageId = useMemo(() => getStartPageId(formDef), [formDef]);
   const [currentPageId, setCurrentPageId] = useState(startPageId);
   const [values, setValues] = useState<Record<string, string>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submittedValues, setSubmittedValues] = useState<Record<string, string> | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setCurrentPageId(startPageId);
     setValues({});
     setFieldErrors({});
     setSubmittedValues(null);
+    setSubmitting(false);
   }, [formDef.id, startPageId]);
+
+  useEffect(() => {
+    onPageVisit?.(currentPageId);
+  }, [currentPageId, onPageVisit]);
 
   const currentPage = formDef.pages.find((p) => p.id === currentPageId) ?? formDef.pages[0]!;
   const pageIndex = formDef.pages.findIndex((p) => p.id === currentPageId);
   const totalPages = formDef.pages.length;
+  const displayStep = pageIndex + 1 + progressOffset;
+  const displayTotal = totalStepsProp ?? totalPages + progressOffset;
   const isFirst = pageIndex <= 0;
   const isLast = pageIndex === totalPages - 1;
-  const progressPct = totalPages > 1 ? ((pageIndex + 1) / totalPages) * 100 : 100;
+  const progressPct = displayTotal > 1 ? (displayStep / displayTotal) * 100 : 100;
 
   const runActions = (actionIds: string[], value: string, comp: PageComponentDef) => {
     if (!formDef.actions || actionIds.length === 0) return;
@@ -109,7 +129,7 @@ export function MultiPageForm({ formDef, onSubmitted, standalone = false }: Mult
     if (prevId) setCurrentPageId(prevId);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const pageErrs = validateCurrentPage();
     if (Object.keys(pageErrs).length > 0) {
       toast.error("Please fix the errors on this page.");
@@ -122,8 +142,21 @@ export function MultiPageForm({ formDef, onSubmitted, standalone = false }: Mult
       return;
     }
     setFieldErrors({});
+
+    if (onSubmitted) {
+      setSubmitting(true);
+      try {
+        await onSubmitted(values);
+        setSubmittedValues(values);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Could not submit form");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     setSubmittedValues(values);
-    onSubmitted?.(values);
     toast.success("Form submitted successfully!");
   };
 
@@ -239,15 +272,15 @@ export function MultiPageForm({ formDef, onSubmitted, standalone = false }: Mult
           </div>
 
           <div className="border-t border-[color:color-mix(in_srgb,var(--fb-text)_8%,var(--fb-surface))] px-5 py-5 sm:px-10 sm:py-6">
-            {totalPages > 1 ? (
+            {displayTotal > 1 ? (
               <div className="mb-5 space-y-2">
                 <div
                   className="h-0.5 overflow-hidden rounded-full bg-[color:color-mix(in_srgb,var(--fb-text)_12%,var(--fb-surface))]"
                   role="progressbar"
-                  aria-valuenow={pageIndex + 1}
+                  aria-valuenow={displayStep}
                   aria-valuemin={1}
-                  aria-valuemax={totalPages}
-                  aria-label={`Page ${pageIndex + 1} of ${totalPages}`}
+                  aria-valuemax={displayTotal}
+                  aria-label={`Step ${displayStep} of ${displayTotal}`}
                 >
                   <div
                     className="h-full rounded-full bg-[color:var(--fb-primary)] transition-[width] duration-300 ease-out"
@@ -255,7 +288,7 @@ export function MultiPageForm({ formDef, onSubmitted, standalone = false }: Mult
                   />
                 </div>
                 <p className="text-xs text-[color:var(--fb-muted)]">
-                  Page {pageIndex + 1} of {totalPages}
+                  Step {displayStep} of {displayTotal}
                 </p>
               </div>
             ) : null}
@@ -273,8 +306,8 @@ export function MultiPageForm({ formDef, onSubmitted, standalone = false }: Mult
                 ) : null}
               </div>
               {isLast ? (
-                <button type="button" onClick={handleSubmit} className={submitButtonClass}>
-                  Submit
+                <button type="button" onClick={handleSubmit} disabled={submitting} className={submitButtonClass}>
+                  {submitting ? "Submitting…" : "Submit"}
                 </button>
               ) : (
                 <button type="button" onClick={goNext} className={submitButtonClass}>

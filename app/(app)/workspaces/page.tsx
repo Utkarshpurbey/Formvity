@@ -5,16 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
-import { PageLoader } from "@/src/components/ui/PageLoader";
-import { SkeletonRows } from "@/src/components/ui/Skeleton";
-import { Spinner } from "@/src/components/ui/Spinner";
+import { PageLoader, SkeletonRows, Spinner } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
   createWorkspace,
   fetchWorkspaces,
   setActiveWorkspace,
 } from "@/src/store/slices/workspaceSlice";
-import { normalizeWorkspaceSummary } from "@/src/lib/normalizeWorkspace";
+import { normalizeWorkspaceSummary } from "@/src/lib/apiNormalize";
 import type { WorkspaceSummary } from "@/src/api/types";
 
 function WorkspaceCard({ workspace, formCount }: { workspace: WorkspaceSummary; formCount: number }) {

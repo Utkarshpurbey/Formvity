@@ -1,4 +1,4 @@
-import type { FormDef, FormPageDef, PageComponentDef } from "../components/page-def/builder/pageDef";
+import type { FormDef, PageComponentDef } from "../components/page-def/builder/pageDef";
 
 const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const validatePhone = (phone: string) => /^\d{10}$/.test(phone);
@@ -20,11 +20,18 @@ export function validatePageComponents(
   components.forEach((comp) => {
     const val = values[comp.id] ?? "";
     const required = comp.required === true;
+    if (comp.type === "section") return;
     if (required) {
       if (comp.type === "checkbox") {
         if (val !== "true") errs[comp.id] = "This field is required";
       } else if (comp.type === "multiselect") {
         if (!val.trim() || val.split(",").every((s) => !s.trim())) errs[comp.id] = "Select at least one option";
+      } else if (comp.type === "file") {
+        if (!val.trim()) errs[comp.id] = "Please select a file";
+      } else if (comp.type === "signature") {
+        if (!val.trim()) errs[comp.id] = "Signature is required";
+      } else if (comp.type === "rating" || comp.type === "scale") {
+        if (!val.trim()) errs[comp.id] = "This field is required";
       } else if (!val.trim()) {
         errs[comp.id] = "This field is required";
       }
@@ -64,5 +71,3 @@ export function getPrevPageId(formDef: FormDef, currentPageId: string): string |
   if (idx <= 0) return null;
   return formDef.pages[idx - 1]!.id;
 }
-
-export type { FormPageDef };

@@ -109,6 +109,3 @@ export const toBuilderFormDef = (template: TemplatePageDef): FormDef => {
     ],
   };
 };
-
-/** @deprecated Use toBuilderFormDef */
-export const toBuilderPageDef = toBuilderFormDef;

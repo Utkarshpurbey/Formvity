@@ -2,11 +2,11 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { MultiPageForm } from "../../../src/components/page-def/runtime/MultiPageForm";
-import { PageLoader } from "../../../src/components/ui/PageLoader";
+import { FormRuntime } from "../../../src/components/page-def/runtime/FormRuntime";
+import { PageLoader } from "../../../src/components/ui/index";
 import { useFormDef } from "../../../src/hooks/useFormDef";
 import { normalizeFormDef } from "../../../src/lib/normalizeFormDef";
-import { getPublicFormSlugFromLocation } from "../../../src/utils/publicFormSlug";
+import { getPublicFormSlugFromLocation } from "../../../src/utils/publicUrl";
 
 function resolveSlug(paramSlug: string): string {
   const fromUrl = getPublicFormSlugFromLocation();
@@ -57,7 +57,7 @@ function PublicFormPageInner() {
     );
   }
 
-  return <MultiPageForm key={slug} formDef={formDef} standalone />;
+  return <FormRuntime key={slug} formDef={formDef} slug={slug} standalone />;
 }
 
 export default function PublicFormPageClient() {

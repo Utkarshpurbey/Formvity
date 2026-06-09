@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import type { FormLifecycle } from "../../../lib/formLifecycle";
+import type { FormLifecycle } from "../../../lib/publish";
 import { FormLifecycleBadge } from "../../ui/FormLifecycleBadge";
 import { PublicLinkPanel } from "../../publish/PublicLinkPanel";
-import { Spinner } from "../../ui/Spinner";
+import { Spinner } from "../../ui/index";
 
 export type SaveState = "saving" | "saved" | "unsaved";
 

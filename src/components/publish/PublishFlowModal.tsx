@@ -5,7 +5,7 @@ import type { FormDef } from "../page-def/builder/pageDef";
 import type { PublishResponse } from "../../api/types";
 import { buildPublicUrl, slugifyTitle } from "../../utils/publicUrl";
 import { PublicLinkPanel } from "./PublicLinkPanel";
-import { Spinner } from "../ui/Spinner";
+import { Spinner } from "../ui/index";
 
 export type PublishModalMode = "publish" | "republish" | "share";
 

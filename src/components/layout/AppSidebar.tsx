@@ -11,7 +11,7 @@ import { stripAppBasePath } from "../../utils/appBasePath";
 const nav = [
   { href: "/workspaces", label: "Workspaces", icon: "grid" },
   { href: "/templates", label: "Templates", icon: "spark" },
-  { href: "/builder", label: "Builder", icon: "layout" },
+  { href: "/builder/v2", label: "Builder", icon: "layout" },
 ];
 
 function NavIcon({ name }: { name: string }) {
@@ -45,13 +45,21 @@ function isNavActive(routePath: string, href: string): boolean {
   if (href === "/workspaces") {
     return routePath === "/workspaces" || routePath.startsWith("/workspaces/") || routePath === "/workspace";
   }
+  if (href === "/builder/v2") {
+    return routePath === "/builder/v2" || routePath.startsWith("/builder/v2/");
+  }
   if (href === "/builder") {
     return routePath === "/builder" || routePath.startsWith("/builder/");
   }
   return routePath === href || routePath.startsWith(`${href}/`);
 }
 
-export const AppSidebar = memo(function AppSidebar() {
+type AppSidebarProps = {
+  collapsed: boolean;
+  onToggle: () => void;
+};
+
+export const AppSidebar = memo(function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const pathname = usePathname() ?? "/";
   const routePath = stripAppBasePath(pathname);
   const router = useRouter();
@@ -65,58 +73,112 @@ export const AppSidebar = memo(function AppSidebar() {
   };
 
   return (
-    <aside className="hidden w-[240px] shrink-0 flex-col border-r border-slate-200/80 bg-white lg:flex">
-      <div className="flex h-14 items-center gap-2.5 border-b border-slate-100 px-5">
-        <Link href="/workspaces" className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/25">
+    <aside
+      className={`relative hidden shrink-0 flex-col border-r border-slate-200/80 bg-white transition-[width] duration-200 ease-in-out lg:flex ${
+        collapsed ? "w-16" : "w-[240px]"
+      }`}
+    >
+      <div
+        className={`flex h-14 shrink-0 items-center border-b border-slate-100 ${
+          collapsed ? "justify-center px-2" : "gap-2.5 px-5"
+        }`}
+      >
+        <Link
+          href="/workspaces"
+          title="Formvity"
+          className={`flex items-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
+            collapsed ? "justify-center" : "gap-2.5"
+          }`}
+        >
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/25">
             <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z" />
             </svg>
           </div>
-          <span className="text-sm font-bold tracking-tight text-slate-900">Formvity</span>
+          {!collapsed ? <span className="text-sm font-bold tracking-tight text-slate-900">Formvity</span> : null}
         </Link>
       </div>
 
-      <nav className="flex-1 space-y-0.5 p-3" aria-label="Main navigation">
+      <nav className={`flex-1 space-y-0.5 ${collapsed ? "p-2" : "p-3"}`} aria-label="Main navigation">
         {nav.map(({ href, label, icon }) => {
           const active = isNavActive(routePath, href);
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+              title={collapsed ? label : undefined}
+              aria-label={collapsed ? label : undefined}
+              className={`flex items-center rounded-xl text-sm font-medium transition-all duration-200 ${
+                collapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5"
+              } ${
                 active
                   ? "bg-violet-50 text-violet-700 shadow-sm shadow-violet-500/5"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
               <NavIcon name={icon} />
-              {label}
+              {!collapsed ? label : null}
             </Link>
           );
         })}
       </nav>
 
       {user ? (
-        <div className="border-t border-slate-100 p-3">
-          <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+        <div className={`border-t border-slate-100 ${collapsed ? "p-2" : "p-3"}`}>
+          <div
+            className={`flex items-center rounded-xl bg-slate-50 ${
+              collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2.5"
+            }`}
+            title={collapsed ? user.displayName : undefined}
+          >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 text-xs font-bold text-white">
               {initials(user.displayName)}
             </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-slate-900">{user.displayName}</p>
-              <p className="truncate text-xs text-slate-500">{user.email ?? "Signed in"}</p>
-            </div>
+            {!collapsed ? (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-slate-900">{user.displayName}</p>
+                <p className="truncate text-xs text-slate-500">{user.email ?? "Signed in"}</p>
+              </div>
+            ) : null}
           </div>
           <button
             type="button"
             onClick={handleLogout}
-            className="mt-2 w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-600 transition hover:bg-rose-50 hover:text-rose-600"
+            title={collapsed ? "Sign out" : undefined}
+            className={`mt-2 w-full rounded-lg text-sm font-medium text-slate-600 transition hover:bg-rose-50 hover:text-rose-600 ${
+              collapsed ? "flex items-center justify-center px-2 py-2" : "px-3 py-2 text-left"
+            }`}
           >
-            Sign out
+            {collapsed ? (
+              <svg className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+              </svg>
+            ) : (
+              "Sign out"
+            )}
           </button>
         </div>
       ) : null}
+
+      <button
+        type="button"
+        onClick={onToggle}
+        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-expanded={!collapsed}
+        className="absolute -right-3 top-[4.25rem] z-10 flex size-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-violet-50 hover:text-violet-700"
+      >
+        <svg
+          className={`size-3.5 transition-transform duration-200 ${collapsed ? "" : "rotate-180"}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+          aria-hidden
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
     </aside>
   );
 });

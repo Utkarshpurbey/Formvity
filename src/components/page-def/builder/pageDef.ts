@@ -14,7 +14,12 @@ export type PageComponentType =
   | "date"
   | "time"
   | "multiselect"
-  | "url";
+  | "url"
+  | "rating"
+  | "scale"
+  | "section"
+  | "file"
+  | "signature";
 
 export interface PageComponentDef {
   id: string;
@@ -32,8 +37,25 @@ export interface FormAppearanceSettings {
   inputStyle?: "outline" | "filled";
 }
 
+export type RespondentFieldType = "text" | "email" | "phone" | "number";
+
+export interface RespondentIntakeField {
+  id: string;
+  type: RespondentFieldType;
+  label: string;
+  required?: boolean;
+  placeholder?: string;
+}
+
+export interface RespondentIntakeSettings {
+  title?: string;
+  description?: string;
+  fields: RespondentIntakeField[];
+}
+
 export interface FormSettings {
   appearance?: FormAppearanceSettings;
+  respondentIntake?: RespondentIntakeSettings;
 }
 
 /** One step in a multi-page form. */
@@ -64,7 +86,7 @@ export interface FormDef {
 
 /**
  * Legacy single-page document (components at root).
- * @deprecated Use FormDef with pages[] — normalized on load via normalizeFormDef.
+ * Normalized to FormDef via normalizeFormDef on load.
  */
 export interface PageDef {
   id: string;
