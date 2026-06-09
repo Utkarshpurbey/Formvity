@@ -13,7 +13,7 @@ import {
   useWorkspaceRole,
   workspaceCan,
 } from "@/src/components/workspace/index";
-import { PageLoader, RouterNavButton } from "@/src/components/ui/index";
+import { PageLoader } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
   fetchMembers,
@@ -96,13 +96,17 @@ export default function WorkspaceSettingsPage() {
   return (
     <AppPageContainer>
       <nav className="text-sm text-slate-500">
-        <RouterNavButton href="/workspaces" className="hover:text-violet-600">
+        <button type="button" onClick={() => router.push("/workspaces")} className="hover:text-violet-600">
           Workspaces
-        </RouterNavButton>
+        </button>
         <span className="mx-2">/</span>
-        <RouterNavButton href={`/workspaces/${workspaceId}`} className="hover:text-violet-600">
+        <button
+          type="button"
+          onClick={() => router.push(`/workspaces/${workspaceId}`)}
+          className="hover:text-violet-600"
+        >
           {workspaceName}
-        </RouterNavButton>
+        </button>
         <span className="mx-2">/</span>
         <span className="font-medium text-slate-800">Settings</span>
       </nav>

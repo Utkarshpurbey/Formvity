@@ -1,13 +1,12 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import type { WorkspaceMember, WorkspaceRole } from "../../api/types";
 import { RBAC_ENFORCED, hasPermission, roleLabel, type Permission } from "../../lib/permissions";
 import { useAppSelector } from "../../store/hooks";
 import { selectMembersForWorkspace } from "../../store/slices/workspaceSlice";
 import { stripAppBasePath } from "../../utils/appBasePath";
-import { RouterNavButton } from "../ui/RouterNavButton";
 import { SkeletonRows } from "../ui/index";
 
 const ROLE_STYLES: Record<WorkspaceRole, string> = {
@@ -38,6 +37,7 @@ const tabs = (workspaceId: string) => [
 ];
 
 export function WorkspaceSubNav({ workspaceId, workspaceName }: WorkspaceSubNavProps) {
+  const router = useRouter();
   const pathname = stripAppBasePath(usePathname() ?? "/");
 
   return (
@@ -46,9 +46,10 @@ export function WorkspaceSubNav({ workspaceId, workspaceName }: WorkspaceSubNavP
         {tabs(workspaceId).map((tab) => {
           const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);
           return (
-            <RouterNavButton
+            <button
               key={tab.href}
-              href={tab.href}
+              type="button"
+              onClick={() => router.push(tab.href)}
               className={`border-b-2 pb-3 text-sm font-semibold transition ${
                 active
                   ? "border-violet-600 text-violet-700"
@@ -57,7 +58,7 @@ export function WorkspaceSubNav({ workspaceId, workspaceName }: WorkspaceSubNavP
               aria-current={active ? "page" : undefined}
             >
               {tab.label}
-            </RouterNavButton>
+            </button>
           );
         })}
       </nav>

@@ -1,9 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import type { FormLifecycle } from "../../../lib/publish";
 import { FormLifecycleBadge } from "../../ui/FormLifecycleBadge";
 import { PublicLinkPanel } from "../../publish/PublicLinkPanel";
-import { RouterNavButton, Spinner } from "../../ui/index";
+import { Spinner } from "../../ui/index";
 
 export type SaveState = "saving" | "saved" | "unsaved";
 
@@ -56,6 +57,7 @@ export function BuilderTopBar({
   saving,
   publishing = false,
 }: BuilderTopBarProps) {
+  const router = useRouter();
   const isLive = lifecycle?.kind === "live";
   const hasDraftDrift = Boolean(lifecycle?.draftChangedSincePublish);
   const isUnpublished = lifecycle?.kind === "unpublished";
@@ -65,12 +67,13 @@ export function BuilderTopBar({
     <header className="mb-3 flex shrink-0 flex-col gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <RouterNavButton
-            href="/workspaces"
+          <button
+            type="button"
+            onClick={() => router.push("/workspaces")}
             className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
           >
             ← Workspace
-          </RouterNavButton>
+          </button>
           <span className="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden />
           <p className="min-w-0 truncate text-sm font-semibold text-slate-900">{formTitle.trim() || "Untitled form"}</p>
           {apiMode && lifecycle ? <FormLifecycleBadge lifecycle={lifecycle} /> : null}

@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { logoutUser } from "../../store/slices/authSlice";
 import { stripAppBasePath } from "../../utils/appBasePath";
-import { RouterNavButton } from "../ui/RouterNavButton";
 
 const nav = [
   { href: "/workspaces", label: "Workspaces", icon: "grid" },
@@ -83,8 +82,9 @@ export const AppSidebar = memo(function AppSidebar({ collapsed, onToggle }: AppS
           collapsed ? "justify-center px-2" : "gap-2.5 px-5"
         }`}
       >
-        <RouterNavButton
-          href="/workspaces"
+        <button
+          type="button"
+          onClick={() => router.push("/workspaces")}
           title="Formvity"
           className={`flex items-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
             collapsed ? "justify-center" : "gap-2.5"
@@ -96,16 +96,17 @@ export const AppSidebar = memo(function AppSidebar({ collapsed, onToggle }: AppS
             </svg>
           </div>
           {!collapsed ? <span className="text-sm font-bold tracking-tight text-slate-900">Formvity</span> : null}
-        </RouterNavButton>
+        </button>
       </div>
 
       <nav className={`flex-1 space-y-0.5 ${collapsed ? "p-2" : "p-3"}`} aria-label="Main navigation">
         {nav.map(({ href, label, icon }) => {
           const active = isNavActive(routePath, href);
           return (
-            <RouterNavButton
+            <button
               key={href}
-              href={href}
+              type="button"
+              onClick={() => router.push(href)}
               title={collapsed ? label : undefined}
               aria-label={collapsed ? label : undefined}
               className={`flex items-center rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -118,7 +119,7 @@ export const AppSidebar = memo(function AppSidebar({ collapsed, onToggle }: AppS
             >
               <NavIcon name={icon} />
               {!collapsed ? label : null}
-            </RouterNavButton>
+            </button>
           );
         })}
       </nav>

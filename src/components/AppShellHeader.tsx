@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
 import { stripAppBasePath } from "../utils/appBasePath";
-import { RouterNavButton, Spinner } from "./ui/index";
+import { Spinner } from "./ui/index";
 
 /** Signed-in maker nav — shared forms for respondents will live on public links later, not here. */
 const workspaceNav = [
@@ -91,8 +91,9 @@ export function AppShellHeader() {
     <header className="sticky top-0 z-40 shrink-0 border-b border-slate-200/90 bg-white/90 shadow-sm backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 flex-1 items-center gap-6 md:gap-8">
-          <RouterNavButton
-            href="/home"
+          <button
+            type="button"
+            onClick={() => router.push("/home")}
             className="flex shrink-0 items-center gap-2.5 rounded-lg outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             <div
@@ -107,23 +108,24 @@ export function AppShellHeader() {
               <p className="text-sm font-semibold tracking-tight text-slate-900">Formvity</p>
               <p className="hidden text-[11px] font-medium text-slate-500 sm:block">Form builder</p>
             </div>
-          </RouterNavButton>
+          </button>
 
           <nav className="hidden min-w-0 items-center gap-0.5 md:flex" aria-label="Primary">
             {primaryNav.map(({ href, label }) => (
-              <RouterNavButton
+              <button
                 key={href}
-                href={href}
+                type="button"
+                onClick={() => router.push(href)}
                 aria-current={routePath === href ? "page" : undefined}
                 className={navLinkClass(routePath === href || (href === "/workspaces" && routePath.startsWith("/workspaces")))}
               >
                 {label}
-              </RouterNavButton>
+              </button>
             ))}
             {user && isHome ? (
-              <RouterNavButton href="/home" className={navLinkClass(true)}>
+              <button type="button" onClick={() => router.push("/home")} className={navLinkClass(true)}>
                 Home
-              </RouterNavButton>
+              </button>
             ) : null}
           </nav>
         </div>
@@ -179,18 +181,20 @@ export function AppShellHeader() {
             </div>
           ) : (
             <>
-              <RouterNavButton
-                href="/login"
+              <button
+                type="button"
+                onClick={() => router.push("/login")}
                 className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:inline-flex"
               >
                 Log in
-              </RouterNavButton>
-              <RouterNavButton
-                href="/register"
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/register")}
                 className="inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
               >
                 Get started
-              </RouterNavButton>
+              </button>
               <button
                 type="button"
                 data-guest-menu-trigger
@@ -216,22 +220,28 @@ export function AppShellHeader() {
         <div ref={guestMenuRef} className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {exploreNav.map(({ href, label }) => (
-              <RouterNavButton
+              <button
                 key={href}
-                href={href}
-                onNavigate={closeMenus}
+                type="button"
+                onClick={() => {
+                  closeMenus();
+                  router.push(href);
+                }}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
                 {label}
-              </RouterNavButton>
+              </button>
             ))}
-            <RouterNavButton
-              href="/login"
-              onNavigate={closeMenus}
+            <button
+              type="button"
+              onClick={() => {
+                closeMenus();
+                router.push("/login");
+              }}
               className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Log in
-            </RouterNavButton>
+            </button>
           </nav>
         </div>
       ) : null}
@@ -240,23 +250,29 @@ export function AppShellHeader() {
         <div ref={userMobilePanelRef} className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {(user ? workspaceNav : exploreNav).map(({ href, label }) => (
-              <RouterNavButton
+              <button
                 key={href}
-                href={href}
-                onNavigate={closeMenus}
+                type="button"
+                onClick={() => {
+                  closeMenus();
+                  router.push(href);
+                }}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
                 {label}
-              </RouterNavButton>
+              </button>
             ))}
             {user && isHome ? (
-              <RouterNavButton
-                href="/home"
-                onNavigate={closeMenus}
+              <button
+                type="button"
+                onClick={() => {
+                  closeMenus();
+                  router.push("/home");
+                }}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
                 Home
-              </RouterNavButton>
+              </button>
             ) : null}
             <button type="button" className="rounded-lg px-3 py-2.5 text-left text-sm font-medium text-rose-600 hover:bg-rose-50" onClick={handleLogout}>
               Sign out
