@@ -28,6 +28,7 @@ import type { FormSummary } from "@/src/api/types";
 import { useFormResponseCount } from "@/src/hooks/useFormAnalytics";
 
 function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: string }) {
+  const router = useRouter();
   const publication = useAppSelector((s) => s.forms.publicationByForm[form.id]);
   const lifecycle = deriveFormLifecycle({ formStatus: form.status, publication });
   const responseCount = useFormResponseCount(workspaceId, form.id, lifecycle.isLive);
@@ -51,12 +52,13 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
       </td>
       <td className="px-6 py-4 text-right">
         <div className="flex items-center justify-end gap-2 opacity-100 transition sm:opacity-70 sm:group-hover:opacity-100">
-          <Link
-            href={`/builder/v2?workspaceId=${workspaceId}&formId=${form.id}`}
+          <button
+            type="button"
+            onClick={() => router.push(`/builder/v2?workspaceId=${workspaceId}&formId=${form.id}`)}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Edit
-          </Link>
+          </button>
           <Link
             href={`/workspaces/${workspaceId}/forms/${form.id}`}
             className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
@@ -76,9 +78,9 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
 }
 
 export default function WorkspaceDetailPage() {
-  const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const params = useParams();
   const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);

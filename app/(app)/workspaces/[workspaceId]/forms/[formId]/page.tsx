@@ -176,12 +176,13 @@ export default function FormDetailPage() {
             {new Date(form.updatedAt).toLocaleString()}
           </p>
         </div>
-        <Link
-          href={`/builder/v2?workspaceId=${workspaceId}&formId=${formId}`}
+        <button
+          type="button"
+          onClick={() => router.push(`/builder/v2?workspaceId=${workspaceId}&formId=${formId}`)}
           className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
         >
           Open in builder
-        </Link>
+        </button>
       </div>
 
         <FormSubNav workspaceId={workspaceId} formId={formId} />
