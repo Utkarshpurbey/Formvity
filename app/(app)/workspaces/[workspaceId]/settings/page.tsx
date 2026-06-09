@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useWorkspaceId } from "@/src/hooks/useRouteIds";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
@@ -31,7 +30,8 @@ import {
 export default function WorkspaceSettingsPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const workspaceId = useWorkspaceId();
+  const params = useParams();
+  const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);
   const dashboard = useAppSelector((s) => selectDashboardForWorkspace(s, workspaceId));

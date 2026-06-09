@@ -1,4 +1,4 @@
-import { getAppOrigin, stripAppBasePath } from "./appBasePath";
+import { getAppOrigin } from "./appBasePath";
 
 /** Build the public responder URL for a published form slug. */
 export function buildPublicUrl(slug: string): string {
@@ -14,14 +14,4 @@ export function slugifyTitle(title: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 64);
-}
-
-/** Read published form slug from the browser URL (reliable on GitHub Pages static export). */
-export function getPublicFormSlugFromLocation(): string {
-  if (typeof window === "undefined") return "";
-  const path = stripAppBasePath(window.location.pathname);
-  const match = path.match(/^\/r\/([^/?#]+)\/?$/);
-  if (!match?.[1]) return "";
-  const slug = decodeURIComponent(match[1]);
-  return slug === "_" ? "" : slug;
 }
