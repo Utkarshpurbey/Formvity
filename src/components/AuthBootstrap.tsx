@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { loadMe, markAuthReady } from "../store/slices/authSlice";
 import { getAuthToken } from "../utils/authHeaders";
-import { isDeepLinkRestorePending } from "../utils/routeParams";
 
 /**
  * Hydrate the signed-in user whenever a JWT exists — including on marketing
@@ -18,8 +17,6 @@ export function AuthBootstrap() {
   const ready = useAppSelector((s) => s.auth.ready);
 
   useEffect(() => {
-    if (isDeepLinkRestorePending()) return;
-
     const token = getAuthToken();
 
     if (!token) {

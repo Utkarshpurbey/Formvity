@@ -6,7 +6,6 @@ import { Provider } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthBootstrap } from "./AuthBootstrap";
-import { DeepLinkRestore } from "./DeepLinkRestore";
 import { NavigationProgress } from "./layout/NavigationProgress";
 import { AppShellChrome } from "./layout/AppShellChrome";
 import { stripAppBasePath } from "../utils/appBasePath";
@@ -26,7 +25,6 @@ function AppShellWrapper({ children }: { children: ReactNode }) {
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <Provider store={store}>
-      <DeepLinkRestore />
       <AuthBootstrap />
       <NavigationProgress />
       <AppShellWrapper>{children}</AppShellWrapper>

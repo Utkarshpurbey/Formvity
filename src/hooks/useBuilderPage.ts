@@ -24,13 +24,6 @@ import { buildPublicUrl } from "../utils/publicUrl";
 
 const DEBOUNCE_MS = 400;
 
-function readQueryParam(searchParams: URLSearchParams, key: string): string {
-  const fromHook = searchParams.get(key);
-  if (fromHook) return fromHook;
-  if (typeof window === "undefined") return "";
-  return new URLSearchParams(window.location.search).get(key) ?? "";
-}
-
 export function useBuilderPage(builderBasePath = "/builder") {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,8 +35,8 @@ export function useBuilderPage(builderBasePath = "/builder") {
   const lastPublishResult = useAppSelector((s) => s.forms.lastPublishResult);
   const publishError = useAppSelector((s) => s.forms.error);
 
-  const workspaceId = readQueryParam(searchParams, "workspaceId");
-  const formId = readQueryParam(searchParams, "formId");
+  const workspaceId = searchParams.get("workspaceId") ?? "";
+  const formId = searchParams.get("formId") ?? "";
   const apiMode = Boolean(workspaceId && formId);
 
   const formFromList = useAppSelector((s) =>
