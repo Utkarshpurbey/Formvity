@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/src/hooks/useAppRouter";
 import { useWorkspaceId } from "@/src/hooks/useRouteIds";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
@@ -26,10 +26,9 @@ import {
 import { PermissionGate, WorkspaceSubNav, useWorkspaceRole, workspaceCan } from "@/src/components/workspace/index";
 import type { FormSummary } from "@/src/api/types";
 import { useFormResponseCount } from "@/src/hooks/useFormAnalytics";
-import { navigateApp } from "@/src/utils/appNavigate";
 
 function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: string }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const publication = useAppSelector((s) => s.forms.publicationByForm[form.id]);
   const lifecycle = deriveFormLifecycle({ formStatus: form.status, publication });
   const responseCount = useFormResponseCount(workspaceId, form.id, lifecycle.isLive);
@@ -39,7 +38,7 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
       <td className="px-6 py-4">
         <button
           type="button"
-          onClick={() => navigateApp(`/workspaces/${workspaceId}/forms/${form.id}`, router)}
+          onClick={() => router.push(`/workspaces/${workspaceId}/forms/${form.id}`)}
           className="font-semibold text-slate-900 hover:text-violet-700"
         >
           {form.title.trim() || "Untitled form"}
@@ -63,14 +62,14 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
           </button>
           <button
             type="button"
-            onClick={() => navigateApp(`/workspaces/${workspaceId}/forms/${form.id}`, router)}
+            onClick={() => router.push(`/workspaces/${workspaceId}/forms/${form.id}`)}
             className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
           >
             Manage
           </button>
           <button
             type="button"
-            onClick={() => navigateApp(`/workspaces/${workspaceId}/forms/${form.id}/analytics`, router)}
+            onClick={() => router.push(`/workspaces/${workspaceId}/forms/${form.id}/analytics`)}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Analytics
@@ -82,7 +81,7 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
 }
 
 export default function WorkspaceDetailPage() {
-  const router = useRouter();
+  const router = useAppRouter();
   const dispatch = useAppDispatch();
   const workspaceId = useWorkspaceId();
   console.log("workspaceId", workspaceId);

@@ -1,7 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useAppRouter } from "@/src/hooks/useAppRouter";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { logoutUser } from "../../store/slices/authSlice";
@@ -61,7 +62,7 @@ type AppSidebarProps = {
 export const AppSidebar = memo(function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const pathname = usePathname() ?? "/";
   const routePath = stripAppBasePath(pathname);
-  const router = useRouter();
+  const router = useAppRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useAppRouter } from "@/src/hooks/useAppRouter";
 import { toast } from "react-toastify";
 import type { FormDef, FormPageDef } from "../components/page-def/builder/pageDef";
 import type { SaveState } from "../components/page-def/builder/BuilderTopBar";
@@ -24,7 +25,7 @@ import { buildPublicUrl } from "../utils/publicUrl";
 const DEBOUNCE_MS = 400;
 
 export function useBuilderPage(builderBasePath = "/builder") {
-  const router = useRouter();
+  const router = useAppRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const saving = useAppSelector((s) => s.forms.saving);

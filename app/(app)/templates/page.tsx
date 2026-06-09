@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/src/hooks/useAppRouter";
 import { PAGE_DEF_TEMPLATES } from "../../../src/lib/page-def-templates";
 import { MultiPageForm } from "../../../src/components/page-def/runtime/MultiPageForm";
 import { cloneTemplatePageDef, toBuilderFormDef } from "../../../src/lib/template-to-builder-page-def";
@@ -77,7 +77,7 @@ const getTemplatePreviewImage = (templateKey: string, title: string) => {
 };
 
 export default function TemplatesRoutePage() {
-  const router = useRouter();
+  const router = useAppRouter();
   const templateEntries = useMemo(() => Object.entries(PAGE_DEF_TEMPLATES) as TemplateEntry[], []);
   const [previewKey, setPreviewKey] = useState<string | null>(null);
 

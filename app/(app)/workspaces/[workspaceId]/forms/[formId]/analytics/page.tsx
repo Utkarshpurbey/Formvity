@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/src/hooks/useAppRouter";
 import { useFormId, useWorkspaceId } from "@/src/hooks/useRouteIds";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import {
@@ -22,7 +22,6 @@ import {
   selectFormsInitialLoading,
 } from "@/src/store/slices/formsSlice";
 import { fetchWorkspaces } from "@/src/store/slices/workspaceSlice";
-import { navigateApp } from "@/src/utils/appNavigate";
 
 const TIMELINE_OPTIONS = [7, 30, 90] as const;
 const PAGE_SIZE = 20;
@@ -35,7 +34,7 @@ function formatDateTime(value: string | null): string {
 }
 
 export default function FormAnalyticsPage() {
-  const router = useRouter();
+  const router = useAppRouter();
   const dispatch = useAppDispatch();
   const workspaceId = useWorkspaceId();
   const formId = useFormId();
@@ -97,7 +96,7 @@ export default function FormAnalyticsPage() {
         <p className="font-semibold text-slate-900">Form not available</p>
         <button
           type="button"
-          onClick={() => navigateApp(`/workspaces/${workspaceId}`, router)}
+          onClick={() => router.push(`/workspaces/${workspaceId}`)}
           className="text-sm text-violet-600 hover:underline"
         >
           Back to workspace
@@ -115,7 +114,7 @@ export default function FormAnalyticsPage() {
         <span className="mx-2">/</span>
         <button
           type="button"
-          onClick={() => navigateApp(`/workspaces/${workspaceId}`, router)}
+          onClick={() => router.push(`/workspaces/${workspaceId}`)}
           className="hover:text-violet-600"
         >
           {workspace?.workSpaceName ?? "Workspace"}
@@ -123,7 +122,7 @@ export default function FormAnalyticsPage() {
         <span className="mx-2">/</span>
         <button
           type="button"
-          onClick={() => navigateApp(`/workspaces/${workspaceId}/forms/${formId}`, router)}
+          onClick={() => router.push(`/workspaces/${workspaceId}/forms/${formId}`)}
           className="hover:text-violet-600"
         >
           {form.title.trim() || "Untitled form"}

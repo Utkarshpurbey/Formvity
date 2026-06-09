@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useAppRouter } from "../../hooks/useAppRouter";
 import type { ReactNode } from "react";
 import type { WorkspaceMember, WorkspaceRole } from "../../api/types";
 import { RBAC_ENFORCED, hasPermission, roleLabel, type Permission } from "../../lib/permissions";
@@ -37,7 +38,7 @@ const tabs = (workspaceId: string) => [
 ];
 
 export function WorkspaceSubNav({ workspaceId, workspaceName }: WorkspaceSubNavProps) {
-  const router = useRouter();
+  const router = useAppRouter();
   const pathname = stripAppBasePath(usePathname() ?? "/");
 
   return (

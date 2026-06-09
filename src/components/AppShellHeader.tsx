@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useAppRouter } from "@/src/hooks/useAppRouter";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -39,7 +40,7 @@ function initials(user: { displayName: string; email?: string }) {
 export function AppShellHeader() {
   const pathname = usePathname() ?? "/";
   const routePath = stripAppBasePath(pathname);
-  const router = useRouter();
+  const router = useAppRouter();
   const dispatch = useAppDispatch();
   const { user, ready } = useAppSelector((s) => s.auth);
   const [menuOpen, setMenuOpen] = useState(false);

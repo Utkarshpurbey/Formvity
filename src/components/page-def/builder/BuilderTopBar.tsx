@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/src/hooks/useAppRouter";
 import type { FormLifecycle } from "../../../lib/publish";
 import { FormLifecycleBadge } from "../../ui/FormLifecycleBadge";
 import { PublicLinkPanel } from "../../publish/PublicLinkPanel";
@@ -57,7 +57,7 @@ export function BuilderTopBar({
   saving,
   publishing = false,
 }: BuilderTopBarProps) {
-  const router = useRouter();
+  const router = useAppRouter();
   const isLive = lifecycle?.kind === "live";
   const hasDraftDrift = Boolean(lifecycle?.draftChangedSincePublish);
   const isUnpublished = lifecycle?.kind === "unpublished";

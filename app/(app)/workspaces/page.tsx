@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAppRouter } from "@/src/hooks/useAppRouter";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { PageLoader, SkeletonRows, Spinner } from "@/src/components/ui/index";
@@ -13,14 +13,13 @@ import {
 } from "@/src/store/slices/workspaceSlice";
 import { normalizeWorkspaceSummary } from "@/src/lib/apiNormalize";
 import type { WorkspaceSummary } from "@/src/api/types";
-import { navigateApp } from "@/src/utils/appNavigate";
 
 function WorkspaceCard({ workspace, formCount }: { workspace: WorkspaceSummary; formCount: number }) {
-  const router = useRouter();
+  const router = useAppRouter();
   return (
     <button
       type="button"
-      onClick={() => navigateApp(`/workspaces/${workspace.workSpaceId}`, router)}
+      onClick={() => router.push(`/workspaces/${workspace.workSpaceId}`)}
       className="group flex w-full flex-col rounded-2xl border border-slate-200/80 bg-white p-6 text-left shadow-sm ring-1 ring-slate-900/[0.03] transition hover:border-violet-200 hover:shadow-md hover:shadow-violet-500/5"
     >
       <div className="flex items-start justify-between gap-3">
@@ -42,7 +41,7 @@ function WorkspaceCard({ workspace, formCount }: { workspace: WorkspaceSummary; 
 }
 
 export default function WorkspacesPage() {
-  const router = useRouter();
+  const router = useAppRouter();
   const dispatch = useAppDispatch();
   const { user, ready } = useAppSelector((s) => s.auth);
   const { list: workspaces, loading, creating } = useAppSelector((s) => s.workspace);
@@ -67,7 +66,7 @@ export default function WorkspacesPage() {
         setNewName("");
         toast.success("Workspace created.");
         const ws = normalizeWorkspaceSummary(raw);
-        if (ws.workSpaceId) navigateApp(`/workspaces/${ws.workSpaceId}`, router);
+        if (ws.workSpaceId) router.push(`/workspaces/${ws.workSpaceId}`);
       })
       .catch((e: Error) => toast.error(e.message));
   }, [dispatch, newName, router]);
