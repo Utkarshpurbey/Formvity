@@ -43,7 +43,7 @@ export async function apiFetch<T>(
   }
 
   if (!res.ok) {
-    if (res.status === 401 && path.includes("auth/me")) clearAuthToken();
+    if (res.status === 401) clearAuthToken();
     throw new ApiError(errorMessage(body as ApiErrorBody, res.status), res.status);
   }
 
