@@ -84,6 +84,7 @@ export default function WorkspaceDetailPage() {
   const dispatch = useAppDispatch();
   const params = useParams();
   const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
+  console.log("workspaceId", workspaceId);
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);
   const dashboard = useAppSelector((s) => selectDashboardForWorkspace(s, workspaceId));
