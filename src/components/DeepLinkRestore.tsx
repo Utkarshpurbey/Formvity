@@ -1,32 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
-import { stripAppBasePath } from "../utils/appBasePath";
-import { consumeIntendedPath } from "../utils/routeParams";
+import { useLayoutEffect, useRef } from "react";
+import { restoreDeepLinkUrl } from "../utils/routeParams";
 
 /**
  * GitHub Pages 404 → *.html shell redirect stores the real path; restore it here.
- * Uses client navigation only (never index.html, so no redirect to /home).
+ * Runs in layout effect so ids/API calls see the real URL before auth and data effects.
  */
 export function DeepLinkRestore() {
   const router = useRouter();
-  const restored = useRef(false);
+  const synced = useRef(false);
 
-  useEffect(() => {
-    if (restored.current) return;
-    const intended = consumeIntendedPath();
-    if (!intended) return;
+  useLayoutEffect(() => {
+    if (synced.current) return;
+    synced.current = true;
 
-    const intendedPath = intended.split(/[?#]/)[0] ?? intended;
-    const current = stripAppBasePath(window.location.pathname);
-    if (current === intendedPath || current === intended) {
-      restored.current = true;
-      return;
-    }
-
-    restored.current = true;
-    router.replace(intended);
+    const intended = restoreDeepLinkUrl();
+    if (intended) router.replace(intended);
   }, [router]);
 
   return null;
