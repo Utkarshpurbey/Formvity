@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useFormId, useWorkspaceId } from "@/src/hooks/useRouteIds";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import {
   FormSubNav,
@@ -33,11 +34,10 @@ function formatDateTime(value: string | null): string {
 }
 
 export default function FormAnalyticsPage() {
-  const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
-  const formId = typeof params.formId === "string" ? params.formId : "";
+  const workspaceId = useWorkspaceId();
+  const formId = useFormId();
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);
   const forms = useAppSelector((s) => selectFormsForWorkspace(s, workspaceId));

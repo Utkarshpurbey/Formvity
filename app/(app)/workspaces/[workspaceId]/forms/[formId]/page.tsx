@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useFormId, useWorkspaceId } from "@/src/hooks/useRouteIds";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
@@ -28,11 +29,10 @@ import { FormSubNav } from "@/src/components/form/index";
 import { buildPublicUrl } from "@/src/utils/publicUrl";
 
 export default function FormDetailPage() {
-  const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
-  const formId = typeof params.formId === "string" ? params.formId : "";
+  const workspaceId = useWorkspaceId();
+  const formId = useFormId();
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);
   const forms = useAppSelector((s) => selectFormsForWorkspace(s, workspaceId));

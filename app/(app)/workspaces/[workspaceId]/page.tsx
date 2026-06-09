@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useWorkspaceId } from "@/src/hooks/useRouteIds";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
@@ -82,8 +83,7 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
 export default function WorkspaceDetailPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const params = useParams();
-  const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
+  const workspaceId = useWorkspaceId();
   console.log("workspaceId", workspaceId);
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);

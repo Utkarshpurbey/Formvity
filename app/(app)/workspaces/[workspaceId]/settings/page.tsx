@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useWorkspaceId } from "@/src/hooks/useRouteIds";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
@@ -27,10 +28,9 @@ import {
 } from "@/src/store/slices/workspaceSlice";
 
 export default function WorkspaceSettingsPage() {
-  const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
+  const workspaceId = useWorkspaceId();
   const { user, ready } = useAppSelector((s) => s.auth);
   const workspaces = useAppSelector((s) => s.workspace.list);
   const dashboard = useAppSelector((s) => selectDashboardForWorkspace(s, workspaceId));
