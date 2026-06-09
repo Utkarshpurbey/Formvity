@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { stripAppBasePath } from "../../utils/appBasePath";
+import { navigateApp } from "../../utils/appNavigate";
 
 type FormSubNavProps = {
   workspaceId: string;
@@ -34,7 +35,7 @@ export function FormSubNav({ workspaceId, formId }: FormSubNavProps) {
             <button
               key={tab.href}
               type="button"
-              onClick={() => router.push(tab.href)}
+              onClick={() => navigateApp(tab.href, router)}
               className={`border-b-2 pb-3 text-sm font-semibold transition ${
                 active
                   ? "border-violet-600 text-violet-700"

@@ -27,6 +27,7 @@ import { EMPTY_FORM_DEF } from "@/src/lib/normalizeFormDef";
 import { PermissionGate, useWorkspaceRole, workspaceCan } from "@/src/components/workspace/index";
 import { FormSubNav } from "@/src/components/form/index";
 import { buildPublicUrl } from "@/src/utils/publicUrl";
+import { navigateApp, replaceApp } from "@/src/utils/appNavigate";
 
 export default function FormDetailPage() {
   const router = useRouter();
@@ -81,20 +82,20 @@ export default function FormDetailPage() {
   }, [ready, user, router]);
 
   useEffect(() => {
-    if (!workspaceId) return;
+    if (!ready || !user || !workspaceId) return;
     dispatch(fetchWorkspaces());
     dispatch(fetchForms(workspaceId));
-  }, [workspaceId, dispatch]);
+  }, [ready, user, workspaceId, dispatch]);
 
   useEffect(() => {
-    if (!workspaceId || !formId) return;
+    if (!ready || !user || !workspaceId || !formId) return;
     dispatch(fetchPublishStatus({ workspaceId, formId }));
-  }, [workspaceId, formId, dispatch]);
+  }, [ready, user, workspaceId, formId, dispatch]);
 
   useEffect(() => {
     if (!ready || formsLoading) return;
     if (lifecycle.kind === "archived" || lifecycle.kind === "not_found") {
-      router.replace(`/workspaces/${workspaceId}`);
+      replaceApp(`/workspaces/${workspaceId}`, router);
     }
   }, [ready, formsLoading, lifecycle.kind, router, workspaceId]);
 
@@ -124,7 +125,7 @@ export default function FormDetailPage() {
     try {
       await dispatch(archiveForm({ workspaceId, formId })).unwrap();
       toast.info("Form archived.");
-      router.push(`/workspaces/${workspaceId}`);
+      navigateApp(`/workspaces/${workspaceId}`, router);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not archive");
     } finally {
@@ -143,7 +144,7 @@ export default function FormDetailPage() {
         <p className="text-sm text-slate-500">It may have been archived or removed.</p>
         <button
           type="button"
-          onClick={() => router.push(`/workspaces/${workspaceId}`)}
+          onClick={() => navigateApp(`/workspaces/${workspaceId}`, router)}
           className="text-sm text-violet-600 hover:underline"
         >
           Back to workspace
@@ -161,7 +162,7 @@ export default function FormDetailPage() {
         <span className="mx-2">/</span>
         <button
           type="button"
-          onClick={() => router.push(`/workspaces/${workspaceId}`)}
+          onClick={() => navigateApp(`/workspaces/${workspaceId}`, router)}
           className="hover:text-violet-600"
         >
           {workspace?.workSpaceName ?? "Workspace"}

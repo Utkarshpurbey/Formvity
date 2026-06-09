@@ -26,6 +26,7 @@ import {
 import { PermissionGate, WorkspaceSubNav, useWorkspaceRole, workspaceCan } from "@/src/components/workspace/index";
 import type { FormSummary } from "@/src/api/types";
 import { useFormResponseCount } from "@/src/hooks/useFormAnalytics";
+import { navigateApp } from "@/src/utils/appNavigate";
 
 function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: string }) {
   const router = useRouter();
@@ -38,7 +39,7 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
       <td className="px-6 py-4">
         <button
           type="button"
-          onClick={() => router.push(`/workspaces/${workspaceId}/forms/${form.id}`)}
+          onClick={() => navigateApp(`/workspaces/${workspaceId}/forms/${form.id}`, router)}
           className="font-semibold text-slate-900 hover:text-violet-700"
         >
           {form.title.trim() || "Untitled form"}
@@ -62,14 +63,14 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
           </button>
           <button
             type="button"
-            onClick={() => router.push(`/workspaces/${workspaceId}/forms/${form.id}`)}
+            onClick={() => navigateApp(`/workspaces/${workspaceId}/forms/${form.id}`, router)}
             className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
           >
             Manage
           </button>
           <button
             type="button"
-            onClick={() => router.push(`/workspaces/${workspaceId}/forms/${form.id}/analytics`)}
+            onClick={() => navigateApp(`/workspaces/${workspaceId}/forms/${form.id}/analytics`, router)}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Analytics
@@ -118,14 +119,14 @@ export default function WorkspaceDetailPage() {
   }, [ready, user, router, dispatch]);
 
   useEffect(() => {
-    if (!workspaceId) return;
+    if (!ready || !user || !workspaceId) return;
     dispatch(setActiveWorkspace(workspaceId));
     dispatch(fetchWorkspaceDashboard(workspaceId))
       .unwrap()
       .catch(() => {
         dispatch(fetchForms(workspaceId));
       });
-  }, [workspaceId, dispatch]);
+  }, [ready, user, workspaceId, dispatch]);
 
   const publishedCount = forms.filter((f) => f.status === "PUBLISHED").length;
   const draftCount = forms.filter((f) => f.status === "DRAFT").length;

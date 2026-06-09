@@ -22,6 +22,7 @@ import {
   selectFormsInitialLoading,
 } from "@/src/store/slices/formsSlice";
 import { fetchWorkspaces } from "@/src/store/slices/workspaceSlice";
+import { navigateApp } from "@/src/utils/appNavigate";
 
 const TIMELINE_OPTIONS = [7, 30, 90] as const;
 const PAGE_SIZE = 20;
@@ -76,15 +77,15 @@ export default function FormAnalyticsPage() {
   }, [ready, user, router]);
 
   useEffect(() => {
-    if (!workspaceId) return;
+    if (!ready || !user || !workspaceId) return;
     dispatch(fetchWorkspaces());
     dispatch(fetchForms(workspaceId));
-  }, [workspaceId, dispatch]);
+  }, [ready, user, workspaceId, dispatch]);
 
   useEffect(() => {
-    if (!workspaceId || !formId) return;
+    if (!ready || !user || !workspaceId || !formId) return;
     dispatch(fetchPublishStatus({ workspaceId, formId }));
-  }, [workspaceId, formId, dispatch]);
+  }, [ready, user, workspaceId, formId, dispatch]);
 
   if (!ready || (formsLoading && !form)) {
     return <PageLoader message="Loading form…" className="min-h-[50vh]" />;
@@ -96,7 +97,7 @@ export default function FormAnalyticsPage() {
         <p className="font-semibold text-slate-900">Form not available</p>
         <button
           type="button"
-          onClick={() => router.push(`/workspaces/${workspaceId}`)}
+          onClick={() => navigateApp(`/workspaces/${workspaceId}`, router)}
           className="text-sm text-violet-600 hover:underline"
         >
           Back to workspace
@@ -114,7 +115,7 @@ export default function FormAnalyticsPage() {
         <span className="mx-2">/</span>
         <button
           type="button"
-          onClick={() => router.push(`/workspaces/${workspaceId}`)}
+          onClick={() => navigateApp(`/workspaces/${workspaceId}`, router)}
           className="hover:text-violet-600"
         >
           {workspace?.workSpaceName ?? "Workspace"}
@@ -122,7 +123,7 @@ export default function FormAnalyticsPage() {
         <span className="mx-2">/</span>
         <button
           type="button"
-          onClick={() => router.push(`/workspaces/${workspaceId}/forms/${formId}`)}
+          onClick={() => navigateApp(`/workspaces/${workspaceId}/forms/${formId}`, router)}
           className="hover:text-violet-600"
         >
           {form.title.trim() || "Untitled form"}
