@@ -6,8 +6,7 @@ import { navigateApp, replaceApp } from "../utils/appNavigate";
 
 /**
  * Drop-in router for GitHub Pages static export.
- * push/replace use full page loads for dynamic UUID/slug routes so Next.js
- * does not fetch missing RSC *.txt payloads (e.g. workspaces/{uuid}/settings.txt).
+ * push/replace route dynamic UUID/slug paths through `_` shells (see appNavigate.ts).
  */
 export function useAppRouter() {
   const router = useRouter();
