@@ -9,7 +9,9 @@
     "build": "next build",
     "start": "next start",
     "preview": "npm run build && npm run start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "perf:baseline": "node scripts/perf-benchmark.mjs --label baseline",
+    "perf": "node scripts/perf-benchmark.mjs --label after"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.0",

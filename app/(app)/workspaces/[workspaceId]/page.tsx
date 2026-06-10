@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
+import { AppLink } from "@/src/components/ui/AppLink";
 import { PageLoader, SkeletonRows, Spinner, StatCard } from "@/src/components/ui/index";
 import { deriveFormLifecycle } from "@/src/lib/publish";
 import { EMPTY_FORM_DEF } from "@/src/lib/normalizeFormDef";
@@ -24,27 +25,22 @@ import {
 } from "@/src/store/slices/workspaceSlice";
 import { PermissionGate, WorkspaceSubNav, useWorkspaceRole, workspaceCan } from "@/src/components/workspace/index";
 import type { FormSummary } from "@/src/api/types";
-import { useFormResponseCount } from "@/src/hooks/useFormAnalytics";
 
 function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: string }) {
-  const router = useRouter();
   const publication = useAppSelector((s) => s.forms.publicationByForm[form.id]);
   const lifecycle = deriveFormLifecycle({ formStatus: form.status, publication });
-  const responseCount = useFormResponseCount(workspaceId, form.id, lifecycle.isLive);
+  const formHref = `/workspaces/${workspaceId}/forms/${form.id}`;
+  const builderHref = `/builder/v2?workspaceId=${workspaceId}&formId=${form.id}`;
+  const analyticsHref = `/workspaces/${workspaceId}/forms/${form.id}/analytics`;
 
   return (
     <tr className="group border-b border-slate-100 last:border-0 hover:bg-slate-50/80">
       <td className="px-6 py-4">
-        <button
-          type="button"
-          onClick={() => router.push(`/workspaces/${workspaceId}/forms/${form.id}`)}
-          className="font-semibold text-slate-900 hover:text-violet-700"
-        >
+        <AppLink href={formHref} className="font-semibold text-slate-900 hover:text-violet-700">
           {form.title.trim() || "Untitled form"}
-        </button>
+        </AppLink>
         <p className="mt-0.5 text-xs text-slate-500">
           Updated {new Date(form.updatedAt).toLocaleString()}
-          {responseCount != null ? ` · ${responseCount} response${responseCount === 1 ? "" : "s"}` : null}
         </p>
       </td>
       <td className="px-6 py-4">
@@ -52,27 +48,24 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
       </td>
       <td className="px-6 py-4 text-right">
         <div className="flex items-center justify-end gap-2 opacity-100 transition sm:opacity-70 sm:group-hover:opacity-100">
-          <button
-            type="button"
-            onClick={() => router.push(`/builder/v2?workspaceId=${workspaceId}&formId=${form.id}`)}
+          <AppLink
+            href={builderHref}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Edit
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push(`/workspaces/${workspaceId}/forms/${form.id}`)}
+          </AppLink>
+          <AppLink
+            href={formHref}
             className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
           >
             Manage
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push(`/workspaces/${workspaceId}/forms/${form.id}/analytics`)}
+          </AppLink>
+          <AppLink
+            href={analyticsHref}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Analytics
-          </button>
+          </AppLink>
         </div>
       </td>
     </tr>
@@ -147,7 +140,7 @@ export default function WorkspaceDetailPage() {
 
   const workspaceName = workspace?.workSpaceName ?? "Workspace";
 
-  if (!ready) return <PageLoader message="Loading workspace…" className="min-h-[50vh]" />;
+  if (!ready && !user) return <PageLoader message="Loading workspace…" className="min-h-[50vh]" />;
 
   if (!workspaceId) {
     return (

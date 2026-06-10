@@ -1,6 +1,18 @@
 /** Optional NEXT_PUBLIC_BASE_PATH for subpath deployments; empty on Vercel by default. */
+function appBasePath(): string {
+  return (process.env.NEXT_PUBLIC_BASE_PATH ?? "").trim().replace(/\/+$/, "");
+}
+
+export function withAppBasePath(href: string): string {
+  const base = appBasePath();
+  if (!base || base === "/") return href;
+  if (href.startsWith("http")) return href;
+  if (href.startsWith(base)) return href;
+  return `${base}${href.startsWith("/") ? href : `/${href}`}`;
+}
+
 export function stripAppBasePath(pathname: string): string {
-  const base = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").trim().replace(/\/+$/, "");
+  const base = appBasePath();
   if (!base || base === "/") return pathname;
   if (pathname === base) return "/";
   if (pathname.startsWith(`${base}/`)) return pathname.slice(base.length) || "/";

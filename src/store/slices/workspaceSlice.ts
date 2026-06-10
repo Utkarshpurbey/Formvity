@@ -43,11 +43,28 @@ export const selectDashboardForWorkspace = (
 export const selectDashboardLoading = (state: { workspace: WorkspaceState }, workspaceId: string | null) =>
   Boolean(workspaceId && state.workspace.dashboardLoadingByWorkspace[workspaceId]);
 
-export const fetchWorkspaces = createAsyncThunk("workspace/list", api.listWorkspaces);
+export const fetchWorkspaces = createAsyncThunk(
+  "workspace/list",
+  api.listWorkspaces,
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as { workspace: WorkspaceState };
+      if (state.workspace.loading) return false;
+      return state.workspace.list.length === 0;
+    },
+  },
+);
 
 export const fetchWorkspaceDashboard = createAsyncThunk(
   "workspace/dashboard",
   (workSpaceId: string) => api.getWorkspaceDashboard(workSpaceId),
+  {
+    condition: (workSpaceId, { getState }) => {
+      const state = getState() as { workspace: WorkspaceState };
+      if (state.workspace.dashboardLoadingByWorkspace[workSpaceId]) return false;
+      return !state.workspace.dashboardByWorkspace[workSpaceId];
+    },
+  },
 );
 
 export const createWorkspace = createAsyncThunk(

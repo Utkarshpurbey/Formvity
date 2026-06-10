@@ -65,9 +65,25 @@ export const selectFormsInitialLoading = (state: { forms: FormsState }, workspac
 export const selectFormsRefreshing = (state: { forms: FormsState }, workspaceId: string | null) =>
   Boolean(workspaceId && state.forms.loadingByWorkspace[workspaceId] && (state.forms.byWorkspace[workspaceId]?.length ?? 0) > 0);
 
+type FetchFormsArg = string | { workspaceId: string; force?: boolean };
+
+function resolveFormsWorkspaceId(arg: FetchFormsArg): string {
+  return typeof arg === "string" ? arg : arg.workspaceId;
+}
+
 export const fetchForms = createAsyncThunk(
   "forms/list",
-  async (workspaceId: string) => api.listForms(workspaceId),
+  async (arg: FetchFormsArg) => api.listForms(resolveFormsWorkspaceId(arg)),
+  {
+    condition: (arg, { getState }) => {
+      const workspaceId = resolveFormsWorkspaceId(arg);
+      const force = typeof arg === "object" && arg.force;
+      if (force) return true;
+      const state = getState() as { forms: FormsState };
+      if (state.forms.loadingByWorkspace[workspaceId]) return false;
+      return (state.forms.byWorkspace[workspaceId]?.length ?? 0) === 0;
+    },
+  },
 );
 
 export const createForm = createAsyncThunk(
@@ -163,15 +179,18 @@ const formsSlice = createSlice({
         s.loadingByWorkspace[a.meta.arg] = false;
       })
       .addCase(fetchForms.pending, (s, a) => {
-        s.loadingByWorkspace[a.meta.arg] = true;
+        const workspaceId = resolveFormsWorkspaceId(a.meta.arg);
+        s.loadingByWorkspace[workspaceId] = true;
         s.error = null;
       })
       .addCase(fetchForms.fulfilled, (s, a) => {
-        s.loadingByWorkspace[a.meta.arg] = false;
-        s.byWorkspace[a.meta.arg] = filterActiveForms(a.payload);
+        const workspaceId = resolveFormsWorkspaceId(a.meta.arg);
+        s.loadingByWorkspace[workspaceId] = false;
+        s.byWorkspace[workspaceId] = filterActiveForms(a.payload);
       })
       .addCase(fetchForms.rejected, (s, a) => {
-        s.loadingByWorkspace[a.meta.arg] = false;
+        const workspaceId = resolveFormsWorkspaceId(a.meta.arg);
+        s.loadingByWorkspace[workspaceId] = false;
         s.error = a.error.message ?? "Could not load forms";
       })
       .addCase(createForm.fulfilled, (s, a) => {

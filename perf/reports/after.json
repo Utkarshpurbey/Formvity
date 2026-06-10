@@ -1,0 +1,32 @@
+{
+  "label": "after",
+  "timestamp": "2026-06-10T11:03:19.420Z",
+  "build": {
+    "routes": [
+      { "route": "/", "size": "145 B", "firstLoadJs": "87.5 kB" },
+      { "route": "/_not-found", "size": "875 B", "firstLoadJs": "88.2 kB" },
+      { "route": "/builder", "size": "2.21 kB", "firstLoadJs": "138 kB" },
+      { "route": "/builder/v2", "size": "4.36 kB", "firstLoadJs": "147 kB" },
+      { "route": "/home", "size": "3.46 kB", "firstLoadJs": "90.8 kB" },
+      { "route": "/login", "size": "2.97 kB", "firstLoadJs": "115 kB" },
+      { "route": "/r/[slug]", "size": "2.1 kB", "firstLoadJs": "117 kB" },
+      { "route": "/register", "size": "3.17 kB", "firstLoadJs": "115 kB" },
+      { "route": "/templates", "size": "4.49 kB", "firstLoadJs": "111 kB" },
+      { "route": "/workspace", "size": "144 B", "firstLoadJs": "87.5 kB" },
+      { "route": "/workspaces", "size": "3.02 kB", "firstLoadJs": "115 kB" },
+      { "route": "/workspaces/[workspaceId]", "size": "4.29 kB", "firstLoadJs": "128 kB" },
+      { "route": "/workspaces/[workspaceId]/forms/[formId]", "size": "6.9 kB", "firstLoadJs": "125 kB" },
+      { "route": "/workspaces/[workspaceId]/forms/[formId]/analytics", "size": "4.01 kB", "firstLoadJs": "122 kB" },
+      { "route": "/workspaces/[workspaceId]/settings", "size": "4.68 kB", "firstLoadJs": "117 kB" }
+    ],
+    "sharedFirstLoadJs": "87.3 kB"
+  },
+  "signals": {
+    "perFormAnalyticsCalls": 0,
+    "authBlocksOnPathname": false,
+    "pageContentRemountsOnNav": false,
+    "fetchWorkspacesHasCacheGuard": true,
+    "fetchFormsHasCacheGuard": true,
+    "authUserCache": true
+  }
+}

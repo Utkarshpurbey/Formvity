@@ -1,0 +1,42 @@
+{
+  "deltas": [
+    { "route": "/", "before": "87.5 kB", "after": "87.5 kB", "delta": "unchanged" },
+    { "route": "/builder", "before": "139 kB", "after": "138 kB", "delta": "changed" },
+    { "route": "/workspaces/[workspaceId]", "before": "120 kB", "after": "128 kB", "delta": "+8 kB (Link prefetch)" },
+    { "route": "/workspaces/[workspaceId]/forms/[formId]", "before": "126 kB", "after": "125 kB", "delta": "changed" },
+    { "route": "/workspaces/[workspaceId]/forms/[formId]/analytics", "before": "112 kB", "after": "122 kB", "delta": "+10 kB (lazy chunks split; charts load after shell)" }
+  ],
+  "runtimeWins": {
+    "workspaceListApiCalls": {
+      "before": "1 dashboard + N analytics/summary per live form",
+      "after": "1 dashboard only (N+1 eliminated)",
+      "example10Forms": "11 API calls → 1 API call"
+    },
+    "navigationBetweenAppRoutes": {
+      "before": "Full page tree remount via key={pathname}; refetch workspaces+forms every visit",
+      "after": "Persistent React tree; cached Redux data reused"
+    },
+    "authColdStart": {
+      "before": "Full-screen blocker until /auth/me completes",
+      "after": "Shell renders immediately; session user cache + background token verify"
+    }
+  },
+  "signals": {
+    "before": {
+      "perFormAnalyticsCalls": 1,
+      "authBlocksOnPathname": true,
+      "pageContentRemountsOnNav": true,
+      "fetchWorkspacesHasCacheGuard": false,
+      "fetchFormsHasCacheGuard": false,
+      "authUserCache": false
+    },
+    "after": {
+      "perFormAnalyticsCalls": 0,
+      "authBlocksOnPathname": false,
+      "pageContentRemountsOnNav": false,
+      "fetchWorkspacesHasCacheGuard": true,
+      "fetchFormsHasCacheGuard": true,
+      "authUserCache": true
+    }
+  }
+}

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppShellHeader } from "../AppShellHeader";
 import { AppSidebar } from "./AppSidebar";
-import { PageLoader } from "../ui/index";
 import { stripAppBasePath } from "../../utils/appBasePath";
 import { useAppSelector } from "../../store/hooks";
 
@@ -19,7 +18,7 @@ const SIDEBAR_COLLAPSED_KEY = "formvity-sidebar-collapsed";
 export function AppShellChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
   const routePath = stripAppBasePath(pathname);
-  const { user, ready } = useAppSelector((s) => s.auth);
+  const user = useAppSelector((s) => s.auth.user);
   const isPublicResponder = routePath.startsWith("/r/");
   const showSidebar = Boolean(user) && !isMarketingRoute(routePath) && !isPublicResponder;
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -44,14 +43,6 @@ export function AppShellChrome({ children }: { children: ReactNode }) {
     });
   };
 
-  if (!ready) {
-    return (
-      <div className="flex min-h-screen flex-col bg-[#f8fafc]">
-        <PageLoader message="Connecting to your account…" className="flex-1" />
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen bg-[#f8fafc]">
       {showSidebar ? <AppSidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} /> : null}
@@ -65,7 +56,7 @@ export function AppShellChrome({ children }: { children: ReactNode }) {
             <AppShellHeader />
           )
         ) : null}
-        <div key={pathname} className="page-enter flex min-h-0 flex-1 flex-col">
+        <div className="page-enter flex min-h-0 flex-1 flex-col">
           {children}
         </div>
       </div>

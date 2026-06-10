@@ -3,6 +3,7 @@ import * as api from "../../api/client";
 import { ApiError } from "../../api/http";
 import type { CurrentUser } from "../../api/types";
 import { clearAuthToken, setAuthToken } from "../../utils/authHeaders";
+import { setCachedUser } from "../../utils/userCache";
 
 export type AuthState = {
   user: CurrentUser | null;
@@ -68,6 +69,10 @@ const authSlice = createSlice({
     markAuthReady(state) {
       state.ready = true;
     },
+    hydrateUser(state, action: { payload: CurrentUser }) {
+      state.user = action.payload;
+      state.ready = true;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -79,6 +84,7 @@ const authSlice = createSlice({
         s.loading = false;
         s.ready = true;
         s.user = a.payload;
+        setCachedUser(a.payload);
       })
       .addCase(loginUser.rejected, (s, a) => {
         s.loading = false;
@@ -92,23 +98,26 @@ const authSlice = createSlice({
         s.loading = false;
         s.ready = true;
         s.user = a.payload;
+        setCachedUser(a.payload);
       })
       .addCase(registerUser.rejected, (s, a) => {
         s.loading = false;
         s.error = (a.payload as string) ?? a.error.message ?? "Registration failed";
       })
       .addCase(loadMe.pending, (s) => {
-        s.loading = true;
+        if (!s.user) s.loading = true;
       })
       .addCase(loadMe.fulfilled, (s, a) => {
         s.loading = false;
         s.ready = true;
         s.user = a.payload;
+        setCachedUser(a.payload);
       })
       .addCase(loadMe.rejected, (s) => {
         s.loading = false;
         s.ready = true;
         s.user = null;
+        setCachedUser(null);
         clearAuthToken();
       })
       .addCase(logoutUser.fulfilled, (s) => {
@@ -116,9 +125,10 @@ const authSlice = createSlice({
         s.loading = false;
         s.error = null;
         s.ready = true;
+        setCachedUser(null);
       });
   },
 });
 
-export const { clearAuthError, markAuthReady } = authSlice.actions;
+export const { clearAuthError, markAuthReady, hydrateUser } = authSlice.actions;
 export default authSlice.reducer;

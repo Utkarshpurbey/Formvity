@@ -1,36 +1,39 @@
 "use client";
 
-import { useEffect } from "react";
-import { usePathname } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { loadMe, markAuthReady } from "../store/slices/authSlice";
+import { useEffect, useRef } from "react";
+import { useAppDispatch } from "../store/hooks";
+import { hydrateUser, loadMe, markAuthReady } from "../store/slices/authSlice";
 import { getAuthToken } from "../utils/authHeaders";
+import { getCachedUser, setCachedUser } from "../utils/userCache";
 
 /**
- * Hydrate the signed-in user whenever a JWT exists — including on marketing
- * routes like /home and /templates so navigation does not appear to log out.
+ * Hydrate the signed-in user once on app load. Cached user unlocks the shell
+ * immediately while /auth/me verifies the token in the background.
  */
 export function AuthBootstrap() {
   const dispatch = useAppDispatch();
-  const pathname = usePathname() ?? "/";
-  const user = useAppSelector((s) => s.auth.user);
-  const ready = useAppSelector((s) => s.auth.ready);
+  const booted = useRef(false);
 
   useEffect(() => {
-    const token = getAuthToken();
+    if (booted.current) return;
+    booted.current = true;
 
+    const token = getAuthToken();
     if (!token) {
-      if (!ready) dispatch(markAuthReady());
+      setCachedUser(null);
+      dispatch(markAuthReady());
       return;
     }
 
-    if (user) {
-      if (!ready) dispatch(markAuthReady());
-      return;
+    const cached = getCachedUser();
+    if (cached) {
+      dispatch(hydrateUser(cached));
+    } else {
+      dispatch(markAuthReady());
     }
 
     dispatch(loadMe());
-  }, [dispatch, pathname, user, ready]);
+  }, [dispatch]);
 
   return null;
 }

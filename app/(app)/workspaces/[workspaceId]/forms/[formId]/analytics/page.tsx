@@ -1,16 +1,42 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
-import {
-  FormSubNav,
-  QuestionBreakdownPanel,
-  ResponseTimelineChart,
-  SubmissionsTable,
-} from "@/src/components/form/index";
+import { FormSubNav } from "@/src/components/form/index";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
+import { AppLink } from "@/src/components/ui/AppLink";
 import { PageLoader, Skeleton, Spinner, StatCard } from "@/src/components/ui/index";
+
+const ResponseTimelineChart = dynamic(
+  () =>
+    import("@/src/components/form/ResponseTimelineChart").then((m) => ({
+      default: m.ResponseTimelineChart,
+    })),
+  { loading: () => <Skeleton className="h-48 rounded-xl" /> },
+);
+const QuestionBreakdownPanel = dynamic(
+  () =>
+    import("@/src/components/form/QuestionBreakdownPanel").then((m) => ({
+      default: m.QuestionBreakdownPanel,
+    })),
+  {
+    loading: () => (
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Skeleton className="h-48 rounded-2xl" />
+        <Skeleton className="h-48 rounded-2xl" />
+      </div>
+    ),
+  },
+);
+const SubmissionsTable = dynamic(
+  () =>
+    import("@/src/components/form/SubmissionsTable").then((m) => ({
+      default: m.SubmissionsTable,
+    })),
+  { loading: () => <Skeleton className="h-64 rounded-2xl" /> },
+);
 import { useFormAnalytics } from "@/src/hooks/useFormAnalytics";
 import { deriveFormLifecycle } from "@/src/lib/publish";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
@@ -86,7 +112,7 @@ export default function FormAnalyticsPage() {
     dispatch(fetchPublishStatus({ workspaceId, formId }));
   }, [ready, user, workspaceId, formId, dispatch]);
 
-  if (!ready || (formsLoading && !form)) {
+  if ((!ready && !user) || (formsLoading && !form)) {
     return <PageLoader message="Loading form…" className="min-h-[50vh]" />;
   }
 
@@ -108,25 +134,17 @@ export default function FormAnalyticsPage() {
   return (
     <AppPageContainer>
       <nav className="text-sm text-slate-500">
-        <button type="button" onClick={() => router.push("/workspaces")} className="hover:text-violet-600">
+        <AppLink href="/workspaces" className="hover:text-violet-600">
           Workspaces
-        </button>
+        </AppLink>
         <span className="mx-2">/</span>
-        <button
-          type="button"
-          onClick={() => router.push(`/workspaces/${workspaceId}`)}
-          className="hover:text-violet-600"
-        >
+        <AppLink href={`/workspaces/${workspaceId}`} className="hover:text-violet-600">
           {workspace?.workSpaceName ?? "Workspace"}
-        </button>
+        </AppLink>
         <span className="mx-2">/</span>
-        <button
-          type="button"
-          onClick={() => router.push(`/workspaces/${workspaceId}/forms/${formId}`)}
-          className="hover:text-violet-600"
-        >
+        <AppLink href={`/workspaces/${workspaceId}/forms/${formId}`} className="hover:text-violet-600">
           {form.title.trim() || "Untitled form"}
-        </button>
+        </AppLink>
         <span className="mx-2">/</span>
         <span className="font-medium text-slate-800">Analytics</span>
       </nav>
