@@ -18,7 +18,8 @@ type FormsState = {
   unpublishing: boolean;
   error: string | null;
   currentFormId: string | null;
-  publishStatus: PublishStatus | null;
+  publishStatusByForm: Record<string, PublishStatus>;
+  publishStatusLoadingByForm: Record<string, boolean>;
   lastPublishResult: PublishResponse | null;
   publicationByForm: Record<string, PublicationMeta>;
 };
@@ -33,7 +34,8 @@ const initialState: FormsState = {
   unpublishing: false,
   error: null,
   currentFormId: null,
-  publishStatus: null,
+  publishStatusByForm: {},
+  publishStatusLoadingByForm: {},
   lastPublishResult: null,
   publicationByForm: {},
 };
@@ -64,6 +66,9 @@ export const selectFormsInitialLoading = (state: { forms: FormsState }, workspac
 
 export const selectFormsRefreshing = (state: { forms: FormsState }, workspaceId: string | null) =>
   Boolean(workspaceId && state.forms.loadingByWorkspace[workspaceId] && (state.forms.byWorkspace[workspaceId]?.length ?? 0) > 0);
+
+export const selectPublishStatusForForm = (state: { forms: FormsState }, formId: string | null) =>
+  formId ? (state.forms.publishStatusByForm[formId] ?? null) : null;
 
 type FetchFormsArg = string | { workspaceId: string; force?: boolean };
 
@@ -123,19 +128,29 @@ export const archiveForm = createAsyncThunk(
   },
 );
 
+type FetchPublishStatusArg = { workspaceId: string; formId: string; force?: boolean };
+
 export const fetchPublishStatus = createAsyncThunk(
   "forms/fetchPublishStatus",
-  async (
-    { workspaceId, formId }: { workspaceId: string; formId: string },
-    { getState },
-  ) => {
+  async ({ workspaceId, formId }: FetchPublishStatusArg, { getState }) => {
     const remote = await api.getPublishStatus(workspaceId, formId);
-    if (remote) return remote;
+    if (remote) return { formId, status: remote };
 
     const state = getState() as { forms: FormsState };
     const form = state.forms.byWorkspace[workspaceId]?.find((f) => f.id === formId);
     const pub = state.forms.publicationByForm[formId];
-    return derivePublishStatusFromForm(form?.status, pub?.slug, pub?.lastPublishedAt);
+    return {
+      formId,
+      status: derivePublishStatusFromForm(form?.status, pub?.slug, pub?.lastPublishedAt),
+    };
+  },
+  {
+    condition: ({ formId, force }, { getState }) => {
+      if (force) return true;
+      const state = getState() as { forms: FormsState };
+      if (state.forms.publishStatusLoadingByForm[formId]) return false;
+      return state.forms.publishStatusByForm[formId] === undefined;
+    },
   },
 );
 
@@ -161,8 +176,12 @@ const formsSlice = createSlice({
     clearFormsError(state) {
       state.error = null;
     },
-    clearPublishStatus(state) {
-      state.publishStatus = null;
+    clearPublishStatus(state, action: { payload?: string }) {
+      if (action.payload) {
+        delete state.publishStatusByForm[action.payload];
+      } else {
+        state.publishStatusByForm = {};
+      }
       state.lastPublishResult = null;
     },
   },
@@ -218,11 +237,15 @@ const formsSlice = createSlice({
       .addCase(archiveForm.rejected, (s, a) => {
         delete s.archivingFormIds[a.meta.arg.formId];
       })
-      .addCase(fetchPublishStatus.fulfilled, (s, a) => {
-        s.publishStatus = a.payload;
+      .addCase(fetchPublishStatus.pending, (s, a) => {
+        s.publishStatusLoadingByForm[a.meta.arg.formId] = true;
       })
-      .addCase(fetchPublishStatus.rejected, (s) => {
-        s.publishStatus = null;
+      .addCase(fetchPublishStatus.fulfilled, (s, a) => {
+        delete s.publishStatusLoadingByForm[a.meta.arg.formId];
+        s.publishStatusByForm[a.payload.formId] = a.payload.status;
+      })
+      .addCase(fetchPublishStatus.rejected, (s, a) => {
+        delete s.publishStatusLoadingByForm[a.meta.arg.formId];
       })
       .addCase(publishForm.pending, (s) => {
         s.publishing = true;
@@ -242,7 +265,7 @@ const formsSlice = createSlice({
           lastPublishedAt: payload.publishedAt,
           isLive: true,
         };
-        s.publishStatus = {
+        s.publishStatusByForm[a.meta.arg.formId] = {
           status: "published",
           slug: payload.slug,
           publicUrl: payload.publicUrl,
@@ -278,7 +301,7 @@ const formsSlice = createSlice({
           lastPublishedAt: lastAt,
           isLive: false,
         };
-        s.publishStatus = {
+        s.publishStatusByForm[a.meta.arg.formId] = {
           status: "unpublished",
           slug,
           publicUrl: a.payload.publicUrl,

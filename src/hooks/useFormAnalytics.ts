@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
-import { getFormAnalyticsOverview, getFormAnalyticsSummary, listFormSubmissions } from "../api/client";
-import { ApiError } from "../api/http";
-import type {
-  AnalyticsSummary,
-  AnalyticsTimelinePoint,
-  QuestionAnalytics,
-  SubmissionsPage,
-} from "../api/types";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getFormAnalyticsSummary } from "../api/client";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  analyticsCacheKey,
+  fetchFormAnalytics,
+  selectAnalyticsEntry,
+  selectAnalyticsError,
+  selectAnalyticsLoading,
+} from "../store/slices/analyticsSlice";
 
 type UseFormAnalyticsOptions = {
   days?: number;
@@ -15,70 +16,41 @@ type UseFormAnalyticsOptions = {
   enabled?: boolean;
 };
 
-function formatLoadError(e: unknown): string {
-  if (e instanceof ApiError) {
-    if (e.status === 404) {
-      return "Analytics API not found (404). Ensure Spring is running on :8081 and NEXT_PUBLIC_API_URL points to it (or set NEXT_PUBLIC_API_DIRECT=false to use the /api/v1 proxy).";
-    }
-    return e.message;
-  }
-  return e instanceof Error ? e.message : "Failed to load analytics";
-}
-
 export function useFormAnalytics(
   workspaceId: string,
   formId: string,
   options: UseFormAnalyticsOptions = {},
 ) {
   const { days = 30, page = 0, size = 20, enabled = true } = options;
+  const dispatch = useAppDispatch();
 
-  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
-  const [timeline, setTimeline] = useState<AnalyticsTimelinePoint[]>([]);
-  const [questions, setQuestions] = useState<QuestionAnalytics[]>([]);
-  const [submissions, setSubmissions] = useState<SubmissionsPage | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const cacheKey = useMemo(
+    () => (workspaceId && formId ? analyticsCacheKey(workspaceId, formId, days, page, size) : ""),
+    [workspaceId, formId, days, page, size],
+  );
+
+  const entry = useAppSelector((s) => (cacheKey ? selectAnalyticsEntry(s, cacheKey) : undefined));
+  const loading = useAppSelector((s) => Boolean(cacheKey && selectAnalyticsLoading(s, cacheKey) && !entry));
+  const refreshing = useAppSelector((s) => Boolean(cacheKey && selectAnalyticsLoading(s, cacheKey) && entry));
+  const error = useAppSelector((s) => (cacheKey ? selectAnalyticsError(s, cacheKey) : null));
 
   const load = useCallback(
-    async (isRefresh = false) => {
-      if (!workspaceId || !formId || !enabled) {
-        setLoading(false);
-        return;
-      }
-
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
-      setError(null);
-
-      try {
-        const [overview, pageData] = await Promise.all([
-          getFormAnalyticsOverview(workspaceId, formId, days),
-          listFormSubmissions(workspaceId, formId, page, size),
-        ]);
-        setSummary(overview.summary);
-        setTimeline(overview.timeline);
-        setQuestions(overview.questions);
-        setSubmissions(pageData);
-      } catch (e) {
-        setError(formatLoadError(e));
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
+    (force = false) => {
+      if (!workspaceId || !formId || !enabled) return;
+      dispatch(fetchFormAnalytics({ workspaceId, formId, days, page, size, force }));
     },
-    [workspaceId, formId, days, page, size, enabled],
+    [dispatch, workspaceId, formId, days, page, size, enabled],
   );
 
   useEffect(() => {
-    void load(false);
+    load(false);
   }, [load]);
 
   return {
-    summary,
-    timeline,
-    questions,
-    submissions,
+    summary: entry?.summary ?? null,
+    timeline: entry?.timeline ?? [],
+    questions: entry?.questions ?? [],
+    submissions: entry?.submissions ?? null,
     loading,
     refreshing,
     error,

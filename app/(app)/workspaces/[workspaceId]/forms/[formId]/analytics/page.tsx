@@ -45,8 +45,8 @@ import {
   fetchPublishStatus,
   selectFormsForWorkspace,
   selectFormsInitialLoading,
+  selectPublishStatusForForm,
 } from "@/src/store/slices/formsSlice";
-import { fetchWorkspaces } from "@/src/store/slices/workspaceSlice";
 
 const TIMELINE_OPTIONS = [7, 30, 90] as const;
 const PAGE_SIZE = 20;
@@ -69,7 +69,7 @@ export default function FormAnalyticsPage() {
   const forms = useAppSelector((s) => selectFormsForWorkspace(s, workspaceId));
   const formsLoading = useAppSelector((s) => selectFormsInitialLoading(s, workspaceId));
   const publication = useAppSelector((s) => s.forms.publicationByForm[formId]);
-  const publishStatus = useAppSelector((s) => s.forms.publishStatus);
+  const publishStatus = useAppSelector((s) => selectPublishStatusForForm(s, formId));
   const lastPublishResult = useAppSelector((s) => s.forms.lastPublishResult);
 
   const [days, setDays] = useState<(typeof TIMELINE_OPTIONS)[number]>(7);
@@ -102,13 +102,8 @@ export default function FormAnalyticsPage() {
   }, [ready, user, router]);
 
   useEffect(() => {
-    if (!ready || !user || !workspaceId) return;
-    dispatch(fetchWorkspaces());
-    dispatch(fetchForms(workspaceId));
-  }, [ready, user, workspaceId, dispatch]);
-
-  useEffect(() => {
     if (!ready || !user || !workspaceId || !formId) return;
+    dispatch(fetchForms(workspaceId));
     dispatch(fetchPublishStatus({ workspaceId, formId }));
   }, [ready, user, workspaceId, formId, dispatch]);
 

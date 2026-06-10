@@ -36,7 +36,7 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
   return (
     <tr className="group border-b border-slate-100 last:border-0 hover:bg-slate-50/80">
       <td className="px-6 py-4">
-        <AppLink href={formHref} className="font-semibold text-slate-900 hover:text-violet-700">
+        <AppLink href={formHref} prefetch={false} className="font-semibold text-slate-900 hover:text-violet-700">
           {form.title.trim() || "Untitled form"}
         </AppLink>
         <p className="mt-0.5 text-xs text-slate-500">
@@ -50,18 +50,21 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
         <div className="flex items-center justify-end gap-2 opacity-100 transition sm:opacity-70 sm:group-hover:opacity-100">
           <AppLink
             href={builderHref}
+            prefetch={false}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Edit
           </AppLink>
           <AppLink
             href={formHref}
+            prefetch={false}
             className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
           >
             Manage
           </AppLink>
           <AppLink
             href={analyticsHref}
+            prefetch={false}
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
             Analytics

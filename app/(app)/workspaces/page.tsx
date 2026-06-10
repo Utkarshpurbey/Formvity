@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
+import { AppLink } from "@/src/components/ui/AppLink";
 import { PageLoader, SkeletonRows, Spinner } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
@@ -15,11 +16,9 @@ import { normalizeWorkspaceSummary } from "@/src/lib/apiNormalize";
 import type { WorkspaceSummary } from "@/src/api/types";
 
 function WorkspaceCard({ workspace, formCount }: { workspace: WorkspaceSummary; formCount: number }) {
-  const router = useRouter();
   return (
-    <button
-      type="button"
-      onClick={() => router.push(`/workspaces/${workspace.workSpaceId}`)}
+    <AppLink
+      href={`/workspaces/${workspace.workSpaceId}`}
       className="group flex w-full flex-col rounded-2xl border border-slate-200/80 bg-white p-6 text-left shadow-sm ring-1 ring-slate-900/[0.03] transition hover:border-violet-200 hover:shadow-md hover:shadow-violet-500/5"
     >
       <div className="flex items-start justify-between gap-3">
@@ -36,7 +35,7 @@ function WorkspaceCard({ workspace, formCount }: { workspace: WorkspaceSummary; 
         {workspace.workSpaceName}
       </h3>
       <p className="mt-1 text-xs text-slate-500">Open workspace →</p>
-    </button>
+    </AppLink>
   );
 }
 

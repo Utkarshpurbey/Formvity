@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { AppLink } from "../ui/AppLink";
 import { stripAppBasePath } from "../../utils/appBasePath";
 
 type FormSubNavProps = {
@@ -22,7 +23,6 @@ const tabs = (workspaceId: string, formId: string) => [
 ];
 
 export function FormSubNav({ workspaceId, formId }: FormSubNavProps) {
-  const router = useRouter();
   const pathname = stripAppBasePath(usePathname() ?? "/");
 
   return (
@@ -31,10 +31,9 @@ export function FormSubNav({ workspaceId, formId }: FormSubNavProps) {
         {tabs(workspaceId, formId).map((tab) => {
           const active = tab.match(pathname);
           return (
-            <button
+            <AppLink
               key={tab.href}
-              type="button"
-              onClick={() => router.push(tab.href)}
+              href={tab.href}
               className={`border-b-2 pb-3 text-sm font-semibold transition ${
                 active
                   ? "border-violet-600 text-violet-700"
@@ -43,7 +42,7 @@ export function FormSubNav({ workspaceId, formId }: FormSubNavProps) {
               aria-current={active ? "page" : undefined}
             >
               {tab.label}
-            </button>
+            </AppLink>
           );
         })}
       </nav>

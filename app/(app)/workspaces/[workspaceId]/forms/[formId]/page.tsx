@@ -19,9 +19,9 @@ import {
   publishForm,
   selectFormsForWorkspace,
   selectFormsInitialLoading,
+  selectPublishStatusForForm,
   unpublishForm,
 } from "@/src/store/slices/formsSlice";
-import { fetchWorkspaces } from "@/src/store/slices/workspaceSlice";
 import { EMPTY_FORM_DEF } from "@/src/lib/normalizeFormDef";
 import { PermissionGate, useWorkspaceRole, workspaceCan } from "@/src/components/workspace/index";
 import { FormSubNav } from "@/src/components/form/index";
@@ -38,7 +38,7 @@ export default function FormDetailPage() {
   const forms = useAppSelector((s) => selectFormsForWorkspace(s, workspaceId));
   const formsLoading = useAppSelector((s) => selectFormsInitialLoading(s, workspaceId));
   const publication = useAppSelector((s) => s.forms.publicationByForm[formId]);
-  const publishStatus = useAppSelector((s) => s.forms.publishStatus);
+  const publishStatus = useAppSelector((s) => selectPublishStatusForForm(s, formId));
   const publishing = useAppSelector((s) => s.forms.publishing);
   const unpublishing = useAppSelector((s) => s.forms.unpublishingFormIds[formId]);
   const publishError = useAppSelector((s) => s.forms.error);
@@ -81,10 +81,9 @@ export default function FormDetailPage() {
   }, [ready, user, router]);
 
   useEffect(() => {
-    if (!ready || !user || !workspaceId) return;
-    dispatch(fetchWorkspaces());
+    if (!ready || !user || !workspaceId || !formId) return;
     dispatch(fetchForms(workspaceId));
-  }, [ready, user, workspaceId, dispatch]);
+  }, [ready, user, workspaceId, formId, dispatch]);
 
   useEffect(() => {
     if (!ready || !user || !workspaceId || !formId) return;

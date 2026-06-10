@@ -2,11 +2,13 @@ import { combineReducers, configureStore, type UnknownAction } from "@reduxjs/to
 import authReducer, { logoutUser } from "./slices/authSlice";
 import workspaceReducer from "./slices/workspaceSlice";
 import formsReducer from "./slices/formsSlice";
+import analyticsReducer from "./slices/analyticsSlice";
 
 const appReducer = combineReducers({
   auth: authReducer,
   workspace: workspaceReducer,
   forms: formsReducer,
+  analytics: analyticsReducer,
 });
 
 const rootReducer = (state: ReturnType<typeof appReducer> | undefined, action: UnknownAction) => {

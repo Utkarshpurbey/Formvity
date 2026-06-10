@@ -19,6 +19,7 @@ import {
   loadFormDraft,
   publishForm,
   saveFormDraft,
+  selectPublishStatusForForm,
 } from "../store/slices/formsSlice";
 import { buildPublicUrl } from "../utils/publicUrl";
 
@@ -30,7 +31,7 @@ export function useBuilderPage(builderBasePath = "/builder") {
   const dispatch = useAppDispatch();
   const saving = useAppSelector((s) => s.forms.saving);
   const publishing = useAppSelector((s) => s.forms.publishing);
-  const publishStatus = useAppSelector((s) => s.forms.publishStatus);
+  const publishStatus = useAppSelector((s) => selectPublishStatusForForm(s, formId || null));
   const publication = useAppSelector((s) => s.forms.publicationByForm);
   const lastPublishResult = useAppSelector((s) => s.forms.lastPublishResult);
   const publishError = useAppSelector((s) => s.forms.error);
