@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/next-dev.mjs render",
+    "dev:local": "node scripts/next-dev.mjs local",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
-    "preview": "next start"
+    "preview": "npm run build && npm run start",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.0",

@@ -23,11 +23,27 @@ function respondentLabel(respondent: Record<string, unknown>): string {
   return nameStr ?? emailStr ?? "Anonymous";
 }
 
+function resolveAnswerDisplay(value: unknown): { title: string | null; value: unknown } {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const record = value as Record<string, unknown>;
+    const title =
+      typeof record.title === "string" && record.title.trim()
+        ? record.title
+        : typeof record.label === "string" && record.label.trim()
+          ? record.label
+          : null;
+    if ("value" in record) return { title, value: record.value };
+    if ("answer" in record) return { title, value: record.answer };
+  }
+  return { title: null, value };
+}
+
 function formatAnswerValue(value: unknown): string {
-  if (value === null || value === undefined) return "—";
-  if (typeof value === "boolean") return value ? "Yes" : "No";
-  if (Array.isArray(value)) return value.join(", ");
-  return String(value);
+  const { value: resolved } = resolveAnswerDisplay(value);
+  if (resolved === null || resolved === undefined) return "—";
+  if (typeof resolved === "boolean") return resolved ? "Yes" : "No";
+  if (Array.isArray(resolved)) return resolved.join(", ");
+  return String(resolved);
 }
 
 function SubmissionDetail({ row }: { row: SubmissionRow }) {
@@ -55,12 +71,17 @@ function SubmissionDetail({ row }: { row: SubmissionRow }) {
           {answerEntries.length === 0 ? (
             <p className="text-sm text-slate-500">No answers recorded.</p>
           ) : (
-            answerEntries.map(([key, val]) => (
-              <div key={key} className="flex gap-2 text-sm">
-                <dt className="w-28 shrink-0 truncate font-mono text-xs text-slate-500">{key}</dt>
-                <dd className="min-w-0 break-words text-slate-800">{formatAnswerValue(val)}</dd>
-              </div>
-            ))
+            answerEntries.map(([key, val]) => {
+              const { title } = resolveAnswerDisplay(val);
+              return (
+                <div key={key} className="flex gap-2 text-sm">
+                  <dt className="w-36 shrink-0 truncate text-slate-500" title={title ?? key}>
+                    {title ?? <span className="font-mono text-xs">{key}</span>}
+                  </dt>
+                  <dd className="min-w-0 break-words text-slate-800">{formatAnswerValue(val)}</dd>
+                </div>
+              );
+            })
           )}
         </dl>
       </div>

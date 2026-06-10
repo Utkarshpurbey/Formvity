@@ -46,7 +46,7 @@ export default function FormAnalyticsPage() {
   const publishStatus = useAppSelector((s) => s.forms.publishStatus);
   const lastPublishResult = useAppSelector((s) => s.forms.lastPublishResult);
 
-  const [days, setDays] = useState<(typeof TIMELINE_OPTIONS)[number]>(30);
+  const [days, setDays] = useState<(typeof TIMELINE_OPTIONS)[number]>(7);
   const [page, setPage] = useState(0);
 
   const form = useMemo(() => forms.find((f) => f.id === formId), [forms, formId]);

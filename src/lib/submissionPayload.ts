@@ -1,8 +1,13 @@
-import type { FormDef, PageComponentType } from "../components/page-def/builder/pageDef";
+import type { FormDef, PageComponentDef, PageComponentType } from "../components/page-def/builder/pageDef";
 import { allFormComponents } from "./formValidation";
 import { resolveRespondentIntake } from "./respondentIntake";
 
 export type SubmissionAnswerValue = string | number | boolean | null;
+
+export type SubmissionAnswer = {
+  title: string;
+  value: SubmissionAnswerValue;
+};
 
 export type SubmissionUtm = {
   source: string | null;
@@ -36,7 +41,7 @@ export type SubmissionMetadata = {
 };
 
 export type PublicSubmissionPayload = {
-  answers: Record<string, SubmissionAnswerValue>;
+  answers: Record<string, SubmissionAnswer>;
   respondent: Record<string, string>;
   metadata?: SubmissionMetadata;
 };
@@ -96,15 +101,24 @@ function coerceAnswerValue(type: PageComponentType, raw: string): SubmissionAnsw
   }
 }
 
-function buildAnswers(formDef: FormDef, formValues: Record<string, string>): Record<string, SubmissionAnswerValue> {
-  const answers: Record<string, SubmissionAnswerValue> = {};
+function componentTitle(comp: PageComponentDef): string {
+  if (typeof comp.label === "string" && comp.label.trim()) return comp.label.trim();
+  if (typeof comp.title === "string" && comp.title.trim()) return comp.title.trim();
+  return comp.id;
+}
+
+function buildAnswers(formDef: FormDef, formValues: Record<string, string>): Record<string, SubmissionAnswer> {
+  const answers: Record<string, SubmissionAnswer> = {};
   allFormComponents(formDef).forEach((comp) => {
     if (comp.type === "section") return;
     const raw = formValues[comp.id];
     if (raw === undefined) return;
     const coerced = coerceAnswerValue(comp.type, raw);
     if (typeof coerced === "string" && !coerced.trim()) return;
-    answers[comp.id] = coerced;
+    answers[comp.id] = {
+      title: componentTitle(comp),
+      value: coerced,
+    };
   });
   return answers;
 }

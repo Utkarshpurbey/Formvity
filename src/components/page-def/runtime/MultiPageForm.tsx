@@ -22,6 +22,7 @@ import {
   validateFormDef,
   validatePageComponents,
 } from "../../../lib/formValidation";
+import { FormSubmittedView } from "./FormSubmittedView";
 
 function parseActionRef(val: unknown): string[] | null {
   if (typeof val !== "string") return null;
@@ -54,14 +55,14 @@ export function MultiPageForm({
   const [currentPageId, setCurrentPageId] = useState(startPageId);
   const [values, setValues] = useState<Record<string, string>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [submittedValues, setSubmittedValues] = useState<Record<string, string> | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setCurrentPageId(startPageId);
     setValues({});
     setFieldErrors({});
-    setSubmittedValues(null);
+    setSubmitted(false);
     setSubmitting(false);
   }, [formDef.id, startPageId]);
 
@@ -147,7 +148,6 @@ export function MultiPageForm({
       setSubmitting(true);
       try {
         await onSubmitted(values);
-        setSubmittedValues(values);
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Could not submit form");
       } finally {
@@ -156,8 +156,7 @@ export function MultiPageForm({
       return;
     }
 
-    setSubmittedValues(values);
-    toast.success("Form submitted successfully!");
+    setSubmitted(true);
   };
 
   const appearance = getAppearance(formDef);
@@ -166,48 +165,8 @@ export function MultiPageForm({
   const submitButtonClass = getSubmitButtonClass(appearance);
   const shellProps = { appearanceVars, fullViewport: standalone };
 
-  if (submittedValues) {
-    const allComponents = formDef.pages.flatMap((p) => p.components);
-    return (
-      <FormPageShell {...shellProps}>
-        <div
-          className={`mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 sm:px-6 ${standalone ? "py-8 sm:py-10" : "py-10 sm:py-14"}`}
-        >
-          <div
-            className={`${formCardShellClass} overflow-hidden bg-[color:var(--fb-surface)] p-6 shadow-lg sm:p-10`}
-            style={{ boxShadow: getFormCardBoxShadow(formDef) }}
-          >
-            <div className={formAccentBarClass} />
-            <FormHeader
-              variant="static"
-              pageDef={{ title: formDef.title, description: formDef.description }}
-            />
-            <div className="border-t border-[color:color-mix(in_srgb,var(--fb-text)_8%,var(--fb-surface))] px-6 py-8 sm:px-10">
-              <div className="mb-6 flex size-14 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--fb-primary)_12%,var(--fb-surface))] text-[color:var(--fb-primary)]">
-                <svg className="size-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-[color:var(--fb-text)]">Your response has been recorded</h2>
-              <p className="mt-2 text-sm text-[color:var(--fb-muted)]">Thank you for submitting this form.</p>
-              <dl className="mt-8 space-y-3 border-t border-[color:color-mix(in_srgb,var(--fb-text)_8%,var(--fb-surface))] pt-6">
-                {allComponents.map((comp) => {
-                  const val = submittedValues[comp.id];
-                  if (val === undefined || (typeof val === "string" && !val.trim())) return null;
-                  const label = (comp.label as string) || comp.id;
-                  return (
-                    <div key={comp.id} className="flex flex-col gap-0.5 sm:flex-row sm:gap-3">
-                      <dt className="shrink-0 text-sm font-medium text-[color:var(--fb-muted)] sm:w-36">{label}</dt>
-                      <dd className="text-sm text-[color:var(--fb-text)] break-words">{String(val)}</dd>
-                    </div>
-                  );
-                })}
-              </dl>
-            </div>
-          </div>
-        </div>
-      </FormPageShell>
-    );
+  if (submitted) {
+    return <FormSubmittedView formDef={formDef} standalone={standalone} />;
   }
 
   return (

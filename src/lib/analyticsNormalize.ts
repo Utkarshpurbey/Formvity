@@ -65,7 +65,7 @@ function normalizeTimelinePoint(raw: unknown): AnalyticsTimelinePoint | null {
   if (!date) return null;
   return {
     date,
-    count: pickNumber(r.count, r.responses, r.value, r.total),
+    count: pickNumber(r.count, r.submissionCount, r.responses, r.value, r.total),
   };
 }
 
@@ -137,12 +137,20 @@ export function normalizeQuestionAnalyticsList(raw: unknown): QuestionAnalytics[
     .filter((q): q is QuestionAnalytics => q !== null);
 }
 
+function extractTimelineRaw(raw: unknown): unknown {
+  if (Array.isArray(raw)) return raw;
+  const nested = asRecord(raw);
+  const inner = nested.points ?? nested.buckets ?? nested.timeline ?? nested.data;
+  return Array.isArray(inner) ? inner : raw;
+}
+
 /** GET …/analytics → data is FormAnalyticsOverviewDto */
 export function normalizeFormAnalyticsOverview(raw: unknown, fallbackDays = 30): FormAnalyticsOverview {
   const r = asRecord(raw);
+  const timelineRaw = r.timeline ?? r.buckets ?? r.points;
   return {
     summary: normalizeAnalyticsSummary(r.summary ?? r),
-    timeline: normalizeTimelinePoints(r.timeline ?? r.buckets ?? r.points),
+    timeline: normalizeTimelinePoints(extractTimelineRaw(timelineRaw)),
     questions: normalizeQuestionAnalyticsList(r.questions ?? r.questionAnalytics ?? []),
   };
 }

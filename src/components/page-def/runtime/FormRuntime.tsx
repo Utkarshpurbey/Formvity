@@ -5,7 +5,9 @@ import { toast } from "react-toastify";
 import type { FormDef } from "../builder/pageDef";
 import { MultiPageForm } from "./MultiPageForm";
 import { RespondentIntakeStep } from "./RespondentIntakeStep";
+import { FormSubmittedView } from "./FormSubmittedView";
 import { buildPublicSubmissionPayload, getOrCreateSessionId } from "../../../lib/submissionPayload";
+import { clearFormFilled, isFormFilled, markFormFilled } from "../../../lib/formSubmissionStorage";
 import { submitPublicForm } from "../../../api/client";
 
 type FormRuntimeProps = {
@@ -18,10 +20,23 @@ type FormRuntimeProps = {
 export function FormRuntime({ formDef, slug, standalone = false, preview = false }: FormRuntimeProps) {
   const [phase, setPhase] = useState<"intake" | "form">("intake");
   const [respondentValues, setRespondentValues] = useState<Record<string, string>>({});
+  const [filled, setFilled] = useState(false);
+  const [storageReady, setStorageReady] = useState(preview || !slug);
+  const [formAttemptKey, setFormAttemptKey] = useState(0);
   const formOpenedAtRef = useRef(new Date().toISOString());
   const visitedPageIdsRef = useRef<string[]>([]);
 
   const totalSteps = useMemo(() => formDef.pages.length + 1, [formDef.pages.length]);
+  const trackFilled = Boolean(slug && !preview);
+
+  useEffect(() => {
+    if (!trackFilled) {
+      setStorageReady(true);
+      return;
+    }
+    setFilled(isFormFilled(slug!));
+    setStorageReady(true);
+  }, [slug, trackFilled]);
 
   useEffect(() => {
     if (slug) getOrCreateSessionId(slug);
@@ -54,8 +69,33 @@ export function FormRuntime({ formDef, slug, standalone = false, preview = false
     });
 
     await submitPublicForm(slug, payload);
-    toast.success("Form submitted successfully!");
+    markFormFilled(slug);
+    setFilled(true);
   };
+
+  const handleFillAnother = () => {
+    if (slug) clearFormFilled(slug);
+    setFilled(false);
+    setPhase("intake");
+    setRespondentValues({});
+    formOpenedAtRef.current = new Date().toISOString();
+    visitedPageIdsRef.current = [];
+    setFormAttemptKey((key) => key + 1);
+  };
+
+  if (trackFilled && !storageReady) {
+    return null;
+  }
+
+  if (filled) {
+    return (
+      <FormSubmittedView
+        formDef={formDef}
+        standalone={standalone}
+        onFillAnother={trackFilled ? handleFillAnother : undefined}
+      />
+    );
+  }
 
   if (phase === "intake") {
     return (
@@ -74,6 +114,7 @@ export function FormRuntime({ formDef, slug, standalone = false, preview = false
 
   return (
     <MultiPageForm
+      key={formAttemptKey}
       formDef={formDef}
       standalone={standalone}
       progressOffset={1}
