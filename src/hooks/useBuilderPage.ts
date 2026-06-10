@@ -29,16 +29,16 @@ export function useBuilderPage(builderBasePath = "/builder") {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
+  const workspaceId = searchParams.get("workspaceId") ?? "";
+  const formId = searchParams.get("formId") ?? "";
+  const apiMode = Boolean(workspaceId && formId);
+
   const saving = useAppSelector((s) => s.forms.saving);
   const publishing = useAppSelector((s) => s.forms.publishing);
   const publishStatus = useAppSelector((s) => selectPublishStatusForForm(s, formId || null));
   const publication = useAppSelector((s) => s.forms.publicationByForm);
   const lastPublishResult = useAppSelector((s) => s.forms.lastPublishResult);
   const publishError = useAppSelector((s) => s.forms.error);
-
-  const workspaceId = searchParams.get("workspaceId") ?? "";
-  const formId = searchParams.get("formId") ?? "";
-  const apiMode = Boolean(workspaceId && formId);
 
   const formFromList = useAppSelector((s) =>
     workspaceId ? (s.forms.byWorkspace[workspaceId] ?? []).find((f) => f.id === formId) : undefined,
