@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import * as api from "../../api/client";
 import { ApiError } from "../../api/http";
 import type {
+  AnalyticsInsights,
   AnalyticsSummary,
   AnalyticsTimelinePoint,
   QuestionAnalytics,
@@ -12,6 +13,7 @@ type AnalyticsCacheEntry = {
   summary: AnalyticsSummary | null;
   timeline: AnalyticsTimelinePoint[];
   questions: QuestionAnalytics[];
+  insights: AnalyticsInsights | null;
   submissions: SubmissionsPage | null;
 };
 
@@ -63,11 +65,20 @@ export const fetchFormAnalytics = createAsyncThunk(
       api.getFormAnalyticsOverview(workspaceId, formId, days),
       api.listFormSubmissions(workspaceId, formId, page, size),
     ]);
+    let insights = overview.insights ?? null;
+    if (!insights) {
+      try {
+        insights = await api.getFormAnalyticsInsights(workspaceId, formId, days);
+      } catch {
+        insights = null;
+      }
+    }
     return {
       key: analyticsCacheKey(workspaceId, formId, days, page, size),
       summary: overview.summary,
       timeline: overview.timeline,
       questions: overview.questions,
+      insights,
       submissions,
     };
   },
@@ -128,6 +139,7 @@ const analyticsSlice = createSlice({
           summary: a.payload.summary,
           timeline: a.payload.timeline,
           questions: a.payload.questions,
+          insights: a.payload.insights,
           submissions: a.payload.submissions,
         };
       })

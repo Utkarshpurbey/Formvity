@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { SubmissionRow } from "../../api/types";
+import { formatPercent } from "./analytics/formatAnalytics";
 import { SkeletonRows } from "../ui/index";
 
 type SubmissionsTableProps = {
@@ -38,34 +39,184 @@ function resolveAnswerDisplay(value: unknown): { title: string | null; value: un
   return { title: null, value };
 }
 
+function humanizeKey(key: string): string {
+  return key
+    .replace(/([A-Z])/g, " $1")
+    .replace(/_/g, " ")
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
+}
+
+function isEmptyValue(value: unknown): boolean {
+  return value === null || value === undefined || value === "" || String(value) === "null";
+}
+
+function formatKeyValuePairs(obj: Record<string, unknown>, order?: string[]): string {
+  const entries = order
+    ? order
+        .map((k) => [k, obj[k]] as const)
+        .filter(([, v]) => !isEmptyValue(v))
+    : Object.entries(obj).filter(([, v]) => !isEmptyValue(v));
+  if (!entries.length) return "—";
+  return entries
+    .map(([k, v]) => {
+      if (typeof v === "object" && v !== null && !Array.isArray(v)) {
+        return `${humanizeKey(k)}: ${formatDisplayValue(v)}`;
+      }
+      return `${humanizeKey(k)}: ${v}`;
+    })
+    .join(" · ");
+}
+
+function formatDurationMs(ms: unknown): string | null {
+  if (typeof ms !== "number" || !Number.isFinite(ms) || ms <= 0) return null;
+  const totalSec = Math.round(ms / 1000);
+  if (totalSec < 60) return `${totalSec}s`;
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  return sec > 0 ? `${min}m ${sec}s` : `${min}m`;
+}
+
+function formatStructuredObject(obj: Record<string, unknown>): string {
+  if ("width" in obj && "height" in obj) {
+    return `${obj.width} × ${obj.height}`;
+  }
+
+  if ("timeToCompleteMs" in obj || ("formOpenedAt" in obj && "submittedAt" in obj)) {
+    const duration = formatDurationMs(obj.timeToCompleteMs);
+    return duration ?? formatKeyValuePairs(obj, ["timeToCompleteMs", "submittedAt", "formOpenedAt"]);
+  }
+
+  if ("pageCount" in obj || "visitedPageIds" in obj) {
+    const parts: string[] = [];
+    if (!isEmptyValue(obj.pageCount)) {
+      const count = Number(obj.pageCount);
+      parts.push(`${count} page${count === 1 ? "" : "s"}`);
+    }
+    if (Array.isArray(obj.visitedPageIds) && obj.visitedPageIds.length > 0) {
+      parts.push(obj.visitedPageIds.map(String).join(", "));
+    }
+    return parts.length > 0 ? parts.join(" · ") : formatKeyValuePairs(obj);
+  }
+
+  if ("sdk" in obj || "appVersion" in obj) {
+    const sdk = obj.sdk;
+    const version = obj.appVersion;
+    if (!isEmptyValue(sdk) && !isEmptyValue(version)) return `${sdk} v${version}`;
+    if (!isEmptyValue(sdk)) return String(sdk);
+    if (!isEmptyValue(version)) return `v${version}`;
+  }
+
+  if ("source" in obj || "medium" in obj || "campaign" in obj || "term" in obj || "content" in obj) {
+    const utmParts = ["source", "medium", "campaign", "term", "content"]
+      .map((k) => {
+        const v = obj[k];
+        if (isEmptyValue(v)) return null;
+        return `${k}=${v}`;
+      })
+      .filter((part): part is string => part !== null);
+    return utmParts.length > 0 ? utmParts.join(" · ") : "Direct / none";
+  }
+
+  return formatKeyValuePairs(obj);
+}
+
+function formatDisplayValue(value: unknown): string {
+  if (isEmptyValue(value)) return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number") return String(value);
+  if (typeof value === "string") return value === "-" ? "—" : value;
+  if (Array.isArray(value)) {
+    const parts = value.map((item) => formatDisplayValue(item)).filter((part) => part !== "—");
+    return parts.length > 0 ? parts.join(", ") : "—";
+  }
+  if (typeof value === "object") {
+    const { value: resolved } = resolveAnswerDisplay(value);
+    if (resolved !== value) return formatDisplayValue(resolved);
+    return formatStructuredObject(value as Record<string, unknown>);
+  }
+  return String(value);
+}
+
 function formatAnswerValue(value: unknown): string {
-  const { value: resolved } = resolveAnswerDisplay(value);
-  if (resolved === null || resolved === undefined) return "—";
-  if (typeof resolved === "boolean") return resolved ? "Yes" : "No";
-  if (Array.isArray(resolved)) return resolved.join(", ");
-  return String(resolved);
+  return formatDisplayValue(value);
+}
+
+function metadataSummary(metadata: Record<string, unknown>): string | null {
+  const parts: string[] = [];
+  const device = metadata.deviceType ?? metadata.device;
+  const browser = metadata.browser;
+  const referrer = metadata.referrer ?? metadata.referer;
+  if (!isEmptyValue(device)) parts.push(String(device));
+  if (!isEmptyValue(browser)) parts.push(String(browser));
+  if (typeof referrer === "string" && referrer.trim() && referrer !== "-") {
+    try {
+      parts.push(new URL(referrer).hostname);
+    } catch {
+      parts.push(referrer.slice(0, 40));
+    }
+  }
+  const utmRaw = metadata.utm ?? metadata.utmParams;
+  if (utmRaw && typeof utmRaw === "object") {
+    const formatted = formatStructuredObject(utmRaw as Record<string, unknown>);
+    if (formatted !== "—" && formatted !== "Direct / none") parts.push(formatted);
+  } else {
+    const utm = metadata.utm_source ?? metadata.utmSource;
+    if (!isEmptyValue(utm)) parts.push(`utm:${utm}`);
+  }
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+function resolveCompletionRate(
+  rate?: number,
+  answered?: number,
+  total?: number,
+): number | undefined {
+  if (answered !== undefined && total !== undefined && total > 0) {
+    return (answered / total) * 100;
+  }
+  if (rate !== undefined && Number.isFinite(rate)) return rate;
+  return undefined;
+}
+
+function CompletionBadge({ rate, answered, total }: { rate?: number; answered?: number; total?: number }) {
+  const effectiveRate = resolveCompletionRate(rate, answered, total);
+  if (effectiveRate === undefined) return null;
+  const label = formatPercent(effectiveRate);
+  const tone =
+    effectiveRate >= 90
+      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+      : effectiveRate >= 60
+        ? "bg-amber-50 text-amber-700 ring-amber-200"
+        : "bg-slate-100 text-slate-600 ring-slate-200";
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${tone}`}>
+      {label} complete
+    </span>
+  );
 }
 
 function SubmissionDetail({ row }: { row: SubmissionRow }) {
   const answerEntries = Object.entries(row.answers);
   const respondentEntries = Object.entries(row.respondent);
+  const metadataEntries = Object.entries(row.metadata ?? {});
 
   return (
-    <div className="grid gap-4 border-t border-slate-100 bg-slate-50/70 px-6 py-4 sm:grid-cols-2">
+    <div className="grid gap-4 border-t border-slate-100 bg-slate-50/70 px-6 py-4 lg:grid-cols-3">
       {respondentEntries.length > 0 ? (
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Respondent</p>
           <dl className="mt-2 space-y-1.5">
             {respondentEntries.map(([key, val]) => (
               <div key={key} className="flex gap-2 text-sm">
-                <dt className="w-24 shrink-0 text-slate-500">{key}</dt>
+                <dt className="w-24 shrink-0 text-slate-500">{humanizeKey(key)}</dt>
                 <dd className="min-w-0 break-words text-slate-800">{formatAnswerValue(val)}</dd>
               </div>
             ))}
           </dl>
         </div>
       ) : null}
-      <div className={respondentEntries.length > 0 ? "" : "sm:col-span-2"}>
+      <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Answers</p>
         <dl className="mt-2 space-y-1.5">
           {answerEntries.length === 0 ? (
@@ -85,6 +236,29 @@ function SubmissionDetail({ row }: { row: SubmissionRow }) {
           )}
         </dl>
       </div>
+      {metadataEntries.length > 0 ? (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Metadata</p>
+          <dl className="mt-2 space-y-1.5">
+            {metadataEntries.map(([key, val]) => {
+              const display = formatDisplayValue(val);
+              const mono = key === "sessionId";
+              return (
+                <div key={key} className="flex gap-2 text-sm">
+                  <dt className="w-28 shrink-0 truncate text-slate-500" title={key}>
+                    {humanizeKey(key)}
+                  </dt>
+                  <dd
+                    className={`min-w-0 break-words text-slate-800 ${mono ? "font-mono text-xs" : ""}`}
+                  >
+                    {display}
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -145,6 +319,7 @@ export function SubmissionsTable({
         <ul className="divide-y divide-slate-100">
           {rows.map((row) => {
             const expanded = expandedId === row.id;
+            const meta = metadataSummary(row.metadata ?? {});
             return (
               <li key={row.id}>
                 <button
@@ -152,12 +327,26 @@ export function SubmissionsTable({
                   onClick={() => setExpandedId(expanded ? null : row.id)}
                   className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left hover:bg-slate-50/80"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-slate-900">
-                      {respondentLabel(row.respondent)}
-                    </p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-sm font-medium text-slate-900">
+                        {respondentLabel(row.respondent)}
+                      </p>
+                      <CompletionBadge
+                        rate={row.completionRate}
+                        answered={row.answeredFieldCount}
+                        total={row.totalFieldCount}
+                      />
+                      {row.publicationVersion ? (
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                          v{row.publicationVersion}
+                        </span>
+                      ) : null}
+                    </div>
                     <p className="mt-0.5 text-xs text-slate-500">
-                      {new Date(row.createdAt).toLocaleString()} · {Object.keys(row.answers).length} answers
+                      {new Date(row.createdAt).toLocaleString()} · {Object.keys(row.answers).length}{" "}
+                      answers
+                      {meta ? ` · ${meta}` : ""}
                     </p>
                   </div>
                   <span className="shrink-0 text-xs font-semibold text-violet-600">

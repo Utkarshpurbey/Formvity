@@ -72,6 +72,9 @@ export const ApiPath = {
     /** GET …/analytics/questions */
     analyticsQuestions: (workspaceId: string, formId: string) =>
       `workspaces/${workspaceId}/forms/${formId}/analytics/questions`,
+    /** GET …/analytics/insights */
+    analyticsInsights: (workspaceId: string, formId: string, days = 30) =>
+      `workspaces/${workspaceId}/forms/${formId}/analytics/insights?days=${days}`,
     /** GET …/submissions?page=&size= */
     submissions: (workspaceId: string, formId: string, page = 0, size = 20) =>
       `workspaces/${workspaceId}/forms/${formId}/submissions?page=${page}&size=${size}`,

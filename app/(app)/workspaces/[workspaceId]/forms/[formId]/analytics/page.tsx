@@ -7,7 +7,12 @@ import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { FormSubNav } from "@/src/components/form/index";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
 import { AppLink } from "@/src/components/ui/AppLink";
-import { PageLoader, Skeleton, Spinner, StatCard } from "@/src/components/ui/index";
+import { PageLoader, Skeleton, Spinner } from "@/src/components/ui/index";
+import { AnalyticsMetricGrid } from "@/src/components/form/analytics/AnalyticsMetricGrid";
+import {
+  AnalyticsTabNav,
+  type AnalyticsTab,
+} from "@/src/components/form/analytics/AnalyticsTabNav";
 
 const ResponseTimelineChart = dynamic(
   () =>
@@ -15,6 +20,20 @@ const ResponseTimelineChart = dynamic(
       default: m.ResponseTimelineChart,
     })),
   { loading: () => <Skeleton className="h-48 rounded-xl" /> },
+);
+const AnalyticsInsightsPanel = dynamic(
+  () =>
+    import("@/src/components/form/analytics/AnalyticsInsightsPanel").then((m) => ({
+      default: m.AnalyticsInsightsPanel,
+    })),
+  {
+    loading: () => (
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Skeleton className="h-48 rounded-2xl" />
+        <Skeleton className="h-48 rounded-2xl" />
+      </div>
+    ),
+  },
 );
 const QuestionBreakdownPanel = dynamic(
   () =>
@@ -51,13 +70,6 @@ import {
 const TIMELINE_OPTIONS = [7, 30, 90] as const;
 const PAGE_SIZE = 20;
 
-function formatDateTime(value: string | null): string {
-  if (!value) return "—";
-  const parsed = Date.parse(value);
-  if (!Number.isFinite(parsed)) return value;
-  return new Date(parsed).toLocaleString();
-}
-
 export default function FormAnalyticsPage() {
   const params = useParams();
   const router = useRouter();
@@ -72,8 +84,9 @@ export default function FormAnalyticsPage() {
   const publishStatus = useAppSelector((s) => selectPublishStatusForForm(s, formId));
   const lastPublishResult = useAppSelector((s) => s.forms.lastPublishResult);
 
-  const [days, setDays] = useState<(typeof TIMELINE_OPTIONS)[number]>(7);
+  const [days, setDays] = useState<(typeof TIMELINE_OPTIONS)[number]>(30);
   const [page, setPage] = useState(0);
+  const [activeTab, setActiveTab] = useState<AnalyticsTab>("overview");
 
   const form = useMemo(() => forms.find((f) => f.id === formId), [forms, formId]);
   const workspace = useMemo(
@@ -93,7 +106,7 @@ export default function FormAnalyticsPage() {
     [form?.status, ready, formsLoading, form, publishStatus, publication, lastPublishResult],
   );
 
-  const { summary, timeline, questions, submissions, loading, refreshing, error, reload } =
+  const { summary, timeline, questions, insights, submissions, loading, refreshing, error, reload } =
     useFormAnalytics(workspaceId, formId, { days, page, size: PAGE_SIZE });
 
   useEffect(() => {
@@ -106,6 +119,10 @@ export default function FormAnalyticsPage() {
     dispatch(fetchForms(workspaceId));
     dispatch(fetchPublishStatus({ workspaceId, formId }));
   }, [ready, user, workspaceId, formId, dispatch]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [days]);
 
   if ((!ready && !user) || (formsLoading && !form)) {
     return <PageLoader message="Loading form…" className="min-h-[50vh]" />;
@@ -150,12 +167,28 @@ export default function FormAnalyticsPage() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Analytics</h1>
             <FormLifecycleBadge lifecycle={lifecycle} size="md" />
           </div>
-          <p className="mt-2 text-sm text-slate-500">
-            Response trends and question breakdown for{" "}
+          <p className="mt-2 max-w-2xl text-sm text-slate-500">
+            Audience, traffic, completion, and question-level insights for{" "}
             <span className="font-medium text-slate-700">{form.title.trim() || "Untitled form"}</span>
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-lg border border-slate-200 p-0.5">
+            {TIMELINE_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setDays(option)}
+                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                  days === option
+                    ? "bg-violet-600 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                {option}d
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={() => reload()}
@@ -183,93 +216,76 @@ export default function FormAnalyticsPage() {
         </div>
       ) : null}
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {loading && !summary ? (
-          Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)
-        ) : (
-          <>
-            <StatCard
-              label="Total responses"
-              value={summary?.totalResponses ?? 0}
-              hint="All time"
-            />
-            <StatCard label="Today" value={summary?.responsesToday ?? 0} hint="Since midnight" />
-            <StatCard
-              label="First response"
-              value={summary?.firstResponseAt ? formatDateTime(summary.firstResponseAt).split(",")[0] : "—"}
-              hint={summary?.firstResponseAt ? formatDateTime(summary.firstResponseAt) : "No responses yet"}
-            />
-            <StatCard
-              label="Publish version"
-              value={summary?.currentPublicationVersion ?? lastPublishResult?.version ?? "—"}
-              hint={
-                summary?.lastResponseAt
-                  ? `Last response ${formatDateTime(summary.lastResponseAt)}`
-                  : "Live snapshot version"
-              }
-            />
-          </>
-        )}
-      </section>
-
-      <section className="mt-8 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-900/[0.03]">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">Response timeline</h2>
-            <p className="mt-0.5 text-xs text-slate-500">Daily submissions · zero-filled gaps</p>
-          </div>
-          <div className="flex rounded-lg border border-slate-200 p-0.5">
-            {TIMELINE_OPTIONS.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setDays(option)}
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-                  days === option
-                    ? "bg-violet-600 text-white shadow-sm"
-                    : "text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                {option}d
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="mt-6">
-          {loading && timeline.length === 0 ? (
-            <Skeleton className="h-48 rounded-xl" />
-          ) : (
-            <ResponseTimelineChart points={timeline} />
-          )}
-        </div>
-      </section>
-
-      <section className="mt-8 space-y-4">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-900">Question breakdown</h2>
-          <p className="mt-0.5 text-xs text-slate-500">Answer distributions per field</p>
-        </div>
-        {loading && questions.length === 0 ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Skeleton className="h-48 rounded-2xl" />
-            <Skeleton className="h-48 rounded-2xl" />
-          </div>
-        ) : (
-          <QuestionBreakdownPanel questions={questions} />
-        )}
-      </section>
-
-      <div className="mt-8">
-        <SubmissionsTable
-          rows={submissions?.content ?? []}
-          loading={loading && !submissions}
-          page={submissions?.page ?? page}
-          totalPages={submissions?.totalPages ?? 1}
-          totalElements={submissions?.totalElements ?? 0}
-          pageSize={submissions?.size ?? PAGE_SIZE}
-          onPageChange={setPage}
-        />
+      <div className="mt-6">
+        <AnalyticsTabNav active={activeTab} onChange={setActiveTab} />
       </div>
+
+      {activeTab === "overview" ? (
+        <div className="mt-8 space-y-8">
+          <AnalyticsMetricGrid
+            summary={summary}
+            completion={insights?.completion ?? null}
+            loading={loading}
+          />
+
+          <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-900/[0.03]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900">Response timeline</h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Daily submissions over the last {days} days
+                </p>
+              </div>
+            </div>
+            <div className="mt-6">
+              {loading && timeline.length === 0 ? (
+                <Skeleton className="h-48 rounded-xl" />
+              ) : (
+                <ResponseTimelineChart points={timeline} />
+              )}
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {activeTab === "insights" ? (
+        <div className="mt-8">
+          <AnalyticsInsightsPanel insights={insights} loading={loading} />
+        </div>
+      ) : null}
+
+      {activeTab === "questions" ? (
+        <section className="mt-8 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">Question breakdown</h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Distributions, completion rates, and top text answers per field
+            </p>
+          </div>
+          {loading && questions.length === 0 ? (
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Skeleton className="h-48 rounded-2xl" />
+              <Skeleton className="h-48 rounded-2xl" />
+            </div>
+          ) : (
+            <QuestionBreakdownPanel questions={questions} />
+          )}
+        </section>
+      ) : null}
+
+      {activeTab === "responses" ? (
+        <div className="mt-8">
+          <SubmissionsTable
+            rows={submissions?.content ?? []}
+            loading={loading && !submissions}
+            page={submissions?.page ?? page}
+            totalPages={submissions?.totalPages ?? 1}
+            totalElements={submissions?.totalElements ?? 0}
+            pageSize={submissions?.size ?? PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        </div>
+      ) : null}
     </AppPageContainer>
   );
 }

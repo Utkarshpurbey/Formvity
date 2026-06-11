@@ -11,6 +11,7 @@ import {
 import {
   normalizeAnalyticsSummary,
   normalizeAnalyticsTimeline,
+  normalizeFormAnalyticsInsightsOnly,
   normalizeFormAnalyticsOverview,
   normalizeQuestionAnalyticsList,
   normalizeSubmissionsPage,
@@ -19,6 +20,7 @@ import { ApiPath } from "../utils/apiPath";
 import { ApiError, apiData, apiFetch, unwrapData } from "./http";
 import type { PublicSubmissionPayload } from "../lib/submissionPayload";
 import type {
+  AnalyticsInsights,
   AnalyticsSummary,
   AnalyticsTimelinePoint,
   CurrentUser,
@@ -195,6 +197,16 @@ export async function getFormQuestionAnalytics(
 ): Promise<QuestionAnalytics[]> {
   const raw = await apiData<unknown>(ApiPath.forms.analyticsQuestions(workspaceId, formId));
   return normalizeQuestionAnalyticsList(raw);
+}
+
+/** GET …/analytics/insights?days= */
+export async function getFormAnalyticsInsights(
+  workspaceId: string,
+  formId: string,
+  days = 30,
+): Promise<AnalyticsInsights> {
+  const raw = await apiData<unknown>(ApiPath.forms.analyticsInsights(workspaceId, formId, days));
+  return normalizeFormAnalyticsInsightsOnly(raw);
 }
 
 /** GET …/submissions?page=&size= — data is Page<SubmissionListItemDto> */

@@ -101,6 +101,91 @@ export type AnalyticsSummary = {
   firstResponseAt: string | null;
   lastResponseAt: string | null;
   currentPublicationVersion: number | null;
+  responsesLast7Days?: number;
+  responsesLast30Days?: number;
+  uniqueRespondents?: number;
+  returningRespondents?: number;
+  avgCompletionRate?: number;
+  peakHour?: number | null;
+  peakDayOfWeek?: string | null;
+  submissionsWithMetadata?: number;
+};
+
+export type BreakdownItem = {
+  key: string;
+  label: string;
+  count: number;
+  percent: number;
+};
+
+/** Backend wraps breakdowns as `{ dimension, label, breakdown: [...] }`. */
+export type InsightDimensionGroup = {
+  key: string;
+  label: string;
+  items: BreakdownItem[];
+};
+
+export type AnalyticsAudienceInsights = {
+  uniqueRespondents: number;
+  returningRespondents: number;
+  withEmail: number;
+  withName: number;
+  withPhone: number;
+  emailDomains: BreakdownItem[];
+  respondentAttributeGroups: InsightDimensionGroup[];
+  respondentAttributes: BreakdownItem[];
+};
+
+export type AnalyticsTrafficInsights = {
+  submissionsWithMetadata: number;
+  browsers: BreakdownItem[];
+  operatingSystems: BreakdownItem[];
+  deviceTypes: BreakdownItem[];
+  referrerHosts: BreakdownItem[];
+  utmSources: BreakdownItem[];
+  utmMediums: BreakdownItem[];
+  utmCampaigns: BreakdownItem[];
+  locales: BreakdownItem[];
+  timezones: BreakdownItem[];
+  countries: BreakdownItem[];
+  cities: BreakdownItem[];
+  platforms: BreakdownItem[];
+  otherMetadata: BreakdownItem[];
+};
+
+export type AnalyticsTemporalInsights = {
+  byHour: BreakdownItem[];
+  byDayOfWeek: BreakdownItem[];
+  peakHour: number | null;
+  peakDayOfWeek: string | null;
+};
+
+export type AnalyticsCompletionInsights = {
+  avgFieldsAnswered: number;
+  avgCompletionRate: number;
+  fullyCompletedCount: number;
+  fullyCompletedRate: number;
+};
+
+export type PublicationVersionInsight = {
+  version: number;
+  slug?: string;
+  publishedAt?: string | null;
+  current: boolean;
+  responseCount: number;
+  percentOfTotal: number;
+};
+
+export type AnalyticsPublicationInsights = {
+  versions: PublicationVersionInsight[];
+};
+
+export type AnalyticsInsights = {
+  audience: AnalyticsAudienceInsights;
+  traffic: AnalyticsTrafficInsights;
+  temporal: AnalyticsTemporalInsights;
+  completion: AnalyticsCompletionInsights;
+  publications: AnalyticsPublicationInsights;
 };
 
 export type AnalyticsTimelinePoint = {
@@ -120,6 +205,11 @@ export type QuestionDistribution = {
   percent: number;
 };
 
+export type TopTextAnswer = {
+  value: string;
+  count: number;
+};
+
 export type QuestionAnalytics = {
   fieldId: string;
   label: string;
@@ -129,13 +219,18 @@ export type QuestionAnalytics = {
   average?: number;
   min?: number;
   max?: number;
+  median?: number;
+  required?: boolean;
+  completionRate?: number;
   distribution: QuestionDistribution[];
+  topTextAnswers?: TopTextAnswer[];
 };
 
 export type FormAnalyticsOverview = {
   summary: AnalyticsSummary;
   timeline: AnalyticsTimelinePoint[];
   questions: QuestionAnalytics[];
+  insights?: AnalyticsInsights | null;
 };
 
 export type SubmissionRow = {
@@ -144,6 +239,10 @@ export type SubmissionRow = {
   publicationVersion?: number;
   respondent: Record<string, unknown>;
   answers: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  answeredFieldCount?: number;
+  totalFieldCount?: number;
+  completionRate?: number;
 };
 
 export type SubmissionsPage = {

@@ -50,6 +50,7 @@ export function useFormAnalytics(
     summary: entry?.summary ?? null,
     timeline: entry?.timeline ?? [],
     questions: entry?.questions ?? [],
+    insights: entry?.insights ?? null,
     submissions: entry?.submissions ?? null,
     loading,
     refreshing,
