@@ -21,7 +21,7 @@ export function useFormAnalytics(
   formId: string,
   options: UseFormAnalyticsOptions = {},
 ) {
-  const { days = 30, page = 0, size = 20, enabled = true } = options;
+  const { days = 7, page = 0, size = 20, enabled = true } = options;
   const dispatch = useAppDispatch();
 
   const cacheKey = useMemo(

@@ -1,9 +1,12 @@
+import type { AnalyticsTimelinePoint } from "../../../api/types";
 import type { AnalyticsCompletionInsights, AnalyticsSummary } from "../../../api/types";
 import { formatDayOfWeek, formatHour, formatPercent } from "./formatAnalytics";
 
 type AnalyticsMetricGridProps = {
   summary: AnalyticsSummary | null;
   completion?: AnalyticsCompletionInsights | null;
+  timeline?: AnalyticsTimelinePoint[];
+  days: number;
   loading?: boolean;
 };
 
@@ -39,11 +42,30 @@ function SkeletonCard() {
   return <div className="h-28 animate-pulse rounded-2xl bg-slate-100" />;
 }
 
-export function AnalyticsMetricGrid({ summary, completion, loading }: AnalyticsMetricGridProps) {
+function periodResponseCount(
+  summary: AnalyticsSummary | null,
+  timeline: AnalyticsTimelinePoint[],
+  days: number,
+): number | string {
+  if (timeline.length > 0) {
+    return timeline.reduce((sum, point) => sum + point.count, 0);
+  }
+  if (days === 7 && summary?.responsesLast7Days !== undefined) return summary.responsesLast7Days;
+  if (days === 30 && summary?.responsesLast30Days !== undefined) return summary.responsesLast30Days;
+  return "—";
+}
+
+export function AnalyticsMetricGrid({
+  summary,
+  completion,
+  timeline = [],
+  days,
+  loading,
+}: AnalyticsMetricGridProps) {
   if (loading && !summary) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 8 }, (_, i) => (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }, (_, i) => (
           <SkeletonCard key={i} />
         ))}
       </div>
@@ -52,22 +74,10 @@ export function AnalyticsMetricGrid({ summary, completion, loading }: AnalyticsM
 
   const metrics: Metric[] = [
     {
-      label: "Total responses",
-      value: summary?.totalResponses ?? 0,
-      hint: "All time",
-    },
-    {
-      label: "Last 7 days",
-      value: summary?.responsesLast7Days ?? "—",
-      hint: summary?.responsesLast30Days
-        ? `Last 30d: ${summary.responsesLast30Days}`
-        : "Rolling window",
+      label: `Responses (${days}d)`,
+      value: periodResponseCount(summary, timeline, days),
+      hint: summary?.totalResponses !== undefined ? `${summary.totalResponses} all time` : undefined,
       accent: "sky",
-    },
-    {
-      label: "Today",
-      value: summary?.responsesToday ?? 0,
-      hint: "Since midnight",
     },
     {
       label: "Unique respondents",
@@ -75,41 +85,47 @@ export function AnalyticsMetricGrid({ summary, completion, loading }: AnalyticsM
       hint:
         summary?.returningRespondents !== undefined
           ? `${summary.returningRespondents} returning`
-          : "Based on email / name fingerprint",
+          : undefined,
       accent: "emerald",
     },
     {
       label: "Avg completion",
       value: formatPercent(completion?.avgCompletionRate ?? summary?.avgCompletionRate),
       hint: completion
-        ? `${completion.fullyCompletedCount} fully completed (${formatPercent(completion.fullyCompletedRate)})`
-        : "Fields answered on average",
+        ? `${completion.fullyCompletedCount} fully completed`
+        : undefined,
       accent: "amber",
     },
     {
       label: "Peak activity",
       value: formatHour(summary?.peakHour ?? null),
       hint: summary?.peakDayOfWeek
-        ? `Busiest day: ${formatDayOfWeek(summary.peakDayOfWeek)}`
-        : "Hour with most submissions",
+        ? `Busiest: ${formatDayOfWeek(summary.peakDayOfWeek)}`
+        : undefined,
     },
     {
-      label: "With metadata",
-      value: summary?.submissionsWithMetadata ?? "—",
-      hint: "Submissions including device / UTM data",
-      accent: "sky",
+      label: "Today",
+      value: summary?.responsesToday ?? 0,
+      hint: "Since midnight",
     },
     {
-      label: "Publish version",
-      value: summary?.currentPublicationVersion ?? "—",
-      hint: summary?.lastResponseAt
-        ? `Last response ${new Date(summary.lastResponseAt).toLocaleString()}`
-        : "Current live snapshot",
+      label: "Last response",
+      value: summary?.lastResponseAt
+        ? new Date(summary.lastResponseAt).toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          })
+        : "—",
+      hint: summary?.firstResponseAt
+        ? `First: ${new Date(summary.firstResponseAt).toLocaleDateString()}`
+        : "No responses yet",
     },
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {metrics.map((m) => (
         <MetricCard key={m.label} {...m} />
       ))}

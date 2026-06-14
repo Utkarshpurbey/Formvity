@@ -5,6 +5,15 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ["react-toastify"],
   },
+  async redirects() {
+    return [
+      {
+        source: "/builder/v2",
+        destination: "/builder",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

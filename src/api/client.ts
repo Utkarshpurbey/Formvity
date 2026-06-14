@@ -165,7 +165,7 @@ export async function submitPublicForm(slug: string, body: PublicSubmissionPaylo
 export async function getFormAnalyticsOverview(
   workspaceId: string,
   formId: string,
-  days = 30,
+  days = 7,
 ): Promise<FormAnalyticsOverview> {
   const raw = await apiData<unknown>(ApiPath.forms.analyticsOverview(workspaceId, formId, days));
   return normalizeFormAnalyticsOverview(raw, days);
@@ -184,7 +184,7 @@ export async function getFormAnalyticsSummary(
 export async function getFormAnalyticsTimeline(
   workspaceId: string,
   formId: string,
-  days = 30,
+  days = 7,
 ): Promise<AnalyticsTimelinePoint[]> {
   const raw = await apiData<unknown>(ApiPath.forms.analyticsTimeline(workspaceId, formId, days));
   return normalizeAnalyticsTimeline(raw, days).points;
@@ -203,7 +203,7 @@ export async function getFormQuestionAnalytics(
 export async function getFormAnalyticsInsights(
   workspaceId: string,
   formId: string,
-  days = 30,
+  days = 7,
 ): Promise<AnalyticsInsights> {
   const raw = await apiData<unknown>(ApiPath.forms.analyticsInsights(workspaceId, formId, days));
   return normalizeFormAnalyticsInsightsOnly(raw);

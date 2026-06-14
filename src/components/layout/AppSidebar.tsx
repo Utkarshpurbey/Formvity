@@ -11,7 +11,7 @@ import { stripAppBasePath } from "../../utils/appBasePath";
 const nav = [
   { href: "/workspaces", label: "Workspaces", icon: "grid" },
   { href: "/templates", label: "Templates", icon: "spark" },
-  { href: "/builder/v2", label: "Builder", icon: "layout" },
+  { href: "/builder", label: "Builder", icon: "layout" },
 ];
 
 function NavIcon({ name }: { name: string }) {
@@ -44,9 +44,6 @@ function initials(name: string) {
 function isNavActive(routePath: string, href: string): boolean {
   if (href === "/workspaces") {
     return routePath === "/workspaces" || routePath.startsWith("/workspaces/") || routePath === "/workspace";
-  }
-  if (href === "/builder/v2") {
-    return routePath === "/builder/v2" || routePath.startsWith("/builder/v2/");
   }
   if (href === "/builder") {
     return routePath === "/builder" || routePath.startsWith("/builder/");

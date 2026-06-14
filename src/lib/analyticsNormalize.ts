@@ -459,7 +459,7 @@ function normalizeTimelinePoints(raw: unknown): AnalyticsTimelinePoint[] {
 }
 
 /** GET …/analytics/timeline → data is List<TimelineBucketDto> */
-export function normalizeAnalyticsTimeline(raw: unknown, fallbackDays = 30): AnalyticsTimeline {
+export function normalizeAnalyticsTimeline(raw: unknown, fallbackDays = 7): AnalyticsTimeline {
   if (Array.isArray(raw)) {
     return { days: fallbackDays, points: normalizeTimelinePoints(raw) };
   }
@@ -553,7 +553,7 @@ function extractTimelineRaw(raw: unknown): unknown {
 }
 
 /** GET …/analytics → data is FormAnalyticsOverviewDto */
-export function normalizeFormAnalyticsOverview(raw: unknown, fallbackDays = 30): FormAnalyticsOverview {
+export function normalizeFormAnalyticsOverview(raw: unknown, fallbackDays = 7): FormAnalyticsOverview {
   const r = asRecord(raw);
   const timelineRaw = r.timeline ?? r.buckets ?? r.points;
   const insightsRaw = r.insights ?? r.analyticsInsights;

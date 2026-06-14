@@ -10,7 +10,7 @@ const GUIDE_KEY = "formvity.builderV2Guide";
 export type BuilderMode = "intake" | "pages";
 
 export function useBuilderV2Page() {
-  const base = useBuilderPage("/builder/v2");
+  const base = useBuilderPage("/builder");
   const [builderMode, setBuilderMode] = useState<BuilderMode>("pages");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);

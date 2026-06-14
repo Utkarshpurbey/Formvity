@@ -1,8 +1,11 @@
-import type { QuestionAnalytics } from "../../api/types";
+import type { BreakdownItem, QuestionAnalytics } from "../../api/types";
+import { BreakdownChart } from "./analytics/BreakdownChart";
+import type { ChartViewMode } from "./analytics/ChartViewToggle";
 import { formatPercent } from "./analytics/formatAnalytics";
 
 type QuestionBreakdownPanelProps = {
   questions: QuestionAnalytics[];
+  chartView: ChartViewMode;
 };
 
 function humanizeFieldLabel(label: string, fieldId: string): string {
@@ -19,39 +22,16 @@ function isAnsweredOnlyDistribution(distribution: QuestionAnalytics["distributio
   );
 }
 
-function DistributionRow({
-  value,
-  count,
-  percent,
-  maxCount,
-}: {
-  value: string;
-  count: number;
-  percent: number;
-  maxCount: number;
-}) {
-  const barPct = maxCount > 0 ? (count / maxCount) * 100 : 0;
-  const pctLabel = percent > 0 ? `${percent.toFixed(0)}%` : count > 0 ? "—" : "0%";
-
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-start justify-between gap-3 text-sm">
-        <span className="min-w-0 break-words text-slate-700">{value || "(empty)"}</span>
-        <span className="shrink-0 tabular-nums text-slate-500">
-          {count} · {pctLabel}
-        </span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-        <div
-          className="h-full rounded-full bg-violet-500 transition-[width]"
-          style={{ width: `${barPct}%` }}
-        />
-      </div>
-    </div>
-  );
+function toBreakdownItems(distribution: QuestionAnalytics["distribution"]): BreakdownItem[] {
+  return distribution.map((d) => ({
+    key: d.value,
+    label: d.label ?? d.value,
+    count: d.count,
+    percent: d.percent,
+  }));
 }
 
-export function QuestionBreakdownPanel({ questions }: QuestionBreakdownPanelProps) {
+export function QuestionBreakdownPanel({ questions, chartView }: QuestionBreakdownPanelProps) {
   if (questions.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center text-sm text-slate-500">
@@ -69,9 +49,6 @@ export function QuestionBreakdownPanel({ questions }: QuestionBreakdownPanelProp
             isAnsweredOnlyDistribution(question.distribution) &&
             (question.topTextAnswers?.length ?? 0) > 0
           );
-        const maxCount = showDistribution
-          ? Math.max(1, ...question.distribution.map((d) => d.count))
-          : 1;
         const hasNumericStats =
           question.average !== undefined ||
           question.median !== undefined ||
@@ -134,19 +111,14 @@ export function QuestionBreakdownPanel({ questions }: QuestionBreakdownPanelProp
               </dl>
             ) : null}
 
-            <div className="mt-4 space-y-3">
+            <div className="mt-4">
               {!showDistribution && !question.topTextAnswers?.length ? (
                 <p className="text-sm text-slate-500">No distribution data yet.</p>
               ) : showDistribution ? (
-                question.distribution.map((item) => (
-                  <DistributionRow
-                    key={`${question.fieldId}-${item.value}`}
-                    value={item.label ?? item.value}
-                    count={item.count}
-                    percent={item.percent}
-                    maxCount={maxCount}
-                  />
-                ))
+                <BreakdownChart
+                  items={toBreakdownItems(question.distribution)}
+                  viewMode={chartView}
+                />
               ) : null}
             </div>
 

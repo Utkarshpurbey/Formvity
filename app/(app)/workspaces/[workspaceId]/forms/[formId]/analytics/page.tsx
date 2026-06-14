@@ -13,6 +13,8 @@ import {
   AnalyticsTabNav,
   type AnalyticsTab,
 } from "@/src/components/form/analytics/AnalyticsTabNav";
+import { AnalyticsChartToolbar } from "@/src/components/form/analytics/AnalyticsChartToolbar";
+import type { ChartViewMode } from "@/src/components/form/analytics/ChartViewToggle";
 
 const ResponseTimelineChart = dynamic(
   () =>
@@ -84,9 +86,10 @@ export default function FormAnalyticsPage() {
   const publishStatus = useAppSelector((s) => selectPublishStatusForForm(s, formId));
   const lastPublishResult = useAppSelector((s) => s.forms.lastPublishResult);
 
-  const [days, setDays] = useState<(typeof TIMELINE_OPTIONS)[number]>(30);
+  const [days, setDays] = useState<(typeof TIMELINE_OPTIONS)[number]>(7);
   const [page, setPage] = useState(0);
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("overview");
+  const [chartView, setChartView] = useState<ChartViewMode>("pie");
 
   const form = useMemo(() => forms.find((f) => f.id === formId), [forms, formId]);
   const workspace = useMemo(
@@ -200,7 +203,7 @@ export default function FormAnalyticsPage() {
           </button>
           <button
             type="button"
-            onClick={() => router.push(`/builder/v2?workspaceId=${workspaceId}&formId=${formId}`)}
+            onClick={() => router.push(`/builder?workspaceId=${workspaceId}&formId=${formId}`)}
             className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
             Open in builder
@@ -222,9 +225,17 @@ export default function FormAnalyticsPage() {
 
       {activeTab === "overview" ? (
         <div className="mt-8 space-y-8">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">Key metrics</h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Headline numbers for the selected {days}-day window
+            </p>
+          </div>
           <AnalyticsMetricGrid
             summary={summary}
             completion={insights?.completion ?? null}
+            timeline={timeline}
+            days={days}
             loading={loading}
           />
 
@@ -249,9 +260,21 @@ export default function FormAnalyticsPage() {
       ) : null}
 
       {activeTab === "insights" ? (
-        <div className="mt-8">
-          <AnalyticsInsightsPanel insights={insights} loading={loading} />
-        </div>
+        <section className="mt-8 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">Audience & traffic</h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Deep breakdowns by respondent, device, source, location, timing, and completion
+            </p>
+          </div>
+          <AnalyticsChartToolbar chartView={chartView} onChange={setChartView} />
+          <AnalyticsInsightsPanel
+            insights={insights}
+            loading={loading}
+            chartView={chartView}
+            totalResponses={summary?.totalResponses ?? submissions?.totalElements ?? 0}
+          />
+        </section>
       ) : null}
 
       {activeTab === "questions" ? (
@@ -262,19 +285,27 @@ export default function FormAnalyticsPage() {
               Distributions, completion rates, and top text answers per field
             </p>
           </div>
+          <AnalyticsChartToolbar chartView={chartView} onChange={setChartView} />
           {loading && questions.length === 0 ? (
             <div className="grid gap-4 lg:grid-cols-2">
               <Skeleton className="h-48 rounded-2xl" />
               <Skeleton className="h-48 rounded-2xl" />
             </div>
           ) : (
-            <QuestionBreakdownPanel questions={questions} />
+            <QuestionBreakdownPanel questions={questions} chartView={chartView} />
           )}
         </section>
       ) : null}
 
       {activeTab === "responses" ? (
-        <div className="mt-8">
+        <section className="mt-8 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">Individual responses</h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Browse, expand, and inspect each submission. Device, completion, and version breakdowns
+              live under Audience & traffic.
+            </p>
+          </div>
           <SubmissionsTable
             rows={submissions?.content ?? []}
             loading={loading && !submissions}
@@ -284,7 +315,7 @@ export default function FormAnalyticsPage() {
             pageSize={submissions?.size ?? PAGE_SIZE}
             onPageChange={setPage}
           />
-        </div>
+        </section>
       ) : null}
     </AppPageContainer>
   );

@@ -60,7 +60,7 @@ type FetchFormAnalyticsArg = {
 
 export const fetchFormAnalytics = createAsyncThunk(
   "analytics/fetch",
-  async ({ workspaceId, formId, days = 30, page = 0, size = 20 }: FetchFormAnalyticsArg) => {
+  async ({ workspaceId, formId, days = 7, page = 0, size = 20 }: FetchFormAnalyticsArg) => {
     const [overview, submissions] = await Promise.all([
       api.getFormAnalyticsOverview(workspaceId, formId, days),
       api.listFormSubmissions(workspaceId, formId, page, size),
@@ -85,7 +85,7 @@ export const fetchFormAnalytics = createAsyncThunk(
   {
     condition: (arg, { getState }) => {
       if (arg.force) return true;
-      const { workspaceId, formId, days = 30, page = 0, size = 20 } = arg;
+      const { workspaceId, formId, days = 7, page = 0, size = 20 } = arg;
       const key = analyticsCacheKey(workspaceId, formId, days, page, size);
       const state = getState() as { analytics: AnalyticsState };
       if (state.analytics.loadingByKey[key]) return false;
@@ -127,7 +127,7 @@ const analyticsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchFormAnalytics.pending, (s, a) => {
-        const { workspaceId, formId, days = 30, page = 0, size = 20 } = a.meta.arg;
+        const { workspaceId, formId, days = 7, page = 0, size = 20 } = a.meta.arg;
         const key = analyticsCacheKey(workspaceId, formId, days, page, size);
         s.loadingByKey[key] = true;
         s.errorByKey[key] = null;
@@ -144,7 +144,7 @@ const analyticsSlice = createSlice({
         };
       })
       .addCase(fetchFormAnalytics.rejected, (s, a) => {
-        const { workspaceId, formId, days = 30, page = 0, size = 20 } = a.meta.arg;
+        const { workspaceId, formId, days = 7, page = 0, size = 20 } = a.meta.arg;
         const key = analyticsCacheKey(workspaceId, formId, days, page, size);
         delete s.loadingByKey[key];
         s.errorByKey[key] = formatLoadError(a.error);

@@ -284,10 +284,7 @@ export function SubmissionsTable({
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-900">Individual responses</h2>
-          <p className="mt-0.5 text-xs text-slate-500">{pageLabel}</p>
-        </div>
+        <p className="text-xs text-slate-500">{pageLabel}</p>
         <div className="flex items-center gap-2">
           <button
             type="button"

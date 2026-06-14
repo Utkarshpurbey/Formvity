@@ -43,7 +43,7 @@ export default function TemplatesRoutePage() {
 
   const handleEditInBuilder = (templateKey: string) => {
     setPreviewKey(null);
-    router.push(`/builder/v2?template=${encodeURIComponent(templateKey)}`);
+    router.push(`/builder?template=${encodeURIComponent(templateKey)}`);
   };
 
   const categoriesWithCounts = useMemo(() => {

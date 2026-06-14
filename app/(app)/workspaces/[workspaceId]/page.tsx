@@ -30,7 +30,7 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
   const publication = useAppSelector((s) => s.forms.publicationByForm[form.id]);
   const lifecycle = deriveFormLifecycle({ formStatus: form.status, publication });
   const formHref = `/workspaces/${workspaceId}/forms/${form.id}`;
-  const builderHref = `/builder/v2?workspaceId=${workspaceId}&formId=${form.id}`;
+  const builderHref = `/builder?workspaceId=${workspaceId}&formId=${form.id}`;
   const analyticsHref = `/workspaces/${workspaceId}/forms/${form.id}/analytics`;
 
   return (
@@ -133,7 +133,7 @@ export default function WorkspaceDetailPage() {
       const form = await dispatch(
         createForm({ workspaceId, title: "Untitled form", draftPageDef: EMPTY_FORM_DEF }),
       ).unwrap();
-      router.push(`/builder/v2?workspaceId=${workspaceId}&formId=${form.id}`);
+      router.push(`/builder?workspaceId=${workspaceId}&formId=${form.id}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not create form");
     } finally {

@@ -2,13 +2,17 @@
 
 import { Suspense } from "react";
 import BuilderSidebar from "../../../src/components/page-def/builder/BuilderSidebar";
-import { BuilderTopBar } from "../../../src/components/page-def/builder/BuilderTopBar";
 import PageCanvas from "../../../src/components/page-def/builder/PageCanvas";
 import ComponentConfigPanel from "../../../src/components/page-def/builder/ComponentConfigPanel";
 import { PublishFlowModal } from "../../../src/components/publish/PublishFlowModal";
 import { PageLoader } from "../../../src/components/ui/index";
 import { isEditableFormLifecycle } from "../../../src/lib/publish";
-import { useBuilderPage } from "../../../src/hooks/useBuilderPage";
+import { resolveRespondentIntake } from "../../../src/lib/respondentIntake";
+import { useBuilderV2Page } from "../../../src/hooks/useBuilderV2Page";
+import { BuilderV2TopBar } from "../../../src/components/page-def/builder-v2/BuilderV2TopBar";
+import { IntakeConfigPanel } from "../../../src/components/page-def/builder-v2/IntakeConfigPanel";
+import { BuilderGuideModal } from "../../../src/components/page-def/builder-v2/BuilderGuideModal";
+import { BuilderV2Preview } from "../../../src/components/page-def/builder-v2/BuilderV2Preview";
 
 function BuilderPageInner() {
   const {
@@ -48,50 +52,88 @@ function BuilderPageInner() {
     closePublishModal,
     handlePublish,
     formFromList,
-  } = useBuilderPage();
+    builderMode,
+    setBuilderMode,
+    previewOpen,
+    setPreviewOpen,
+    guideOpen,
+    dismissGuide,
+    openGuide,
+    updateRespondentIntake,
+    intakeIsDefault,
+  } = useBuilderV2Page();
+
+  const intake = resolveRespondentIntake(formDef);
 
   if (apiMode && !loaded) {
-    return <PageLoader message="Loading form from server…" className="bg-slate-100" />;
+    return <PageLoader message="Loading form from server…" className="bg-gradient-to-br from-slate-100 to-violet-50" />;
   }
 
   if (apiMode && loadBlocked) {
-    return <PageLoader message="Redirecting…" className="bg-slate-100" />;
+    return <PageLoader message="Redirecting…" className="bg-gradient-to-br from-slate-100 to-violet-50" />;
   }
 
-  if (apiMode && formFromList && !isEditableFormLifecycle(lifecycle)) {
-    return <PageLoader message="Redirecting…" className="bg-slate-100" />;
+  if (apiMode && formFromList && lifecycle && !isEditableFormLifecycle(lifecycle)) {
+    return <PageLoader message="Redirecting…" className="bg-gradient-to-br from-slate-100 to-violet-50" />;
   }
 
   return (
-    <div className="flex min-h-0 flex-1 bg-slate-100">
-      <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white shadow-sm">
-        <BuilderSidebar
-          formDef={formDef}
-          activePageId={activePageId}
-          onActivePageChange={setActivePageId}
-          onFormDefChange={setFormDef}
-          onClearSelection={() => setSelectedId(null)}
-        />
+    <div className="flex min-h-0 flex-1 bg-gradient-to-br from-slate-100 via-white to-violet-50/80">
+      <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-r border-slate-200/80 bg-white shadow-sm">
+        {builderMode === "intake" ? (
+          <IntakeConfigPanel intake={intake} onChange={updateRespondentIntake} />
+        ) : (
+          <BuilderSidebar
+            builderVersion="v2"
+            formDef={formDef}
+            activePageId={activePageId}
+            onActivePageChange={setActivePageId}
+            onFormDefChange={setFormDef}
+            onClearSelection={() => setSelectedId(null)}
+          />
+        )}
       </aside>
+
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden p-4">
-        <BuilderTopBar
+        <BuilderV2TopBar
           formTitle={formDef.title}
           saveState={saveState}
           apiMode={apiMode}
           lifecycle={apiMode ? lifecycle : null}
+          builderMode={builderMode}
+          intakeIsDefault={intakeIsDefault}
           showJson={showJson}
+          saving={saving}
+          publishing={publishing}
+          onModeChange={setBuilderMode}
           onToggleJson={() => setShowJson((v) => !v)}
           onSave={handleSave}
           onPublish={() => openPublishModal("publish")}
           onShare={() => openPublishModal("share")}
           onUpdateLive={() => openPublishModal("republish")}
-          saving={saving}
-          publishing={publishing}
+          onPreview={() => setPreviewOpen(true)}
+          onOpenGuide={openGuide}
         />
-        {!showJson ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+
+        {builderMode === "intake" ? (
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-violet-200 bg-white/60 p-8 text-center">
+            <p className="text-sm font-medium text-slate-800">Intake configuration is in the left panel</p>
+            <p className="mt-2 max-w-md text-sm text-slate-500">
+              Respondents always see an intake step first — defaulting to name and email unless you customize it here.
+            </p>
+            <button
+              type="button"
+              onClick={() => setBuilderMode("pages")}
+              className="mt-6 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
+            >
+              Continue to form pages
+            </button>
+          </div>
+        ) : !showJson ? (
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/40 shadow-inner">
             <PageCanvas
               key={activePage.id}
+              builderVersion="v2"
               formDef={formDef}
               page={activePage}
               pageIndex={pageIndex}
@@ -107,7 +149,7 @@ function BuilderPageInner() {
         ) : (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <div className="border-b border-slate-200 p-3">
-              <span className="text-sm text-slate-600">FormDef JSON — full document including all pages</span>
+              <span className="text-sm text-slate-600">FormDef JSON — includes respondentIntake when customized</span>
             </div>
             <textarea
               value={jsonInput}
@@ -121,15 +163,22 @@ function BuilderPageInner() {
           </div>
         )}
       </main>
-      <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-l border-slate-200 bg-white shadow-sm">
-        <ComponentConfigPanel
-          formDef={formDef}
-          selectedComponent={selectedComponent}
-          onFormDefChange={setFormDef}
-          onPageChange={updateActivePage}
-          onClearSelection={() => setSelectedId(null)}
-          onDeleteSelected={selectedId ? deleteSelected : undefined}
-        />
+
+      <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-l border-slate-200/80 bg-white shadow-sm">
+        {builderMode === "pages" ? (
+          <ComponentConfigPanel
+            formDef={formDef}
+            selectedComponent={selectedComponent}
+            onFormDefChange={setFormDef}
+            onPageChange={updateActivePage}
+            onClearSelection={() => setSelectedId(null)}
+            onDeleteSelected={selectedId ? deleteSelected : undefined}
+          />
+        ) : (
+          <div className="flex flex-1 flex-col items-center justify-center p-6 text-center text-sm text-slate-500">
+            Switch to Form pages to configure field properties.
+          </div>
+        )}
       </aside>
 
       {apiMode ? (
@@ -146,13 +195,16 @@ function BuilderPageInner() {
           error={publishError}
         />
       ) : null}
+
+      <BuilderGuideModal open={guideOpen} onClose={dismissGuide} />
+      <BuilderV2Preview open={previewOpen} formDef={formDef} onClose={() => setPreviewOpen(false)} />
     </div>
   );
 }
 
 export default function BuilderPage() {
   return (
-    <Suspense fallback={<PageLoader message="Opening builder…" className="bg-slate-100" />}>
+    <Suspense fallback={<PageLoader message="Opening builder…" className="bg-gradient-to-br from-slate-100 to-violet-50" />}>
       <BuilderPageInner />
     </Suspense>
   );

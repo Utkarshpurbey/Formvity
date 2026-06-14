@@ -61,19 +61,19 @@ export const ApiPath = {
     unpublish: (workspaceId: string, formId: string) =>
       `workspaces/${workspaceId}/forms/${formId}/unpublish`,
     /** FormAnalyticsController — GET …/analytics?days= */
-    analyticsOverview: (workspaceId: string, formId: string, days = 30) =>
+    analyticsOverview: (workspaceId: string, formId: string, days = 7) =>
       `workspaces/${workspaceId}/forms/${formId}/analytics?days=${days}`,
     /** GET …/analytics/summary */
     analyticsSummary: (workspaceId: string, formId: string) =>
       `workspaces/${workspaceId}/forms/${formId}/analytics/summary`,
     /** GET …/analytics/timeline?days= */
-    analyticsTimeline: (workspaceId: string, formId: string, days = 30) =>
+    analyticsTimeline: (workspaceId: string, formId: string, days = 7) =>
       `workspaces/${workspaceId}/forms/${formId}/analytics/timeline?days=${days}`,
     /** GET …/analytics/questions */
     analyticsQuestions: (workspaceId: string, formId: string) =>
       `workspaces/${workspaceId}/forms/${formId}/analytics/questions`,
     /** GET …/analytics/insights */
-    analyticsInsights: (workspaceId: string, formId: string, days = 30) =>
+    analyticsInsights: (workspaceId: string, formId: string, days = 7) =>
       `workspaces/${workspaceId}/forms/${formId}/analytics/insights?days=${days}`,
     /** GET …/submissions?page=&size= */
     submissions: (workspaceId: string, formId: string, page = 0, size = 20) =>
