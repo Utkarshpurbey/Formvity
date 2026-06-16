@@ -3,8 +3,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Provider } from "react-redux";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { AppToastContainer } from "./ui/AppToast";
 import { AuthBootstrap } from "./AuthBootstrap";
 import { NavigationProgress } from "./layout/NavigationProgress";
 import { AppShellChrome } from "./layout/AppShellChrome";
@@ -12,7 +11,7 @@ import { stripAppBasePath } from "../utils/appBasePath";
 import { store } from "../store/store";
 
 function isAuthRoute(path: string): boolean {
-  return path === "/login" || path === "/register";
+  return path === "/login" || path === "/register" || path === "/invite" || path.startsWith("/invite/");
 }
 
 function AppShellWrapper({ children }: { children: ReactNode }) {
@@ -28,7 +27,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
       <AuthBootstrap />
       <NavigationProgress />
       <AppShellWrapper>{children}</AppShellWrapper>
-      <ToastContainer position="bottom-right" theme="colored" autoClose={3200} hideProgressBar />
+      <AppToastContainer />
     </Provider>
   );
 }

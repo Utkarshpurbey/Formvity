@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { notifyError } from "@/src/components/ui/AppToast";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { FormLifecycleBadge } from "@/src/components/ui/FormLifecycleBadge";
 import { AppLink } from "@/src/components/ui/AppLink";
@@ -135,7 +135,7 @@ export default function WorkspaceDetailPage() {
       ).unwrap();
       router.push(`/builder?workspaceId=${workspaceId}&formId=${form.id}`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not create form");
+      notifyError(e instanceof Error ? e.message : "Could not create form");
     } finally {
       setCreatingForm(false);
     }

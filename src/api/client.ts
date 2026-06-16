@@ -5,6 +5,9 @@ import {
 } from "../lib/publish";
 import {
   normalizeMemberList,
+  normalizeActivateUserResponse,
+  normalizeInviteMemberResponse,
+  normalizeInvitePreview,
   normalizeWorkspaceDashboard,
   normalizeWorkspaceList,
 } from "../lib/apiNormalize";
@@ -36,6 +39,12 @@ import type {
   WorkspaceDashboard,
   WorkspaceMember,
   WorkspaceSummary,
+  ActivateUserResponse,
+  InviteMemberResponse,
+  InvitePreview,
+  PatchMemberRoleRequest,
+  PatchWorkspaceRequest,
+  WorkspaceRole,
 } from "./types";
 
 // — Auth —
@@ -89,6 +98,55 @@ export async function getWorkspaceDashboard(workSpaceId: string): Promise<Worksp
 export async function listMembers(workSpaceId: string): Promise<WorkspaceMember[]> {
   const raw = await apiData<unknown>(ApiPath.workspaces.members(workSpaceId));
   return normalizeMemberList(raw);
+}
+
+export async function inviteMember(
+  workspaceId: string,
+  email: string,
+  role: WorkspaceRole,
+): Promise<InviteMemberResponse> {
+  const raw = await apiData<unknown>(ApiPath.workspaces.members(workspaceId), {
+    method: "POST",
+    body: JSON.stringify({ email, role }),
+  });
+  return normalizeInviteMemberResponse(raw);
+}
+
+export async function patchMemberRole(
+  workspaceId: string,
+  userId: string,
+  body: PatchMemberRoleRequest,
+): Promise<WorkspaceMember> {
+  const raw = await apiData<unknown>(`${ApiPath.workspaces.members(workspaceId)}/${encodeURIComponent(userId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+  const list = normalizeMemberList(Array.isArray(raw) ? raw : [raw]);
+  return list[0] ?? { userId, role: body.role };
+}
+
+export function patchWorkspace(workspaceId: string, body: PatchWorkspaceRequest) {
+  return apiData<unknown>(ApiPath.workspaces.byId(workspaceId), {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function fetchInvitePreview(token: string): Promise<InvitePreview> {
+  const raw = await apiData<unknown>(ApiPath.auth.invitePreview(token));
+  return normalizeInvitePreview(raw);
+}
+
+export async function activateInvitedUser(
+  token: string,
+  displayName: string,
+  password: string,
+): Promise<ActivateUserResponse> {
+  const raw = await apiData<unknown>(ApiPath.auth.activate, {
+    method: "POST",
+    body: JSON.stringify({ token, displayName, password }),
+  });
+  return normalizeActivateUserResponse(raw);
 }
 
 // — Forms —

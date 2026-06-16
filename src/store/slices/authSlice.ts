@@ -48,6 +48,27 @@ export const registerUser = createAsyncThunk(
   },
 );
 
+export const activateInvitedUser = createAsyncThunk(
+  "auth/activate",
+  async (
+    { token, displayName, password, email }: { token: string; displayName: string; password: string; email?: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await api.activateInvitedUser(token, displayName, password);
+      setAuthToken(res.token);
+      const user = { id: res.id, displayName: res.displayName, email };
+      setCachedUser(user);
+      return { user, workspaceId: res.workspaceId };
+    } catch (e) {
+      if (e instanceof ApiError) {
+        return rejectWithValue({ status: e.status, message: e.message });
+      }
+      return rejectWithValue({ status: 0, message: "Activation failed" });
+    }
+  },
+);
+
 export const loadMe = createAsyncThunk("auth/me", async () => api.fetchMe());
 
 export const logoutUser = createAsyncThunk("auth/logout", async () => {
@@ -103,6 +124,23 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (s, a) => {
         s.loading = false;
         s.error = (a.payload as string) ?? a.error.message ?? "Registration failed";
+      })
+      .addCase(activateInvitedUser.pending, (s) => {
+        s.loading = true;
+        s.error = null;
+      })
+      .addCase(activateInvitedUser.fulfilled, (s, a) => {
+        s.loading = false;
+        s.ready = true;
+        s.user = a.payload.user;
+      })
+      .addCase(activateInvitedUser.rejected, (s, a) => {
+        s.loading = false;
+        const payload = a.payload as { message?: string } | string | undefined;
+        s.error =
+          typeof payload === "string"
+            ? payload
+            : (payload?.message ?? a.error.message ?? "Activation failed");
       })
       .addCase(loadMe.pending, (s) => {
         if (!s.user) s.loading = true;

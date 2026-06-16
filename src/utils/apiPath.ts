@@ -42,6 +42,8 @@ export const ApiPath = {
     register: "auth/register",
     me: "auth/me",
     logout: "auth/logout",
+    invitePreview: (token: string) => `auth/invite/${encodeURIComponent(token)}`,
+    activate: "auth/activate",
   },
   workspaces: {
     list: "workspaces",

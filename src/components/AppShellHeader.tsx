@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "react-toastify";
+import { notifyInfo } from "@/src/components/ui/AppToast";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/slices/authSlice";
 import { stripAppBasePath } from "../utils/appBasePath";
@@ -68,7 +68,7 @@ export function AppShellHeader() {
   const handleLogout = () => {
     dispatch(logoutUser());
     closeMenus();
-    toast.info("Signed out.");
+    notifyInfo("Signed out.");
     router.push("/home");
   };
 

@@ -1,5 +1,8 @@
 import type {
+  ActivateUserResponse,
   FormSummary,
+  InviteMemberResponse,
+  InvitePreview,
   WorkspaceDashboard,
   WorkspaceMember,
   WorkspaceRole,
@@ -42,6 +45,44 @@ export function normalizeWorkspaceMember(raw: unknown): WorkspaceMember {
 export function normalizeMemberList(raw: unknown): WorkspaceMember[] {
   if (!Array.isArray(raw)) return [];
   return raw.map(normalizeWorkspaceMember).filter((m) => m.userId);
+}
+
+export function normalizeInviteMemberResponse(raw: unknown): InviteMemberResponse {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  return {
+    workspaceId: String(r.workspaceId ?? ""),
+    userId: r.userId != null ? String(r.userId) : null,
+    emailId: String(r.emailId ?? r.email ?? ""),
+    roles: normalizeRole(r.roles ?? r.role),
+    joinedAt: r.joinedAt != null ? String(r.joinedAt) : null,
+    inviteUrl: r.inviteUrl != null ? String(r.inviteUrl) : null,
+    isNewUser: Boolean(r.isNewUser),
+  };
+}
+
+/** @deprecated Use normalizeInviteMemberResponse */
+export const normalizeInviteMemberResult = normalizeInviteMemberResponse;
+
+export function normalizeInvitePreview(raw: unknown): InvitePreview {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  return {
+    email: String(r.email ?? r.emailId ?? ""),
+    workspaceId: String(r.workspaceId ?? ""),
+    workspaceName: String(r.workspaceName ?? r.workSpaceName ?? "Workspace"),
+    role: normalizeRole(r.role ?? r.roles),
+    expiresAt: String(r.expiresAt ?? ""),
+  };
+}
+
+export function normalizeActivateUserResponse(raw: unknown): ActivateUserResponse {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  return {
+    token: String(r.token ?? ""),
+    id: String(r.id ?? ""),
+    displayName: String(r.displayName ?? ""),
+    workspaceId: String(r.workspaceId ?? ""),
+    joinedAt: String(r.joinedAt ?? ""),
+  };
 }
 
 export function normalizeWorkspaceDashboard(raw: unknown): WorkspaceDashboard {

@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { notifyError, notifySuccess } from "@/src/components/ui/AppToast";
 import { AuthShell } from "@/src/components/layout/AuthShell";
-import { Spinner } from "@/src/components/ui/index";
+import { PageLoader, Spinner } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { clearAuthError, registerUser } from "@/src/store/slices/authSlice";
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { loading, error, user } = useAppSelector((s) => s.auth);
@@ -35,10 +35,10 @@ export default function RegisterPage() {
     dispatch(registerUser({ displayName, email, password }))
       .unwrap()
       .then(() => {
-        toast.success("Account created. Welcome!");
+        notifySuccess("Account created. Welcome!");
         router.push("/workspaces");
       })
-      .catch((e: Error) => toast.error(e.message ?? "Registration failed"));
+      .catch((e: Error) => notifyError(e.message ?? "Registration failed"));
   };
 
   const message = localError ?? error;
@@ -110,7 +110,18 @@ export default function RegisterPage() {
             Log in
           </button>
         </p>
+        <p className="mt-3 text-center text-xs text-slate-500">
+          Invited to a workspace? Use the link in your email — it opens <span className="font-medium">/invite</span>.
+        </p>
       </section>
     </AuthShell>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<PageLoader message="Loading…" className="min-h-screen" />}>
+      <RegisterPageContent />
+    </Suspense>
   );
 }

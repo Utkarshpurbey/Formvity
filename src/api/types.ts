@@ -53,6 +53,46 @@ export type WorkspaceMember = {
   role: WorkspaceRole;
 };
 
+export type InviteMemberRequest = {
+  email: string;
+  role: WorkspaceRole;
+};
+
+/** Raw invite response shape from POST /workspaces/{id}/members */
+export type InviteMemberResponse = {
+  workspaceId: string;
+  userId: string | null;
+  emailId: string;
+  roles: WorkspaceRole;
+  joinedAt: string | null;
+  inviteUrl: string | null;
+  isNewUser: boolean;
+};
+
+export type InvitePreview = {
+  email: string;
+  workspaceId: string;
+  workspaceName: string;
+  role: WorkspaceRole;
+  expiresAt: string;
+};
+
+export type ActivateUserResponse = {
+  token: string;
+  id: string;
+  displayName: string;
+  workspaceId: string;
+  joinedAt: string;
+};
+
+export type PatchWorkspaceRequest = {
+  workspaceName: string;
+};
+
+export type PatchMemberRoleRequest = {
+  role: WorkspaceRole;
+};
+
 export type PublicationMeta = {
   slug?: string;
   publicUrl?: string;

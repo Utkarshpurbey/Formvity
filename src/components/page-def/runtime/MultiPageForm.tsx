@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import { notifyError } from "@/src/components/ui/AppToast";
 import type { FormDef, PageComponentDef, PageComponentType } from "../builder/pageDef";
 import { FormHeader } from "../builder/FormHeader";
 import {
@@ -118,7 +118,7 @@ export function MultiPageForm({
   const goNext = () => {
     const errs = validateCurrentPage();
     if (Object.keys(errs).length > 0) {
-      toast.error("Please fix the errors on this page.");
+      notifyError("Please fix the errors on this page.");
       return;
     }
     const nextId = getNextPageId(formDef, currentPageId);
@@ -133,13 +133,13 @@ export function MultiPageForm({
   const handleSubmit = async () => {
     const pageErrs = validateCurrentPage();
     if (Object.keys(pageErrs).length > 0) {
-      toast.error("Please fix the errors on this page.");
+      notifyError("Please fix the errors on this page.");
       return;
     }
     const allErrs = validateFormDef(formDef, values);
     if (Object.keys(allErrs).length > 0) {
       setFieldErrors(allErrs);
-      toast.error("Please fix all errors before submitting.");
+      notifyError("Please fix all errors before submitting.");
       return;
     }
     setFieldErrors({});
@@ -149,7 +149,7 @@ export function MultiPageForm({
       try {
         await onSubmitted(values);
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Could not submit form");
+        notifyError(e instanceof Error ? e.message : "Could not submit form");
       } finally {
         setSubmitting(false);
       }

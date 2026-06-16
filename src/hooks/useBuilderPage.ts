@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { notifyError, notifyInfo, notifySuccess } from "@/src/components/ui/AppToast";
 import type { FormDef, FormPageDef } from "../components/page-def/builder/pageDef";
 import type { SaveState } from "../components/page-def/builder/BuilderTopBar";
 import type { PublishModalMode } from "../components/publish/PublishFlowModal";
@@ -109,10 +109,10 @@ export function useBuilderPage(builderBasePath = "/builder") {
       .catch((e: unknown) => {
         const status = e instanceof ApiError ? e.status : 0;
         if (status === 404) {
-          toast.error("This form was not found or has been archived.");
+          notifyError("This form was not found or has been archived.");
           router.replace(workspaceId ? `/workspaces/${workspaceId}` : "/workspaces");
         } else {
-          toast.error(e instanceof Error ? e.message : "Could not load form");
+          notifyError(e instanceof Error ? e.message : "Could not load form");
         }
         setLoadBlocked(true);
         setLoaded(true);
@@ -122,7 +122,7 @@ export function useBuilderPage(builderBasePath = "/builder") {
   useEffect(() => {
     if (!apiMode || !loaded || loadBlocked) return;
     if (formFromList?.status === "ARCHIVED") {
-      toast.info("Archived forms cannot be edited.");
+      notifyInfo("Archived forms cannot be edited.");
       router.replace(`/workspaces/${workspaceId}`);
       return;
     }
@@ -135,7 +135,7 @@ export function useBuilderPage(builderBasePath = "/builder") {
 
     const template = PAGE_DEF_TEMPLATES[templateKey];
     if (!template) {
-      toast.error("Unknown template.");
+      notifyError("Unknown template.");
       router.replace(builderBasePath);
       return;
     }
@@ -147,9 +147,9 @@ export function useBuilderPage(builderBasePath = "/builder") {
       setSelectedId(null);
       setShowJson(false);
       setJsonError(null);
-      toast.success("Template loaded into Formvity.");
+      notifySuccess("Template loaded into Formvity.");
     } catch {
-      toast.error("Could not load selected template.");
+      notifyError("Could not load selected template.");
     }
 
     router.replace(builderBasePath);
@@ -189,7 +189,7 @@ export function useBuilderPage(builderBasePath = "/builder") {
 
   const persistDraft = useCallback(async () => {
     if (!apiMode) {
-      toast.success("Draft saved.");
+      notifySuccess("Draft saved.");
       return;
     }
     await dispatch(
@@ -201,9 +201,9 @@ export function useBuilderPage(builderBasePath = "/builder") {
   const handleSave = () => {
     persistDraft()
       .then(() => {
-        if (apiMode) toast.success("Saved to API.");
+        if (apiMode) notifySuccess("Saved to API.");
       })
-      .catch((e: Error) => toast.error(e.message));
+      .catch((e: Error) => notifyError(e.message));
   };
 
   useEffect(() => {

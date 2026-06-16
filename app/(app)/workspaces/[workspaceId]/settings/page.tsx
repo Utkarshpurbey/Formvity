@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { notifyError, notifySuccess } from "@/src/components/ui/AppToast";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import {
@@ -13,6 +13,7 @@ import {
   useWorkspaceRole,
   workspaceCan,
 } from "@/src/components/workspace/index";
+import { WorkspaceNameEditor } from "@/src/components/workspace/WorkspaceNameEditor";
 import { PageLoader } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
@@ -20,6 +21,7 @@ import {
   fetchWorkspaceDashboard,
   fetchWorkspaces,
   removeWorkspace,
+  renameWorkspace,
   selectDashboardForWorkspace,
   selectMembersForWorkspace,
   selectMembersLoading,
@@ -37,6 +39,7 @@ export default function WorkspaceSettingsPage() {
   const members = useAppSelector((s) => selectMembersForWorkspace(s, workspaceId));
   const membersLoading = useAppSelector((s) => selectMembersLoading(s, workspaceId));
   const deleting = useAppSelector((s) => Boolean(s.workspace.deletingWorkspaceIds[workspaceId]));
+  const renaming = useAppSelector((s) => Boolean(s.workspace.renamingWorkspaceIds[workspaceId]));
   const role = useWorkspaceRole(workspaceId);
   const can = (p: Parameters<typeof workspaceCan>[1]) => workspaceCan(role, p);
 
@@ -74,12 +77,24 @@ export default function WorkspaceSettingsPage() {
   const handleDelete = useCallback(async () => {
     try {
       await dispatch(removeWorkspace(workspaceId)).unwrap();
-      toast.success("Workspace deactivated.");
+      notifySuccess("Workspace deactivated.");
       router.push("/workspaces");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not deactivate workspace");
+      notifyError(e instanceof Error ? e.message : "Could not deactivate workspace");
     }
   }, [dispatch, workspaceId, router]);
+
+  const handleRename = useCallback(
+    async (nextName: string) => {
+      try {
+        await dispatch(renameWorkspace({ workspaceId, workspaceName: nextName })).unwrap();
+        notifySuccess("Workspace name updated.");
+      } catch (e) {
+        notifyError(e instanceof Error ? e.message : "Could not rename workspace");
+      }
+    },
+    [dispatch, workspaceId],
+  );
 
   if (!ready) return <PageLoader message="Loading settings…" className="min-h-[50vh]" />;
 
@@ -125,6 +140,17 @@ export default function WorkspaceSettingsPage() {
         <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-900">General</h2>
           <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <dt className="text-slate-500">Workspace name</dt>
+              <dd>
+                <WorkspaceNameEditor
+                  name={workspaceName}
+                  canEdit={can("workspace.manage_members")}
+                  saving={renaming}
+                  onSave={handleRename}
+                />
+              </dd>
+            </div>
             <div>
               <dt className="text-slate-500">Workspace ID</dt>
               <dd className="mt-1 font-mono text-xs text-slate-800">{workspaceId}</dd>
@@ -142,7 +168,13 @@ export default function WorkspaceSettingsPage() {
           </dl>
         </section>
 
-        <MembersPanel members={members} loading={membersLoading} currentUserId={user?.id} />
+        <MembersPanel
+          workspaceId={workspaceId}
+          members={members}
+          loading={membersLoading}
+          currentUserId={user?.id}
+          canManageMembers={can("workspace.manage_members")}
+        />
 
         <PermissionGate
           workspaceId={workspaceId}

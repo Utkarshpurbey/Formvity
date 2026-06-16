@@ -12,6 +12,11 @@ const nextConfig = {
         destination: "/builder",
         permanent: true,
       },
+      {
+        source: "/welcome",
+        destination: "/invite",
+        permanent: false,
+      },
     ];
   },
 };

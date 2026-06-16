@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { notifyInfo } from "@/src/components/ui/AppToast";
 import { AppLink } from "../ui/AppLink";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { logoutUser } from "../../store/slices/authSlice";
@@ -65,7 +65,7 @@ export const AppSidebar = memo(function AppSidebar({ collapsed, onToggle }: AppS
 
   const handleLogout = () => {
     dispatch(logoutUser());
-    toast.info("Signed out.");
+    notifyInfo("Signed out.");
     router.push("/home");
   };
 

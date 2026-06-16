@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { notifyError, notifyInfo, notifySuccess } from "@/src/components/ui/AppToast";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { PublishFlowModal, type PublishModalMode } from "@/src/components/publish/PublishFlowModal";
@@ -111,9 +111,9 @@ export default function FormDetailPage() {
     try {
       await dispatch(unpublishForm({ workspaceId, formId })).unwrap();
       setUnpublishOpen(false);
-      toast.success("Form is now offline.");
+      notifySuccess("Form is now offline.");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not unpublish");
+      notifyError(e instanceof Error ? e.message : "Could not unpublish");
     }
   }, [dispatch, workspaceId, formId]);
 
@@ -122,10 +122,10 @@ export default function FormDetailPage() {
     setArchiving(true);
     try {
       await dispatch(archiveForm({ workspaceId, formId })).unwrap();
-      toast.info("Form archived.");
+      notifyInfo("Form archived.");
       router.push(`/workspaces/${workspaceId}`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not archive");
+      notifyError(e instanceof Error ? e.message : "Could not archive");
     } finally {
       setArchiving(false);
     }

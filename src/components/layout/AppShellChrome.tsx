@@ -10,7 +10,7 @@ import { useAppSelector } from "../../store/hooks";
 
 /** Routes that stay full-width without the maker sidebar (marketing / public). */
 function isMarketingRoute(path: string): boolean {
-  return path === "/" || path === "/home";
+  return path === "/" || path === "/home" || path === "/invite" || path.startsWith("/invite/");
 }
 
 const SIDEBAR_COLLAPSED_KEY = "formvity-sidebar-collapsed";

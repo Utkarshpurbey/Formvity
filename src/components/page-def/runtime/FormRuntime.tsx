@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "react-toastify";
+import { notifyError, notifySuccess } from "@/src/components/ui/AppToast";
 import type { FormDef } from "../builder/pageDef";
 import { MultiPageForm } from "./MultiPageForm";
 import { RespondentIntakeStep } from "./RespondentIntakeStep";
@@ -50,12 +50,12 @@ export function FormRuntime({ formDef, slug, standalone = false, preview = false
 
   const handleFormSubmit = async (formValues: Record<string, string>) => {
     if (preview) {
-      toast.success("Preview submit — response recorded locally.");
+      notifySuccess("Preview submit — response recorded locally.");
       return;
     }
 
     if (!slug) {
-      toast.success("Form submitted successfully!");
+      notifySuccess("Form submitted successfully!");
       return;
     }
 

@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import * as api from "../../api/client";
 import { normalizeWorkspaceSummary, normalizeWorkspaceList } from "../../lib/apiNormalize";
-import type { WorkspaceDashboard, WorkspaceMember, WorkspaceSummary } from "../../api/types";
+import type { InviteMemberResponse, WorkspaceDashboard, WorkspaceMember, WorkspaceRole, WorkspaceSummary } from "../../api/types";
 
 type WorkspaceState = {
   list: WorkspaceSummary[];
@@ -11,6 +11,9 @@ type WorkspaceState = {
   membersByWorkspace: Record<string, WorkspaceMember[]>;
   membersLoadingByWorkspace: Record<string, boolean>;
   deletingWorkspaceIds: Record<string, boolean>;
+  invitingByWorkspace: Record<string, boolean>;
+  updatingMemberRoleIds: Record<string, boolean>;
+  renamingWorkspaceIds: Record<string, boolean>;
   loading: boolean;
   creating: boolean;
   error: string | null;
@@ -24,6 +27,9 @@ const initialState: WorkspaceState = {
   membersByWorkspace: {},
   membersLoadingByWorkspace: {},
   deletingWorkspaceIds: {},
+  invitingByWorkspace: {},
+  updatingMemberRoleIds: {},
+  renamingWorkspaceIds: {},
   loading: false,
   creating: false,
   error: null,
@@ -75,6 +81,46 @@ export const createWorkspace = createAsyncThunk(
 export const fetchMembers = createAsyncThunk(
   "workspace/members",
   async (workSpaceId: string) => api.listMembers(workSpaceId),
+);
+
+export const inviteWorkspaceMember = createAsyncThunk(
+  "workspace/inviteMember",
+  async ({
+    workspaceId,
+    email,
+    role,
+  }: {
+    workspaceId: string;
+    email: string;
+    role: WorkspaceRole;
+  }): Promise<{ workspaceId: string; result: InviteMemberResponse }> => {
+    const result = await api.inviteMember(workspaceId, email, role);
+    return { workspaceId, result };
+  },
+);
+
+export const updateWorkspaceMemberRole = createAsyncThunk(
+  "workspace/updateMemberRole",
+  async ({
+    workspaceId,
+    userId,
+    role,
+  }: {
+    workspaceId: string;
+    userId: string;
+    role: WorkspaceRole;
+  }) => {
+    const member = await api.patchMemberRole(workspaceId, userId, { role });
+    return { workspaceId, member };
+  },
+);
+
+export const renameWorkspace = createAsyncThunk(
+  "workspace/rename",
+  async ({ workspaceId, workspaceName }: { workspaceId: string; workspaceName: string }) => {
+    await api.patchWorkspace(workspaceId, { workspaceName });
+    return { workspaceId, workspaceName };
+  },
 );
 
 export const removeWorkspace = createAsyncThunk(
@@ -160,6 +206,49 @@ const workspaceSlice = createSlice({
       })
       .addCase(fetchMembers.rejected, (s, a) => {
         s.membersLoadingByWorkspace[a.meta.arg] = false;
+      })
+      .addCase(inviteWorkspaceMember.pending, (s, a) => {
+        s.invitingByWorkspace[a.meta.arg.workspaceId] = true;
+        s.error = null;
+      })
+      .addCase(inviteWorkspaceMember.fulfilled, (s, a) => {
+        s.invitingByWorkspace[a.meta.arg.workspaceId] = false;
+      })
+      .addCase(inviteWorkspaceMember.rejected, (s, a) => {
+        s.invitingByWorkspace[a.meta.arg.workspaceId] = false;
+        s.error = a.error.message ?? "Could not send invite";
+      })
+      .addCase(updateWorkspaceMemberRole.pending, (s, a) => {
+        s.updatingMemberRoleIds[a.meta.arg.userId] = true;
+        s.error = null;
+      })
+      .addCase(updateWorkspaceMemberRole.fulfilled, (s, a) => {
+        delete s.updatingMemberRoleIds[a.meta.arg.userId];
+        const { workspaceId, member } = a.payload;
+        const list = s.membersByWorkspace[workspaceId];
+        if (!list) return;
+        const idx = list.findIndex((m) => m.userId === member.userId);
+        if (idx >= 0) list[idx] = { ...list[idx]!, ...member };
+      })
+      .addCase(updateWorkspaceMemberRole.rejected, (s, a) => {
+        delete s.updatingMemberRoleIds[a.meta.arg.userId];
+        s.error = a.error.message ?? "Could not update member role";
+      })
+      .addCase(renameWorkspace.pending, (s, a) => {
+        s.renamingWorkspaceIds[a.meta.arg.workspaceId] = true;
+        s.error = null;
+      })
+      .addCase(renameWorkspace.fulfilled, (s, a) => {
+        s.renamingWorkspaceIds[a.meta.arg.workspaceId] = false;
+        const { workspaceId, workspaceName } = a.payload;
+        const idx = s.list.findIndex((w) => w.workSpaceId === workspaceId);
+        if (idx >= 0) s.list[idx] = { ...s.list[idx]!, workSpaceName: workspaceName };
+        const dash = s.dashboardByWorkspace[workspaceId];
+        if (dash) s.dashboardByWorkspace[workspaceId] = { ...dash, workspaceName };
+      })
+      .addCase(renameWorkspace.rejected, (s, a) => {
+        s.renamingWorkspaceIds[a.meta.arg.workspaceId] = false;
+        s.error = a.error.message ?? "Could not rename workspace";
       })
       .addCase(removeWorkspace.pending, (s, a) => {
         s.deletingWorkspaceIds[a.meta.arg] = true;

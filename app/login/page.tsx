@@ -1,21 +1,24 @@
 "use client";
 
-import { useEffect, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { Suspense, useEffect, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { notifyError, notifySuccess } from "@/src/components/ui/AppToast";
 import { AuthShell } from "@/src/components/layout/AuthShell";
-import { Spinner } from "@/src/components/ui/index";
+import { PageLoader, Spinner } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { clearAuthError, loginUser } from "@/src/store/slices/authSlice";
 
-export default function LoginRoutePage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") ?? "/workspaces";
   const dispatch = useAppDispatch();
   const { loading, error, user } = useAppSelector((s) => s.auth);
 
   useEffect(() => {
-    if (user) router.replace("/workspaces");
-  }, [user, router]);
+    if (!user) return;
+    router.replace(redirectTo.startsWith("/") ? redirectTo : "/workspaces");
+  }, [user, router, redirectTo]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,10 +29,10 @@ export default function LoginRoutePage() {
     dispatch(loginUser({ userName, password }))
       .unwrap()
       .then(() => {
-        toast.success("Signed in successfully.");
-        router.push("/workspaces");
+        notifySuccess("Signed in successfully.");
+        router.push(redirectTo.startsWith("/") ? redirectTo : "/workspaces");
       })
-      .catch((e: Error) => toast.error(e.message ?? "Sign in failed"));
+      .catch((e: Error) => notifyError(e.message ?? "Sign in failed"));
   };
 
   return (
@@ -90,5 +93,13 @@ export default function LoginRoutePage() {
         </p>
       </section>
     </AuthShell>
+  );
+}
+
+export default function LoginRoutePage() {
+  return (
+    <Suspense fallback={<PageLoader message="Loading…" className="min-h-screen" />}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

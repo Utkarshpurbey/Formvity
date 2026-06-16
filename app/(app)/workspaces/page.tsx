@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { notifyError, notifySuccess } from "@/src/components/ui/AppToast";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
 import { AppLink } from "@/src/components/ui/AppLink";
 import { PageLoader, SkeletonRows, Spinner } from "@/src/components/ui/index";
@@ -63,11 +63,11 @@ export default function WorkspacesPage() {
       .unwrap()
       .then((raw) => {
         setNewName("");
-        toast.success("Workspace created.");
+        notifySuccess("Workspace created.");
         const ws = normalizeWorkspaceSummary(raw);
         if (ws.workSpaceId) router.push(`/workspaces/${ws.workSpaceId}`);
       })
-      .catch((e: Error) => toast.error(e.message));
+      .catch((e: Error) => notifyError(e.message));
   }, [dispatch, newName, router]);
 
   if (!ready) return <PageLoader message="Loading workspaces…" className="min-h-[50vh]" />;
