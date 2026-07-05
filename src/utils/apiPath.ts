@@ -9,7 +9,7 @@ function joinUrl(base: string, ...segments: string[]): string {
   return root ? `${root}/${path}` : `/${path}`;
 }
 
-const DEFAULT_API_ORIGIN = "https://formvity-backend.onrender.com";
+const DEFAULT_API_ORIGIN = "https://api-formvity.onrender.com";
 
 const API_PATH = (process.env.NEXT_PUBLIC_API_PATH ?? "api/v1").replace(/^\/+|\/+$/g, "");
 
