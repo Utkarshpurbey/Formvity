@@ -17,7 +17,7 @@ const workspaceNav = [
 
 /** Marketing / signed-out only (no internal dev tools). */
 const exploreNav = [
-  { href: "/home", label: "Home" },
+  { href: "/", label: "Home" },
   { href: "/templates", label: "Templates" },
 ];
 
@@ -69,10 +69,10 @@ export function AppShellHeader() {
     dispatch(logoutUser());
     closeMenus();
     notifyInfo("Signed out.");
-    router.push("/home");
+    router.push("/");
   };
 
-  const isHome = routePath === "/home";
+  const isHome = routePath === "/" || routePath === "/home";
   const userLabel = user?.displayName ?? "Account";
   const primaryNav = user ? workspaceNav : exploreNav;
 
@@ -93,7 +93,7 @@ export function AppShellHeader() {
         <div className="flex min-w-0 flex-1 items-center gap-6 md:gap-8">
           <button
             type="button"
-            onClick={() => router.push("/home")}
+            onClick={() => router.push("/")}
             className="flex shrink-0 items-center gap-2.5 rounded-lg outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             <div
@@ -123,7 +123,7 @@ export function AppShellHeader() {
               </button>
             ))}
             {user && isHome ? (
-              <button type="button" onClick={() => router.push("/home")} className={navLinkClass(true)}>
+              <button type="button" onClick={() => router.push("/")} className={navLinkClass(true)}>
                 Home
               </button>
             ) : null}
@@ -267,7 +267,7 @@ export function AppShellHeader() {
                 type="button"
                 onClick={() => {
                   closeMenus();
-                  router.push("/home");
+                  router.push("/");
                 }}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >

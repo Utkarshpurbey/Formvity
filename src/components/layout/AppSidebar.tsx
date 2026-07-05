@@ -66,7 +66,7 @@ export const AppSidebar = memo(function AppSidebar({ collapsed, onToggle }: AppS
   const handleLogout = () => {
     dispatch(logoutUser());
     notifyInfo("Signed out.");
-    router.push("/home");
+    router.push("/");
   };
 
   return (

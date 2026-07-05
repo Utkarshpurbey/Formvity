@@ -12,7 +12,7 @@ export function ProductMockup() {
             <span className="size-3 rounded-full bg-emerald-400/80" />
           </div>
           <div className="mx-auto flex h-7 w-full max-w-sm items-center justify-center rounded-lg bg-slate-900/60 px-3 text-[11px] text-slate-400">
-            app.formvity.com/workspaces
+            formvity.in/workspaces
           </div>
         </div>
 

@@ -1,5 +1,19 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { HomePage } from "../src/components/home/HomePage";
+import { JsonLd } from "../src/components/seo/JsonLd";
+import { createPageMetadata, siteConfig, softwareApplicationJsonLd } from "../src/lib/seo";
+
+export const metadata: Metadata = createPageMetadata({
+  title: siteConfig.title,
+  description: siteConfig.description,
+  path: "/",
+});
 
 export default function IndexPage() {
-  redirect("/home");
+  return (
+    <>
+      <JsonLd data={softwareApplicationJsonLd()} />
+      <HomePage />
+    </>
+  );
 }

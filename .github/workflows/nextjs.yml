@@ -22,3 +22,4 @@ jobs:
       - run: npm run build
         env:
           NEXT_PUBLIC_API_URL: https://api-formvity.onrender.com
+          NEXT_PUBLIC_APP_URL: https://formvity.in

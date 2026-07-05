@@ -17,6 +17,11 @@ const nextConfig = {
         destination: "/invite",
         permanent: false,
       },
+      {
+        source: "/home",
+        destination: "/",
+        permanent: true,
+      },
     ];
   },
 };
