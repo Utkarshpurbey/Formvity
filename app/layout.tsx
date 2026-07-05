@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next"
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ClientProviders } from "../src/components/ClientProviders";
 import "../src/index.css";
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         </Script>
         <ClientProviders>{children}</ClientProviders>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
