@@ -15,7 +15,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
     <AuthShell
       badge="Sign in"
       title="Access your Formvity workspace"
-      subtitle="Build, publish, and manage forms from one dashboard."
+      subtitle="Sign in to build, publish, and manage forms from one dashboard."
     >
       <Suspense fallback={<PageLoader message="Loading…" className="min-h-[320px]" />}>
         <LoginForm redirectTo={redirectTo} />

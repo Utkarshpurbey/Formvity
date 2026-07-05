@@ -89,7 +89,7 @@ function InvitePageContent() {
   useEffect(() => {
     if (!token) {
       setLoading(false);
-      setPreviewError({ kind: "invalid", message: "This invite link is missing a token." });
+      setPreviewError({ kind: "invalid", message: "This invitation link is incomplete. Please use the link from your email." });
       return;
     }
     let cancelled = false;
@@ -124,11 +124,11 @@ function InvitePageContent() {
     setActivateError(null);
     const name = displayName.trim();
     if (!name || password.length < 8) {
-      setActivateError({ kind: "generic", message: "Enter your name and a password with at least 8 characters." });
+      setActivateError({ kind: "generic", message: "Please enter your full name and a password of at least 8 characters." });
       return;
     }
     if (password !== confirmPassword) {
-      setActivateError({ kind: "generic", message: "Passwords do not match." });
+      setActivateError({ kind: "generic", message: "Passwords do not match. Please try again." });
       return;
     }
     try {
@@ -140,13 +140,13 @@ function InvitePageContent() {
           email: preview?.email ?? emailFromUrl,
         }),
       ).unwrap();
-      notifySuccess(`Welcome to the team, ${res.user.displayName}!`);
+      notifySuccess(`Welcome, ${res.user.displayName}. You have joined the workspace.`);
       dispatch(setActiveWorkspace(res.workspaceId));
       router.push(`/workspaces/${res.workspaceId}`);
     } catch (e) {
       const payload = e as { status?: number; message?: string };
       const classified = classifyInviteError(
-        payload?.status ? new ApiError(payload.message ?? "Activation failed", payload.status) : e,
+        payload?.status ? new ApiError(payload.message ?? "Unable to complete your invitation. Please try again.", payload.status) : e,
       );
       setActivateError(classified);
       notifyError(classified.message);
@@ -165,7 +165,7 @@ function InvitePageContent() {
     <AuthShell
       badge="Workspace invite"
       title="Join your team on Formvity"
-      subtitle="Accept your invitation to collaborate on forms, analytics, and publishing — all in one workspace."
+      subtitle="Accept your invitation to collaborate on forms, analytics, and publishing in one shared workspace."
     >
       <section className="page-enter w-full max-w-lg rounded-2xl border border-slate-200/80 bg-white p-8 shadow-xl shadow-slate-900/5">
         {previewError ? (
@@ -196,7 +196,7 @@ function InvitePageContent() {
             {user ? (
               <p className="mt-8 flex items-center justify-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-6 text-sm text-slate-600">
                 <Spinner size="sm" />
-                Signed in — opening workspace…
+                Signed in. Opening your workspace…
               </p>
             ) : (
               <form className="mt-8 space-y-4" onSubmit={handleActivate}>
@@ -264,10 +264,10 @@ function InvitePageContent() {
                   {activating ? (
                     <>
                       <Spinner size="sm" className="border-white/30 border-t-white" />
-                      Activating account…
+                      Joining workspace…
                     </>
                   ) : (
-                    "Accept invite & join workspace"
+                    "Accept invitation"
                   )}
                 </button>
                 <p className="text-center text-xs text-slate-500">

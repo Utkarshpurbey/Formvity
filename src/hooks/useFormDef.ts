@@ -37,7 +37,7 @@ export function useFormDef(source: FormLoadSource | null) {
         if (ac.signal.aborted) return;
         setPageDef(null);
         setStatus("error");
-        setError(err instanceof Error ? err.message : "Failed to load form");
+        setError(err instanceof Error ? err.message : "Unable to load this form. Please try again.");
       });
 
     return () => ac.abort();

@@ -111,9 +111,9 @@ export default function FormDetailPage() {
     try {
       await dispatch(unpublishForm({ workspaceId, formId })).unwrap();
       setUnpublishOpen(false);
-      notifySuccess("Form is now offline.");
+      notifySuccess("This form is now offline and no longer accepting responses.");
     } catch (e) {
-      notifyError(e instanceof Error ? e.message : "Could not unpublish");
+      notifyError(e instanceof Error ? e.message : "Unable to take this form offline. Please try again.");
     }
   }, [dispatch, workspaceId, formId]);
 
@@ -122,10 +122,10 @@ export default function FormDetailPage() {
     setArchiving(true);
     try {
       await dispatch(archiveForm({ workspaceId, formId })).unwrap();
-      notifyInfo("Form archived.");
+      notifyInfo("This form has been archived.");
       router.push(`/workspaces/${workspaceId}`);
     } catch (e) {
-      notifyError(e instanceof Error ? e.message : "Could not archive");
+      notifyError(e instanceof Error ? e.message : "Unable to archive this form. Please try again.");
     } finally {
       setArchiving(false);
     }

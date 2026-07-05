@@ -28,7 +28,7 @@ export const loginUser = createAsyncThunk(
       return { id: res.id, displayName: res.displayName, email: userName };
     } catch (e) {
       clearAuthToken();
-      return rejectWithValue(e instanceof ApiError ? e.message : "Login failed");
+      return rejectWithValue(e instanceof ApiError ? e.message : "Unable to sign in. Please check your credentials and try again.");
     }
   },
 );
@@ -43,7 +43,7 @@ export const registerUser = createAsyncThunk(
       return { id: res.id, displayName: res.displayName, email };
     } catch (e) {
       clearAuthToken();
-      return rejectWithValue(e instanceof ApiError ? e.message : "Registration failed");
+      return rejectWithValue(e instanceof ApiError ? e.message : "Unable to create your account. Please try again.");
     }
   },
 );
@@ -64,7 +64,7 @@ export const activateInvitedUser = createAsyncThunk(
       if (e instanceof ApiError) {
         return rejectWithValue({ status: e.status, message: e.message });
       }
-      return rejectWithValue({ status: 0, message: "Activation failed" });
+      return rejectWithValue({ status: 0, message: "Unable to complete your invitation. Please try again." });
     }
   },
 );
@@ -109,7 +109,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (s, a) => {
         s.loading = false;
-        s.error = (a.payload as string) ?? a.error.message ?? "Login failed";
+        s.error = (a.payload as string) ?? a.error.message ?? "Unable to sign in. Please try again.";
       })
       .addCase(registerUser.pending, (s) => {
         s.loading = true;

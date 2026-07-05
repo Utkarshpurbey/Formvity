@@ -112,7 +112,7 @@ export function useBuilderPage(builderBasePath = "/builder") {
           notifyError("This form was not found or has been archived.");
           router.replace(workspaceId ? `/workspaces/${workspaceId}` : "/workspaces");
         } else {
-          notifyError(e instanceof Error ? e.message : "Could not load form");
+          notifyError(e instanceof Error ? e.message : "Unable to load this form. Please try again.");
         }
         setLoadBlocked(true);
         setLoaded(true);
@@ -135,7 +135,7 @@ export function useBuilderPage(builderBasePath = "/builder") {
 
     const template = PAGE_DEF_TEMPLATES[templateKey];
     if (!template) {
-      notifyError("Unknown template.");
+      notifyError("This template could not be found.");
       router.replace(builderBasePath);
       return;
     }
@@ -147,9 +147,9 @@ export function useBuilderPage(builderBasePath = "/builder") {
       setSelectedId(null);
       setShowJson(false);
       setJsonError(null);
-      notifySuccess("Template loaded into Formvity.");
+      notifySuccess("Template applied successfully.");
     } catch {
-      notifyError("Could not load selected template.");
+      notifyError("Unable to load the selected template. Please try again.");
     }
 
     router.replace(builderBasePath);
@@ -166,7 +166,7 @@ export function useBuilderPage(builderBasePath = "/builder") {
       try {
         const parsed = JSON.parse(jsonInput) as unknown;
         const normalized = normalizeFormDef(parsed);
-        if (!normalized) throw new Error("Need version 1 FormDef with pages[], or legacy single-page shape.");
+        if (!normalized) throw new Error("The JSON must include a valid form structure with at least one page.");
         setFormDef(normalized);
         setActivePageId(normalized.pages[0]!.id);
       } catch (e) {
@@ -201,7 +201,7 @@ export function useBuilderPage(builderBasePath = "/builder") {
   const handleSave = () => {
     persistDraft()
       .then(() => {
-        if (apiMode) notifySuccess("Saved to API.");
+        if (apiMode) notifySuccess("Changes saved.");
       })
       .catch((e: Error) => notifyError(e.message));
   };

@@ -23,7 +23,7 @@ export function validatePageComponents(
     if (comp.type === "section") return;
     if (required) {
       if (comp.type === "checkbox") {
-        if (val !== "true") errs[comp.id] = "This field is required";
+        if (val !== "true") errs[comp.id] = "This field is required.";
       } else if (comp.type === "multiselect") {
         if (!val.trim() || val.split(",").every((s) => !s.trim())) errs[comp.id] = "Select at least one option";
       } else if (comp.type === "file") {
@@ -31,13 +31,13 @@ export function validatePageComponents(
       } else if (comp.type === "signature") {
         if (!val.trim()) errs[comp.id] = "Signature is required";
       } else if (comp.type === "rating" || comp.type === "scale") {
-        if (!val.trim()) errs[comp.id] = "This field is required";
+        if (!val.trim()) errs[comp.id] = "This field is required.";
       } else if (!val.trim()) {
-        errs[comp.id] = "This field is required";
+        errs[comp.id] = "This field is required.";
       }
     }
     if (comp.type === "email" && val && !validateEmail(val)) errs[comp.id] = "Invalid email address";
-    if (comp.type === "phone" && val && !validatePhone(val)) errs[comp.id] = "Invalid phone number";
+    if (comp.type === "phone" && val && !validatePhone(val)) errs[comp.id] = "Please enter a valid 10-digit phone number";
     if (comp.type === "url" && val && !validateUrl(val)) errs[comp.id] = "Please enter a valid URL";
   });
   return errs;

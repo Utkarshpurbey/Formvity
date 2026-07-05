@@ -120,7 +120,7 @@ export function TemplatePreviewModal({ entry, formDef, onClose, onEdit }: Templa
             onClick={() => onEdit(entry.key)}
             className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-violet-700"
           >
-            Edit in Formvity
+            Use this template
           </button>
         </div>
       </div>

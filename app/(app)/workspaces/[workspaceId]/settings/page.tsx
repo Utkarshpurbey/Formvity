@@ -80,7 +80,7 @@ export default function WorkspaceSettingsPage() {
       notifySuccess("Workspace deactivated.");
       router.push("/workspaces");
     } catch (e) {
-      notifyError(e instanceof Error ? e.message : "Could not deactivate workspace");
+      notifyError(e instanceof Error ? e.message : "Unable to deactivate this workspace. Please try again.");
     }
   }, [dispatch, workspaceId, router]);
 
@@ -90,7 +90,7 @@ export default function WorkspaceSettingsPage() {
         await dispatch(renameWorkspace({ workspaceId, workspaceName: nextName })).unwrap();
         notifySuccess("Workspace name updated.");
       } catch (e) {
-        notifyError(e instanceof Error ? e.message : "Could not rename workspace");
+        notifyError(e instanceof Error ? e.message : "Unable to update the workspace name. Please try again.");
       }
     },
     [dispatch, workspaceId],
@@ -101,7 +101,7 @@ export default function WorkspaceSettingsPage() {
   if (!workspaceId) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-sm text-slate-600">
-        Invalid workspace.
+        Invalid workspace. Return to your <button type="button" onClick={() => router.push("/workspaces")} className="font-medium text-violet-600 hover:text-violet-700">workspaces</button>.
       </div>
     );
   }
@@ -129,7 +129,7 @@ export default function WorkspaceSettingsPage() {
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">{workspaceName}</h1>
-          <p className="mt-2 text-sm text-slate-600">Workspace settings, team, and danger zone.</p>
+          <p className="mt-2 text-sm text-slate-600">Manage your workspace name, team members, and account settings.</p>
         </div>
         {role ? <RoleBadge role={role} /> : null}
       </div>
@@ -181,15 +181,15 @@ export default function WorkspaceSettingsPage() {
           permission="workspace.delete"
           fallback={
             <section className="rounded-2xl border border-slate-200/80 bg-slate-50 p-6 text-sm text-slate-500">
-              Only workspace admins can deactivate this workspace when role enforcement is enabled.
+              Only workspace administrators can deactivate this workspace.
             </section>
           }
         >
           <section className="rounded-2xl border border-rose-200/80 bg-white p-6 shadow-sm">
             <h2 className="text-sm font-semibold text-rose-800">Danger zone</h2>
             <p className="mt-2 text-sm text-slate-600">
-              Deactivating removes this workspace from your list. Published forms may still be reachable until
-              unpublished separately.
+              Deactivating removes this workspace from your dashboard. Published forms may remain accessible until you
+              take them offline separately.
             </p>
             {can("workspace.delete") ? (
               <button
@@ -210,12 +210,9 @@ export default function WorkspaceSettingsPage() {
         title="Deactivate workspace?"
         description={
           <>
-            <span className="font-medium text-slate-800">{workspaceName}</span> will be deactivated. Forms in this
-            workspace will no longer appear in your dashboard. This action can be reversed by an administrator on
-            the backend.
-            <p className="mt-3 text-xs text-slate-500">
-              Type the workspace name in your head — there is no undo button in the UI yet.
-            </p>
+            <span className="font-medium text-slate-800">{workspaceName}</span> will be deactivated and removed from
+            your dashboard. Forms in this workspace will no longer appear in your account. Contact your administrator
+            if you need to restore access.
           </>
         }
         confirmLabel="Deactivate workspace"

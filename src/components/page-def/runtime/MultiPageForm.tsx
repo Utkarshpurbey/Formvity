@@ -118,7 +118,7 @@ export function MultiPageForm({
   const goNext = () => {
     const errs = validateCurrentPage();
     if (Object.keys(errs).length > 0) {
-      notifyError("Please fix the errors on this page.");
+      notifyError("Please review and correct the highlighted fields on this page.");
       return;
     }
     const nextId = getNextPageId(formDef, currentPageId);
@@ -133,13 +133,13 @@ export function MultiPageForm({
   const handleSubmit = async () => {
     const pageErrs = validateCurrentPage();
     if (Object.keys(pageErrs).length > 0) {
-      notifyError("Please fix the errors on this page.");
+      notifyError("Please review and correct the highlighted fields on this page.");
       return;
     }
     const allErrs = validateFormDef(formDef, values);
     if (Object.keys(allErrs).length > 0) {
       setFieldErrors(allErrs);
-      notifyError("Please fix all errors before submitting.");
+      notifyError("Please review and correct all highlighted fields before submitting.");
       return;
     }
     setFieldErrors({});
@@ -149,7 +149,7 @@ export function MultiPageForm({
       try {
         await onSubmitted(values);
       } catch (e) {
-        notifyError(e instanceof Error ? e.message : "Could not submit form");
+        notifyError(e instanceof Error ? e.message : "Unable to submit your response. Please try again.");
       } finally {
         setSubmitting(false);
       }

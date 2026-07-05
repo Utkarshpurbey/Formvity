@@ -210,7 +210,7 @@ const formsSlice = createSlice({
       .addCase(fetchForms.rejected, (s, a) => {
         const workspaceId = resolveFormsWorkspaceId(a.meta.arg);
         s.loadingByWorkspace[workspaceId] = false;
-        s.error = a.error.message ?? "Could not load forms";
+        s.error = a.error.message ?? "Unable to load forms. Please try again.";
       })
       .addCase(createForm.fulfilled, (s, a) => {
         upsertForm(s, a.payload);

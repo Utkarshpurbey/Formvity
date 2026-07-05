@@ -154,7 +154,7 @@ export function AnalyticsInsightsPanel({
   if (!insights) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center text-sm text-slate-500">
-        Insights will appear once responses include respondent and metadata fields.
+        Insights will appear once you start collecting responses with respondent details.
       </div>
     );
   }
@@ -337,7 +337,7 @@ export function AnalyticsInsightsPanel({
 
       {traffic.otherMetadata.length > 0 ? (
         <section className="space-y-4">
-          <SectionHeading title="Discovered metadata" description="Auto-detected low-cardinality fields" />
+          <SectionHeading title="Response metadata" description="Automatically detected fields from submissions" />
           <InsightCard title="Other metadata">
             <BreakdownSection
               label="Discovered fields"

@@ -66,7 +66,7 @@ function BuilderPageInner() {
   const intake = resolveRespondentIntake(formDef);
 
   if (apiMode && !loaded) {
-    return <PageLoader message="Loading form from server…" className="bg-gradient-to-br from-slate-100 to-violet-50" />;
+    return <PageLoader message="Loading form…" className="bg-gradient-to-br from-slate-100 to-violet-50" />;
   }
 
   if (apiMode && loadBlocked) {

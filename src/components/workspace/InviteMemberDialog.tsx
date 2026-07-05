@@ -78,8 +78,7 @@ export function InviteMemberDialog({
         </div>
         <h2 className="mt-4 text-lg font-semibold text-slate-900">Invite team member</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Existing users are added instantly. New users receive a secure link to activate their account at{" "}
-          <span className="font-medium text-slate-800">/invite</span>.
+          Existing users are added immediately. New users receive a secure link to create their account and join your workspace.
         </p>
 
         {inviteUrl ? (
@@ -90,8 +89,8 @@ export function InviteMemberDialog({
                 <>
                   Share this link with <span className="font-medium">{lastInviteEmail}</span> to activate their account.
                 </>
-              ) : (
-                "Share this link so they can activate their account and join the workspace."
+                ) : (
+                  "Share this link so they can create their account and join the workspace."
               )}
             </p>
             <input

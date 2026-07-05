@@ -279,7 +279,7 @@ function ComponentPalette({ onDragStart, builderVersion = "v1" }: ComponentPalet
     <div className="flex flex-col h-full min-h-0 bg-white">
       <header className="shrink-0 px-4 py-3 border-b border-slate-200 bg-white">
         <h2 className="text-sm font-semibold text-slate-800">Components</h2>
-        <p className="text-xs text-slate-500 mt-0.5">Drag onto the canvas; set type in Config</p>
+        <p className="text-xs text-slate-500 mt-0.5">Drag fields onto the canvas, then configure them in the panel on the right.</p>
       </header>
       <div className="flex-1 overflow-auto p-4 space-y-2.5 min-h-0">
         {paletteSpecs.map((spec) => (

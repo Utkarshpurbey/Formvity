@@ -18,5 +18,5 @@ export function classifyInviteError(error: unknown): { kind: InviteErrorKind; me
     }
     return { kind: "generic", message: error.message };
   }
-  return { kind: "generic", message: error instanceof Error ? error.message : "Something went wrong." };
+  return { kind: "generic", message: error instanceof Error ? error.message : "An unexpected error occurred. Please try again." };
 }

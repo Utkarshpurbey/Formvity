@@ -70,7 +70,7 @@ export function FormPublishingPanel({
         <div className="flex flex-wrap items-center gap-3">
           <FormLifecycleBadge lifecycle={lifecycle} size="md" />
           {lifecycle.draftChangedSincePublish ? (
-            <span className="text-sm text-amber-700">Draft has unpublished changes</span>
+            <span className="text-sm text-amber-700">Unpublished changes in draft</span>
           ) : (
             <span className="text-sm text-emerald-700">Accepting responses</span>
           )}
@@ -142,7 +142,7 @@ export function FormPublishingPanel({
       <div className="mt-6 space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <FormLifecycleBadge lifecycle={lifecycle} size="md" />
-          <span className="text-sm text-slate-600">Only workspace members can see this form until you publish.</span>
+          <span className="text-sm text-slate-600">This form is not visible to respondents and is not collecting responses.</span>
         </div>
         {onPublish ? (
           <button

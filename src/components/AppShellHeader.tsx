@@ -68,7 +68,7 @@ export function AppShellHeader() {
   const handleLogout = () => {
     dispatch(logoutUser());
     closeMenus();
-    notifyInfo("Signed out.");
+    notifyInfo("You have been signed out.");
     router.push("/");
   };
 
@@ -186,7 +186,7 @@ export function AppShellHeader() {
                 onClick={() => router.push("/login")}
                 className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:inline-flex"
               >
-                Log in
+                Sign in
               </button>
               <button
                 type="button"
@@ -240,7 +240,7 @@ export function AppShellHeader() {
               }}
               className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Log in
+              Sign in
             </button>
           </nav>
         </div>

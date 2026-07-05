@@ -28,7 +28,7 @@ export function IntakeConfigPanel({ intake, onChange }: IntakeConfigPanelProps) 
         {
           id: `field-${Date.now().toString(36).slice(-4)}`,
           type: "text",
-          label: "New field",
+          label: "Field label",
           required: false,
         },
       ],
@@ -108,7 +108,7 @@ export function IntakeConfigPanel({ intake, onChange }: IntakeConfigPanelProps) 
                 value={field.id}
                 onChange={(e) => updateField(index, { id: e.target.value })}
                 className={inputClass}
-                placeholder="Field id (key in submission)"
+                placeholder="Field identifier"
               />
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 text-xs text-slate-600">

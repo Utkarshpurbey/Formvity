@@ -254,7 +254,7 @@ export default function ComponentConfigPanel({
           </div>
 
           <p className="rounded-lg bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-500">
-            Select a field on the canvas to edit labels, validation, and options.
+            Select a field on the page to edit its label, validation, and options.
           </p>
         </div>
       </div>

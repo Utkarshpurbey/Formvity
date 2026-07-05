@@ -60,7 +60,7 @@ function FormTableRow({ form, workspaceId }: { form: FormSummary; workspaceId: s
             prefetch={false}
             className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700"
           >
-            Manage
+            Overview
           </AppLink>
           <AppLink
             href={analyticsHref}
@@ -135,7 +135,7 @@ export default function WorkspaceDetailPage() {
       ).unwrap();
       router.push(`/builder?workspaceId=${workspaceId}&formId=${form.id}`);
     } catch (e) {
-      notifyError(e instanceof Error ? e.message : "Could not create form");
+      notifyError(e instanceof Error ? e.message : "Unable to create the form. Please try again.");
     } finally {
       setCreatingForm(false);
     }
@@ -184,7 +184,7 @@ export default function WorkspaceDetailPage() {
             className="inline-flex h-10 items-center gap-2 rounded-xl bg-violet-600 px-4 text-sm font-semibold text-white shadow-md shadow-violet-600/20 hover:bg-violet-700 disabled:opacity-60"
           >
             {creatingForm ? <Spinner size="sm" className="border-white/30 border-t-white" /> : null}
-            {creatingForm ? "Creating…" : "+ New form"}
+            {creatingForm ? "Creating…" : "New form"}
           </button>
         </PermissionGate>
       </div>
@@ -194,8 +194,8 @@ export default function WorkspaceDetailPage() {
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total forms" value={initialLoading ? "—" : forms.length} />
         <StatCard label="Live" value={initialLoading ? "—" : publishedCount} hint="Accepting responses" />
-        <StatCard label="Never published" value={initialLoading ? "—" : draftCount} hint="Draft only" />
-        <StatCard label="Unpublished" value={initialLoading ? "—" : unpublishedCount} hint="Taken offline" />
+        <StatCard label="Draft" value={initialLoading ? "—" : draftCount} hint="Not yet published" />
+        <StatCard label="Offline" value={initialLoading ? "—" : unpublishedCount} hint="No longer accepting responses" />
       </div>
 
       <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/[0.03]">
@@ -207,7 +207,7 @@ export default function WorkspaceDetailPage() {
         ) : forms.length === 0 ? (
           <div className="px-6 py-16 text-center">
             <p className="font-semibold text-slate-900">No forms in this workspace</p>
-            <p className="mt-1 text-sm text-slate-500">Create your first form to start building.</p>
+            <p className="mt-1 text-sm text-slate-500">Create your first form to start collecting responses.</p>
             <button
               type="button"
               onClick={handleNewForm}

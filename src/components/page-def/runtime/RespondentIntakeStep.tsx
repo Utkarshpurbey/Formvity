@@ -63,7 +63,7 @@ export function RespondentIntakeStep({
           <div className={formAccentBarClass} />
           <div className="border-b border-[color:color-mix(in_srgb,var(--fb-text)_8%,var(--fb-surface))] px-5 py-6 sm:px-10 sm:py-8">
             <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--fb-muted)]">
-              Respondent details
+              Your details
             </p>
             <h1 className="mt-2 text-2xl font-bold tracking-tight text-[color:var(--fb-text)]">
               {intake.title ?? "Before we begin"}
@@ -123,7 +123,7 @@ export function RespondentIntakeStep({
             ) : null}
             <div className="flex justify-end">
               <button type="button" onClick={handleContinue} className={submitButtonClass}>
-                Continue to form
+                Continue
               </button>
             </div>
           </div>

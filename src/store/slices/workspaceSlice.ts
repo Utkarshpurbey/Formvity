@@ -166,7 +166,7 @@ const workspaceSlice = createSlice({
       })
       .addCase(fetchWorkspaces.rejected, (s, a) => {
         s.loading = false;
-        s.error = a.error.message ?? "Could not load workspaces";
+        s.error = a.error.message ?? "Unable to load workspaces. Please try again.";
       })
       .addCase(fetchWorkspaceDashboard.pending, (s, a) => {
         s.dashboardLoadingByWorkspace[a.meta.arg] = true;
@@ -179,7 +179,7 @@ const workspaceSlice = createSlice({
       })
       .addCase(fetchWorkspaceDashboard.rejected, (s, a) => {
         s.dashboardLoadingByWorkspace[a.meta.arg] = false;
-        s.error = a.error.message ?? "Could not load workspace dashboard";
+        s.error = a.error.message ?? "Unable to load workspace details. Please try again.";
       })
       .addCase(createWorkspace.pending, (s) => {
         s.creating = true;
@@ -195,7 +195,7 @@ const workspaceSlice = createSlice({
       })
       .addCase(createWorkspace.rejected, (s, a) => {
         s.creating = false;
-        s.error = a.error.message ?? "Could not create workspace";
+        s.error = a.error.message ?? "Unable to create the workspace. Please try again.";
       })
       .addCase(fetchMembers.pending, (s, a) => {
         s.membersLoadingByWorkspace[a.meta.arg] = true;
@@ -216,7 +216,7 @@ const workspaceSlice = createSlice({
       })
       .addCase(inviteWorkspaceMember.rejected, (s, a) => {
         s.invitingByWorkspace[a.meta.arg.workspaceId] = false;
-        s.error = a.error.message ?? "Could not send invite";
+        s.error = a.error.message ?? "Unable to send the invitation. Please try again.";
       })
       .addCase(updateWorkspaceMemberRole.pending, (s, a) => {
         s.updatingMemberRoleIds[a.meta.arg.userId] = true;
@@ -232,7 +232,7 @@ const workspaceSlice = createSlice({
       })
       .addCase(updateWorkspaceMemberRole.rejected, (s, a) => {
         delete s.updatingMemberRoleIds[a.meta.arg.userId];
-        s.error = a.error.message ?? "Could not update member role";
+        s.error = a.error.message ?? "Unable to update the member role. Please try again.";
       })
       .addCase(renameWorkspace.pending, (s, a) => {
         s.renamingWorkspaceIds[a.meta.arg.workspaceId] = true;
@@ -248,7 +248,7 @@ const workspaceSlice = createSlice({
       })
       .addCase(renameWorkspace.rejected, (s, a) => {
         s.renamingWorkspaceIds[a.meta.arg.workspaceId] = false;
-        s.error = a.error.message ?? "Could not rename workspace";
+        s.error = a.error.message ?? "Unable to rename the workspace. Please try again.";
       })
       .addCase(removeWorkspace.pending, (s, a) => {
         s.deletingWorkspaceIds[a.meta.arg] = true;
@@ -263,7 +263,7 @@ const workspaceSlice = createSlice({
       })
       .addCase(removeWorkspace.rejected, (s, a) => {
         delete s.deletingWorkspaceIds[a.meta.arg];
-        s.error = a.error.message ?? "Could not delete workspace";
+        s.error = a.error.message ?? "Unable to deactivate the workspace. Please try again.";
       });
   },
 });

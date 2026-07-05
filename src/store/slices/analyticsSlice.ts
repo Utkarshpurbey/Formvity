@@ -42,11 +42,11 @@ export function analyticsCacheKey(
 function formatLoadError(e: unknown): string {
   if (e instanceof ApiError) {
     if (e.status === 404) {
-      return "Analytics API not found (404). Ensure Spring is running on :8081 and NEXT_PUBLIC_API_URL points to it (or set NEXT_PUBLIC_API_DIRECT=false to use the /api/v1 proxy).";
+      return "Analytics data is not available for this form yet.";
     }
     return e.message;
   }
-  return e instanceof Error ? e.message : "Failed to load analytics";
+  return e instanceof Error ? e.message : "Unable to load analytics. Please try again.";
 }
 
 type FetchFormAnalyticsArg = {

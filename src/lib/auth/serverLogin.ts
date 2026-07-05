@@ -11,7 +11,7 @@ function errorMessage(body: ApiErrorBody | null, status: number): string {
   if (body?.errorMessage) return body.errorMessage;
   if (body?.message) return body.message;
   if (body?.error) return body.error;
-  return `Request failed (${status})`;
+  return `Unable to sign in. Please check your credentials and try again.`;
 }
 
 export type ServerLoginResult =
@@ -53,7 +53,7 @@ export async function serverLogin(userName: string, password: string): Promise<S
 
     const data = body as LoginResponse;
     if (!data?.token || !data?.id) {
-      return { ok: false, error: "Login failed" };
+      return { ok: false, error: "Unable to sign in. Please try again." };
     }
 
     return {
@@ -62,7 +62,7 @@ export async function serverLogin(userName: string, password: string): Promise<S
       user: { id: data.id, displayName: data.displayName, email },
     };
   } catch {
-    return { ok: false, error: "Login failed" };
+    return { ok: false, error: "Unable to sign in. Please check your connection and try again." };
   }
 }
 

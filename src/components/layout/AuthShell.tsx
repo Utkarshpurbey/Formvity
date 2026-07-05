@@ -34,9 +34,9 @@ export function AuthShell({ children, title, subtitle, badge }: AuthShellProps) 
         </div>
         <div className="relative border-t border-white/10 p-10">
           <blockquote className="text-sm leading-relaxed text-slate-300">
-            &ldquo;The fastest way for our team to ship branded forms without waiting on engineering.&rdquo;
+            &ldquo;Formvity helps our team launch branded forms quickly, without depending on engineering.&rdquo;
           </blockquote>
-          <p className="mt-3 text-xs font-medium text-slate-500">Product teams at growing companies</p>
+          <p className="mt-3 text-xs font-medium text-slate-500">Operations and product teams</p>
         </div>
       </aside>
       <main className="flex flex-1 items-center justify-center bg-slate-50 px-4 py-10">{children}</main>

@@ -18,25 +18,15 @@ type FormRuntimeProps = {
 };
 
 export function FormRuntime({ formDef, slug, standalone = false, preview = false }: FormRuntimeProps) {
+  const trackFilled = Boolean(slug && !preview);
   const [phase, setPhase] = useState<"intake" | "form">("intake");
   const [respondentValues, setRespondentValues] = useState<Record<string, string>>({});
-  const [filled, setFilled] = useState(false);
-  const [storageReady, setStorageReady] = useState(preview || !slug);
+  const [filled, setFilled] = useState(() => (trackFilled && slug ? isFormFilled(slug) : false));
   const [formAttemptKey, setFormAttemptKey] = useState(0);
   const formOpenedAtRef = useRef(new Date().toISOString());
   const visitedPageIdsRef = useRef<string[]>([]);
 
   const totalSteps = useMemo(() => formDef.pages.length + 1, [formDef.pages.length]);
-  const trackFilled = Boolean(slug && !preview);
-
-  useEffect(() => {
-    if (!trackFilled) {
-      setStorageReady(true);
-      return;
-    }
-    setFilled(isFormFilled(slug!));
-    setStorageReady(true);
-  }, [slug, trackFilled]);
 
   useEffect(() => {
     if (slug) getOrCreateSessionId(slug);
@@ -50,12 +40,12 @@ export function FormRuntime({ formDef, slug, standalone = false, preview = false
 
   const handleFormSubmit = async (formValues: Record<string, string>) => {
     if (preview) {
-      notifySuccess("Preview submit — response recorded locally.");
+      notifySuccess("Preview mode: submission recorded locally only.");
       return;
     }
 
     if (!slug) {
-      notifySuccess("Form submitted successfully!");
+      notifySuccess("Your response has been submitted.");
       return;
     }
 
@@ -82,10 +72,6 @@ export function FormRuntime({ formDef, slug, standalone = false, preview = false
     visitedPageIdsRef.current = [];
     setFormAttemptKey((key) => key + 1);
   };
-
-  if (trackFilled && !storageReady) {
-    return null;
-  }
 
   if (filled) {
     return (

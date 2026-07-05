@@ -109,14 +109,14 @@ export function MembersPanel({
         if (result.isNewUser && result.inviteUrl) {
           setPendingInviteUrl(result.inviteUrl);
           setLastInviteEmail(result.emailId);
-          notifySuccess("Invitation sent — share the activate link.");
+          notifySuccess("Invitation sent. Share the activation link with your teammate.");
         } else {
-          notifySuccess(`${result.emailId} was added to the workspace.`);
+          notifySuccess(`${result.emailId} has been added to the workspace.`);
           closeInviteDialog();
           dispatch(fetchMembers(workspaceId));
         }
       } catch (e) {
-        notifyError(e instanceof Error ? e.message : "Could not send invite");
+        notifyError(e instanceof Error ? e.message : "Unable to send the invitation. Please try again.");
       }
     },
     [dispatch, workspaceId, closeInviteDialog],
@@ -128,7 +128,7 @@ export function MembersPanel({
         await dispatch(updateWorkspaceMemberRole({ workspaceId, userId, role })).unwrap();
         notifySuccess("Member role updated.");
       } catch (e) {
-        notifyError(e instanceof Error ? e.message : "Could not update role");
+        notifyError(e instanceof Error ? e.message : "Unable to update the member role. Please try again.");
         dispatch(fetchMembers(workspaceId));
       }
     },
@@ -144,7 +144,7 @@ export function MembersPanel({
             <p className="mt-0.5 text-xs text-slate-500">
               {RBAC_ENFORCED
                 ? "Only admins can invite members and change roles."
-                : "Invite teammates by email. Roles control access when enforcement is enabled."}
+                : "Invite teammates by email. Assign roles to control who can edit, publish, and manage forms."}
             </p>
           </div>
           {canManageMembers ? (
@@ -161,7 +161,7 @@ export function MembersPanel({
         {loading ? (
           <SkeletonRows count={3} className="p-6" rowClassName="h-12" />
         ) : members.length === 0 ? (
-          <div className="px-6 py-10 text-center text-sm text-slate-500">No members loaded.</div>
+          <div className="px-6 py-10 text-center text-sm text-slate-500">No team members yet. Invite someone to get started.</div>
         ) : (
           <ul className="divide-y divide-slate-100">
             {members.map((member) => {

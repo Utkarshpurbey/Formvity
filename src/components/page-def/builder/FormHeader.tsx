@@ -124,7 +124,7 @@ export function FormHeader(props: FormHeaderProps) {
                   rows={2}
                   value={props.pageDef.description ?? ""}
                   onChange={(e) => props.onDescriptionChange(e.target.value || undefined)}
-                  placeholder="Description — instructions, context, or what happens after someone submits (optional). You can use multiple lines."
+                  placeholder="Add a description for respondents (optional)"
                   className="min-h-[4.25rem] w-full resize-y border-0 bg-transparent p-0 text-[0.9375rem] leading-[1.65] text-[color:var(--fb-muted)] shadow-none placeholder:text-[color:var(--fb-muted)] placeholder:opacity-65 focus:outline-none focus:ring-0 sm:min-h-[4.5rem] sm:text-base sm:leading-[1.7]"
                 />
               </div>

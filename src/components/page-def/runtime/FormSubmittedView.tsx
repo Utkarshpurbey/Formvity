@@ -40,9 +40,9 @@ export function FormSubmittedView({ formDef, standalone = false, onFillAnother }
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-[color:var(--fb-text)]">This form has been filled</h2>
+            <h2 className="text-xl font-semibold text-[color:var(--fb-text)]">Thank you for your response</h2>
             <p className="mt-2 text-sm text-[color:var(--fb-muted)]">
-              Thank you. Your submission was received successfully.
+              Your submission has been received successfully.
             </p>
             {onFillAnother ? (
               <button
@@ -50,7 +50,7 @@ export function FormSubmittedView({ formDef, standalone = false, onFillAnother }
                 onClick={onFillAnother}
                 className="mt-8 text-sm font-medium text-[color:var(--fb-primary)] hover:underline"
               >
-                Fill another response
+                Submit another response
               </button>
             ) : null}
           </div>

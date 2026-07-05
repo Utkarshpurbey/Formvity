@@ -9,7 +9,7 @@ const STEPS = [
   },
   {
     title: "Drag fields onto the canvas",
-    body: "Switch to Form pages, then drag components from the sidebar. v2 adds rating, scale, sections, file upload, and signature fields.",
+    body: "Switch to Form pages, then drag components from the sidebar. Choose from text, rating, scale, file upload, signature, and more.",
   },
   {
     title: "Configure each field",
@@ -67,7 +67,7 @@ export function BuilderGuideModal({ open, onClose }: BuilderGuideModalProps) {
           onClick={onClose}
           className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
         >
-          Got it — let&apos;s build
+          Start building
         </button>
       </div>
     </dialog>

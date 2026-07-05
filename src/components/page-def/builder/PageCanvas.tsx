@@ -181,7 +181,7 @@ export default function PageCanvas({
           >
             {page.components.length === 0 && (
               <div className="flex min-h-[220px] items-center justify-center text-center text-sm text-[color:var(--fb-muted)]">
-                Drag fields from the palette onto this page.
+                Drag fields from the sidebar onto this page.
               </div>
             )}
             <div className="space-y-8">

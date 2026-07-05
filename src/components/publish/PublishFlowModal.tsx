@@ -130,10 +130,10 @@ export function PublishFlowModal({
               <p className="mt-1 text-sm text-slate-700">
                 {slugLocked && existingSlug ? (
                   <>
-                    Your form stays at <span className="font-mono text-xs">/r/{existingSlug}</span>
+                Your form will remain available at its current public link.
                   </>
                 ) : (
-                  "The server will assign a unique public URL when you publish."
+                  "A unique shareable link will be created when you publish."
                 )}
               </p>
             </div>
@@ -171,7 +171,7 @@ export function PublishFlowModal({
           <div className="py-8 text-center">
             <Spinner size="lg" className="mx-auto" />
             <p className="mt-4 text-sm font-medium text-slate-700">Publishing your form…</p>
-            <p className="mt-1 text-xs text-slate-500">This may take a moment on first request.</p>
+            <p className="mt-1 text-xs text-slate-500">Please wait while we prepare your form for sharing.</p>
           </div>
         ) : null}
 
@@ -189,7 +189,7 @@ export function PublishFlowModal({
 
             <PublicLinkPanel
               publicUrl={publicUrl}
-              emptyMessage="Published successfully. Share link will appear once the API returns a slug."
+              emptyMessage="Your form is live. The shareable link will appear shortly."
             />
 
             <div className="mt-6 flex justify-center">
@@ -206,8 +206,8 @@ export function PublishFlowModal({
 
         {step === "error" ? (
           <>
-            <h2 className="text-lg font-semibold text-slate-900">Could not publish</h2>
-            <p className="mt-2 text-sm text-rose-600">{error ?? "Something went wrong. Please try again."}</p>
+            <h2 className="text-lg font-semibold text-slate-900">Unable to publish</h2>
+            <p className="mt-2 text-sm text-rose-600">{error ?? "We could not publish your form. Please try again."}</p>
             <div className="mt-6 flex justify-end gap-2">
               <button
                 type="button"

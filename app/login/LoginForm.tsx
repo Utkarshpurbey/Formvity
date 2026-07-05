@@ -60,7 +60,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     setCachedUser(state.user);
     dispatch(hydrateUser(state.user));
     trackEvent("login", { method: "email" });
-    notifySuccess("Signed in successfully.");
+    notifySuccess("Welcome back.");
     router.replace(state.redirectTo ?? redirectTo);
   }, [state, dispatch, router, redirectTo]);
 
@@ -68,8 +68,8 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
 
   return (
     <section className="page-enter w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-8 shadow-xl shadow-slate-900/5">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900">Log in</h2>
-      <p className="mt-1 text-sm text-slate-500">Use your email and password.</p>
+      <h2 className="text-2xl font-bold tracking-tight text-slate-900">Sign in</h2>
+      <p className="mt-1 text-sm text-slate-500">Enter your email and password to access your workspace.</p>
       <form className="mt-8 space-y-5" action={formAction}>
         <input type="hidden" name="redirect" value={redirectTo} />
         <label className="block">
@@ -100,7 +100,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         <SubmitButton />
       </form>
       <p className="mt-6 text-center text-sm text-slate-500">
-        New here?{" "}
+        Don&apos;t have an account?{" "}
         <Link href="/register" className="font-semibold text-indigo-600 hover:text-indigo-700">
           Create an account
         </Link>

@@ -68,7 +68,7 @@ const STEPS = [
   {
     step: "03",
     title: "Collect & analyze",
-    description: "Watch responses roll in. Explore analytics, audience insights, and per-question breakdowns.",
+    description: "Track responses in real time. Explore analytics, audience insights, and per-question breakdowns.",
   },
 ];
 
@@ -166,7 +166,7 @@ export function HomePage() {
 
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-400">
                 Formvity is a modern form platform for teams who need more than a survey link — visual building,
-                {TEMPLATE_CATALOG.length} templates, publish workflows, and SaaS-grade analytics in one place.
+                {TEMPLATE_CATALOG.length} templates, publish workflows, and built-in analytics in one place.
               </p>
 
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -201,9 +201,9 @@ export function HomePage() {
               <dl className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
                 {[
                   [`${TEMPLATE_CATALOG.length}+`, "Templates"],
-                  ["6-in-1", "Analytics tabs"],
-                  ["Multi", "Page forms"],
-                  ["Zero", "Code required"],
+                  ["6", "Analytics views"],
+                  ["Multi-page", "Form flows"],
+                  ["No code", "Required"],
                 ].map(([value, label]) => (
                   <div key={label}>
                     <dt className="text-2xl font-bold tabular-nums text-white">{value}</dt>
@@ -418,7 +418,7 @@ export function HomePage() {
               href={user ? "/builder" : "/login"}
               className="inline-flex h-12 items-center justify-center rounded-xl border border-white/20 px-8 text-sm font-semibold text-white transition hover:bg-white/10"
             >
-              {user ? "Open builder" : "Log in"}
+              {user ? "Open builder" : "Sign in"}
             </Link>
           </div>
         </div>
@@ -427,16 +427,16 @@ export function HomePage() {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row">
-          <p className="text-sm text-slate-500">© {new Date().getFullYear()} Formvity. Form builder with analytics.</p>
+          <p className="text-sm text-slate-500">© {new Date().getFullYear()} Formvity. All rights reserved.</p>
           <nav className="flex gap-6 text-sm font-medium text-slate-600" aria-label="Footer">
             <Link href="/templates" className="hover:text-slate-900">
               Templates
             </Link>
             <Link href="/login" className="hover:text-slate-900">
-              Log in
+              Sign in
             </Link>
             <Link href="/register" className="hover:text-slate-900">
-              Register
+              Create account
             </Link>
           </nav>
         </div>

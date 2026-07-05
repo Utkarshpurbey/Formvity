@@ -29,7 +29,7 @@ function RegisterPageContent() {
     const password = String(formData.get("password") ?? "");
 
     if (!displayName || !/\S+@\S+\.\S+/.test(email) || password.length < 8) {
-      setLocalError("Enter name, valid email, and password (min 8 characters).");
+      setLocalError("Please enter your full name, a valid email address, and a password of at least 8 characters.");
       return;
     }
 
@@ -37,10 +37,10 @@ function RegisterPageContent() {
       .unwrap()
       .then(() => {
         trackEvent("sign_up", { method: "email" });
-        notifySuccess("Account created. Welcome!");
+        notifySuccess("Your account has been created.");
         router.push("/workspaces");
       })
-      .catch((e: Error) => notifyError(e.message ?? "Registration failed"));
+      .catch((e: Error) => notifyError(e.message ?? "Unable to create your account. Please try again."));
   };
 
   const message = localError ?? error;
@@ -49,11 +49,11 @@ function RegisterPageContent() {
     <AuthShell
       badge="Get started"
       title="Create your Formvity account"
-      subtitle="Start with a workspace, build your first form, and publish when you are ready."
+      subtitle="Create a workspace, design your first form, and publish a shareable link when you are ready."
     >
       <section className="page-enter w-full max-w-lg rounded-2xl border border-slate-200/80 bg-white p-8 shadow-xl shadow-slate-900/5">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Sign up</h2>
-        <p className="mt-1 text-sm text-slate-500">Free to start — no credit card required.</p>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Create your account</h2>
+        <p className="mt-1 text-sm text-slate-500">Free to get started. No credit card required.</p>
         <form className="mt-8 space-y-4" onSubmit={handleRegister}>
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-slate-700">Full name</span>
@@ -107,13 +107,13 @@ function RegisterPageContent() {
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-500">
-          Already registered?{" "}
+          Already have an account?{" "}
           <button type="button" onClick={() => router.push("/login")} className="font-semibold text-indigo-600 hover:text-indigo-700">
-            Log in
+            Sign in
           </button>
         </p>
         <p className="mt-3 text-center text-xs text-slate-500">
-          Invited to a workspace? Use the link in your email — it opens <span className="font-medium">/invite</span>.
+          Received a workspace invitation? Open the link in your email to accept it.
         </p>
       </section>
     </AuthShell>

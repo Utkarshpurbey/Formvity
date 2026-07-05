@@ -7,7 +7,7 @@ import { allFormComponents } from "./formValidation";
 
 export const DEFAULT_RESPONDENT_INTAKE: RespondentIntakeSettings = {
   title: "Before we begin",
-  description: "Tell us a bit about yourself so we can follow up if needed.",
+  description: "Please provide your details so we can follow up if needed.",
   fields: [
     {
       id: "fullName",
@@ -21,7 +21,7 @@ export const DEFAULT_RESPONDENT_INTAKE: RespondentIntakeSettings = {
       type: "email",
       label: "Email address",
       required: true,
-      placeholder: "you@example.com",
+      placeholder: "you@company.com",
     },
   ],
 };

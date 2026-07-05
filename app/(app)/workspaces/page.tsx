@@ -34,7 +34,7 @@ function WorkspaceCard({ workspace, formCount }: { workspace: WorkspaceSummary; 
       <h3 className="mt-4 text-lg font-semibold text-slate-900 group-hover:text-violet-700">
         {workspace.workSpaceName}
       </h3>
-      <p className="mt-1 text-xs text-slate-500">Open workspace →</p>
+      <p className="mt-1 text-xs text-slate-500">View workspace</p>
     </AppLink>
   );
 }
@@ -111,7 +111,7 @@ export default function WorkspacesPage() {
       ) : workspaces.length === 0 ? (
         <div className="mt-12 rounded-2xl border border-slate-200 bg-white py-16 text-center">
           <p className="font-semibold text-slate-900">No workspaces yet</p>
-          <p className="mt-1 text-sm text-slate-500">Create one above to get started.</p>
+          <p className="mt-1 text-sm text-slate-500">Create your first workspace above to begin organizing forms.</p>
         </div>
       ) : (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
