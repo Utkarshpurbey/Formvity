@@ -59,6 +59,7 @@ const SubmissionsTable = dynamic(
   { loading: () => <Skeleton className="h-64 rounded-2xl" /> },
 );
 import { useFormAnalytics } from "@/src/hooks/useFormAnalytics";
+import { useFormFieldLabels } from "@/src/hooks/useFormFieldLabels";
 import { deriveFormLifecycle } from "@/src/lib/publish";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
@@ -111,6 +112,7 @@ export default function FormAnalyticsPage() {
 
   const { summary, timeline, questions, insights, submissions, loading, refreshing, error, reload } =
     useFormAnalytics(workspaceId, formId, { days, page, size: PAGE_SIZE });
+  const fieldLabels = useFormFieldLabels(workspaceId, formId, Boolean(form));
 
   useEffect(() => {
     if (!ready) return;
@@ -292,7 +294,7 @@ export default function FormAnalyticsPage() {
               <Skeleton className="h-48 rounded-2xl" />
             </div>
           ) : (
-            <QuestionBreakdownPanel questions={questions} chartView={chartView} />
+            <QuestionBreakdownPanel questions={questions} chartView={chartView} fieldLabels={fieldLabels} />
           )}
         </section>
       ) : null}
@@ -313,6 +315,7 @@ export default function FormAnalyticsPage() {
             totalPages={submissions?.totalPages ?? 1}
             totalElements={submissions?.totalElements ?? 0}
             pageSize={submissions?.size ?? PAGE_SIZE}
+            fieldLabels={fieldLabels}
             onPageChange={setPage}
           />
         </section>

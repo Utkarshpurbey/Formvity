@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { SubmissionRow } from "../../api/types";
-import { formatPercent } from "./analytics/formatAnalytics";
+import { formatLocalDateTime } from "../../lib/formatDateTime";
 import { SkeletonRows } from "../ui/index";
 
 type SubmissionsTableProps = {
@@ -12,6 +12,7 @@ type SubmissionsTableProps = {
   totalPages: number;
   totalElements: number;
   pageSize: number;
+  fieldLabels?: Record<string, string>;
   onPageChange: (page: number) => void;
 };
 
@@ -167,36 +168,13 @@ function metadataSummary(metadata: Record<string, unknown>): string | null {
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
-function resolveCompletionRate(
-  rate?: number,
-  answered?: number,
-  total?: number,
-): number | undefined {
-  if (answered !== undefined && total !== undefined && total > 0) {
-    return (answered / total) * 100;
-  }
-  if (rate !== undefined && Number.isFinite(rate)) return rate;
-  return undefined;
-}
-
-function CompletionBadge({ rate, answered, total }: { rate?: number; answered?: number; total?: number }) {
-  const effectiveRate = resolveCompletionRate(rate, answered, total);
-  if (effectiveRate === undefined) return null;
-  const label = formatPercent(effectiveRate);
-  const tone =
-    effectiveRate >= 90
-      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-      : effectiveRate >= 60
-        ? "bg-amber-50 text-amber-700 ring-amber-200"
-        : "bg-slate-100 text-slate-600 ring-slate-200";
-  return (
-    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${tone}`}>
-      {label} complete
-    </span>
-  );
-}
-
-function SubmissionDetail({ row }: { row: SubmissionRow }) {
+function SubmissionDetail({
+  row,
+  fieldLabels,
+}: {
+  row: SubmissionRow;
+  fieldLabels: Record<string, string>;
+}) {
   const answerEntries = Object.entries(row.answers);
   const respondentEntries = Object.entries(row.respondent);
   const metadataEntries = Object.entries(row.metadata ?? {});
@@ -209,7 +187,7 @@ function SubmissionDetail({ row }: { row: SubmissionRow }) {
           <dl className="mt-2 space-y-1.5">
             {respondentEntries.map(([key, val]) => (
               <div key={key} className="flex gap-2 text-sm">
-                <dt className="w-24 shrink-0 text-slate-500">{humanizeKey(key)}</dt>
+                <dt className="w-24 shrink-0 text-slate-500">{fieldLabels[key] ?? humanizeKey(key)}</dt>
                 <dd className="min-w-0 break-words text-slate-800">{formatAnswerValue(val)}</dd>
               </div>
             ))}
@@ -224,10 +202,11 @@ function SubmissionDetail({ row }: { row: SubmissionRow }) {
           ) : (
             answerEntries.map(([key, val]) => {
               const { title } = resolveAnswerDisplay(val);
+              const label = fieldLabels[key] ?? title ?? humanizeKey(key);
               return (
                 <div key={key} className="flex gap-2 text-sm">
-                  <dt className="w-36 shrink-0 truncate text-slate-500" title={title ?? key}>
-                    {title ?? <span className="font-mono text-xs">{key}</span>}
+                  <dt className="w-36 shrink-0 truncate text-slate-500" title={label}>
+                    {label}
                   </dt>
                   <dd className="min-w-0 break-words text-slate-800">{formatAnswerValue(val)}</dd>
                 </div>
@@ -270,6 +249,7 @@ export function SubmissionsTable({
   totalPages,
   totalElements,
   pageSize,
+  fieldLabels = {},
   onPageChange,
 }: SubmissionsTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -329,11 +309,6 @@ export function SubmissionsTable({
                       <p className="truncate text-sm font-medium text-slate-900">
                         {respondentLabel(row.respondent)}
                       </p>
-                      <CompletionBadge
-                        rate={row.completionRate}
-                        answered={row.answeredFieldCount}
-                        total={row.totalFieldCount}
-                      />
                       {row.publicationVersion ? (
                         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
                           v{row.publicationVersion}
@@ -341,7 +316,7 @@ export function SubmissionsTable({
                       ) : null}
                     </div>
                     <p className="mt-0.5 text-xs text-slate-500">
-                      {new Date(row.createdAt).toLocaleString()} · {Object.keys(row.answers).length}{" "}
+                      {formatLocalDateTime(row.createdAt)} · {Object.keys(row.answers).length}{" "}
                       answers
                       {meta ? ` · ${meta}` : ""}
                     </p>
@@ -350,7 +325,7 @@ export function SubmissionsTable({
                     {expanded ? "Hide" : "View"}
                   </span>
                 </button>
-                {expanded ? <SubmissionDetail row={row} /> : null}
+                {expanded ? <SubmissionDetail row={row} fieldLabels={fieldLabels} /> : null}
               </li>
             );
           })}

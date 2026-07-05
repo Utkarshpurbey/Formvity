@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import type { AnalyticsInsights } from "../../../api/types";
 import { BreakdownChart } from "./BreakdownChart";
 import type { ChartViewMode } from "./ChartViewToggle";
-import { formatDayOfWeek, formatHour, formatPercent } from "./formatAnalytics";
+import { formatDayOfWeek, formatPercent } from "./formatAnalytics";
+import { formatUtcHourAsLocal } from "../../../lib/formatDateTime";
 import { HourOfDayChart } from "./HourOfDayChart";
 import { PublicationVersionsPanel } from "./PublicationVersionsPanel";
 import { completionInsightsToBreakdown } from "./completionBreakdown";
@@ -295,7 +296,7 @@ export function AnalyticsInsightsPanel({
         />
         <InsightCard
           title="Temporal patterns"
-          description={`Peak hour: ${formatHour(temporal.peakHour)} · Peak day: ${formatDayOfWeek(temporal.peakDayOfWeek)}`}
+          description={`Peak hour: ${formatUtcHourAsLocal(temporal.peakHour)} · Peak day: ${formatDayOfWeek(temporal.peakDayOfWeek)}`}
         >
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
             By hour of day

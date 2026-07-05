@@ -1,5 +1,6 @@
 import type { PublicationVersionInsight } from "../../../api/types";
 import { formatPercent } from "./formatAnalytics";
+import { formatLocalDateTime } from "../../../lib/formatDateTime";
 
 type PublicationVersionsPanelProps = {
   versions: PublicationVersionInsight[];
@@ -40,7 +41,7 @@ export function PublicationVersionsPanel({ versions }: PublicationVersionsPanelP
                 ) : null}
                 {v.publishedAt ? (
                   <p className="mt-0.5 text-xs text-slate-400">
-                    Published {new Date(v.publishedAt).toLocaleString()}
+                    Published {formatLocalDateTime(v.publishedAt)}
                   </p>
                 ) : null}
               </div>

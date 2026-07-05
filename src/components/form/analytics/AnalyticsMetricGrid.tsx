@@ -1,6 +1,7 @@
 import type { AnalyticsTimelinePoint } from "../../../api/types";
 import type { AnalyticsCompletionInsights, AnalyticsSummary } from "../../../api/types";
-import { formatDayOfWeek, formatHour, formatPercent } from "./formatAnalytics";
+import { formatDayOfWeek, formatPercent } from "./formatAnalytics";
+import { formatLocalDateTime, formatUtcHourAsLocal } from "../../../lib/formatDateTime";
 
 type AnalyticsMetricGridProps = {
   summary: AnalyticsSummary | null;
@@ -98,7 +99,7 @@ export function AnalyticsMetricGrid({
     },
     {
       label: "Peak activity",
-      value: formatHour(summary?.peakHour ?? null),
+      value: formatUtcHourAsLocal(summary?.peakHour ?? null),
       hint: summary?.peakDayOfWeek
         ? `Busiest: ${formatDayOfWeek(summary.peakDayOfWeek)}`
         : undefined,
@@ -110,16 +111,9 @@ export function AnalyticsMetricGrid({
     },
     {
       label: "Last response",
-      value: summary?.lastResponseAt
-        ? new Date(summary.lastResponseAt).toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-          })
-        : "—",
+      value: summary?.lastResponseAt ? formatLocalDateTime(summary.lastResponseAt, "short") : "—",
       hint: summary?.firstResponseAt
-        ? `First: ${new Date(summary.firstResponseAt).toLocaleDateString()}`
+        ? `First: ${formatLocalDateTime(summary.firstResponseAt, "date")}`
         : "No responses yet",
     },
   ];

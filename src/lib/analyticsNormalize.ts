@@ -19,11 +19,6 @@ import type {
   TopTextAnswer,
 } from "../api/types";
 
-/**
- * Normalizers for FormAnalyticsController (`/workspaces/{id}/forms/{id}/…`).
- * `apiData()` unwraps `{ status, data, message }` before these run.
- */
-
 function asRecord(raw: unknown): Record<string, unknown> {
   return raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
 }
@@ -63,7 +58,6 @@ function pickNullableNumber(...values: unknown[]): number | null {
   return null;
 }
 
-/** Normalize { key, label, name, value, count, percent } rows from backend breakdowns. */
 function normalizeBreakdownItem(raw: unknown, fallbackKey?: string): BreakdownItem | null {
   const r = asRecord(raw);
   const key =
@@ -81,7 +75,6 @@ function isDimensionGroup(item: unknown): boolean {
   return Array.isArray(r.breakdown);
 }
 
-/** Flatten `[{ breakdown: [...] }]` or plain breakdown rows. */
 function extractBreakdownItems(raw: unknown): BreakdownItem[] {
   const items = asArray(raw);
   if (items.length === 0) return [];
@@ -419,7 +412,6 @@ export function normalizeAnalyticsInsights(raw: unknown): AnalyticsInsights | nu
   };
 }
 
-/** FormAnalyticsSummaryDto */
 export function normalizeAnalyticsSummary(raw: unknown): AnalyticsSummary {
   const r = asRecord(raw);
   const versionRaw = r.currentPublicationVersion ?? r.currentPublishVersion ?? r.publishVersion ?? r.version;
@@ -441,7 +433,6 @@ export function normalizeAnalyticsSummary(raw: unknown): AnalyticsSummary {
   };
 }
 
-/** TimelineBucketDto */
 function normalizeTimelinePoint(raw: unknown): AnalyticsTimelinePoint | null {
   const r = asRecord(raw);
   const date = pickString(r.date, r.day, r.label, r.bucket);
@@ -458,7 +449,6 @@ function normalizeTimelinePoints(raw: unknown): AnalyticsTimelinePoint[] {
     .filter((p): p is AnalyticsTimelinePoint => p !== null);
 }
 
-/** GET …/analytics/timeline → data is List<TimelineBucketDto> */
 export function normalizeAnalyticsTimeline(raw: unknown, fallbackDays = 7): AnalyticsTimeline {
   if (Array.isArray(raw)) {
     return { days: fallbackDays, points: normalizeTimelinePoints(raw) };
@@ -471,7 +461,6 @@ export function normalizeAnalyticsTimeline(raw: unknown, fallbackDays = 7): Anal
   };
 }
 
-/** Distribution entry inside QuestionAnalyticsDto */
 function normalizeDistribution(raw: unknown): QuestionDistribution | null {
   const r = asRecord(raw);
   const value = pickString(r.value, r.option, r.answer, r.key);
@@ -504,7 +493,6 @@ function normalizeTopTextAnswer(raw: unknown): TopTextAnswer | null {
   };
 }
 
-/** QuestionAnalyticsDto */
 function normalizeQuestion(raw: unknown): QuestionAnalytics | null {
   const r = asRecord(raw);
   const fieldId = pickString(r.fieldId, r.id, r.questionId, r.componentId);
@@ -518,7 +506,7 @@ function normalizeQuestion(raw: unknown): QuestionAnalytics | null {
     .filter((t): t is TopTextAnswer => t !== null);
   return {
     fieldId,
-    label: pickString(r.label, r.questionLabel, r.title, r.name) ?? fieldId,
+    label: pickString(r.label, r.questionLabel, r.title, r.name, r.question, r.fieldLabel, r.text) ?? fieldId,
     type: pickString(r.type, r.fieldType, r.componentType) ?? "text",
     responseCount: responseCount || distribution.reduce((sum, d) => sum + d.count, 0),
     skippedCount: r.skippedCount !== undefined ? pickNumber(r.skippedCount) : undefined,
@@ -534,7 +522,6 @@ function normalizeQuestion(raw: unknown): QuestionAnalytics | null {
   };
 }
 
-/** GET …/analytics/questions → data is List<QuestionAnalyticsDto> */
 export function normalizeQuestionAnalyticsList(raw: unknown): QuestionAnalytics[] {
   if (Array.isArray(raw)) {
     return raw.map(normalizeQuestion).filter((q): q is QuestionAnalytics => q !== null);
@@ -552,7 +539,6 @@ function extractTimelineRaw(raw: unknown): unknown {
   return Array.isArray(inner) ? inner : raw;
 }
 
-/** GET …/analytics → data is FormAnalyticsOverviewDto */
 export function normalizeFormAnalyticsOverview(raw: unknown, fallbackDays = 7): FormAnalyticsOverview {
   const r = asRecord(raw);
   const timelineRaw = r.timeline ?? r.buckets ?? r.points;
@@ -565,7 +551,6 @@ export function normalizeFormAnalyticsOverview(raw: unknown, fallbackDays = 7): 
   };
 }
 
-/** GET …/analytics/insights */
 export function normalizeFormAnalyticsInsightsOnly(raw: unknown): AnalyticsInsights {
   const normalized = normalizeAnalyticsInsights(raw);
   if (normalized) return normalized;
@@ -578,7 +563,6 @@ export function normalizeFormAnalyticsInsightsOnly(raw: unknown): AnalyticsInsig
   };
 }
 
-/** SubmissionListItemDto */
 function normalizeSubmissionRow(raw: unknown): SubmissionRow | null {
   const r = asRecord(raw);
   const id = pickString(r.id, r.submissionId);
@@ -599,7 +583,6 @@ function normalizeSubmissionRow(raw: unknown): SubmissionRow | null {
   };
 }
 
-/** GET …/submissions → data is Page<SubmissionListItemDto> */
 export function normalizeSubmissionsPage(raw: unknown): SubmissionsPage {
   const r = asRecord(raw);
   const content = asArray(r.content ?? r.items)

@@ -1,4 +1,10 @@
 import type { BreakdownItem } from "../../../api/types";
+import {
+  findPeakHourFromBuckets,
+  formatUtcHourAsLocal,
+  remapUtcHourBucketsToLocal,
+  utcHourToLocalHour,
+} from "../../../lib/formatDateTime";
 import { formatHour } from "./formatAnalytics";
 
 type HourOfDayChartProps = {
@@ -7,8 +13,20 @@ type HourOfDayChartProps = {
 };
 
 export function HourOfDayChart({ byHour, peakHour }: HourOfDayChartProps) {
-  const buckets: BreakdownItem[] = Array.from({ length: 24 }, (_, hour) => {
-    const match = byHour.find(
+  const localByHour = remapUtcHourBucketsToLocal(byHour);
+  const localPeakHour =
+    peakHour != null && Number.isFinite(peakHour)
+      ? utcHourToLocalHour(peakHour)
+      : findPeakHourFromBuckets(localByHour);
+  const peakLabel =
+    peakHour != null && Number.isFinite(peakHour)
+      ? formatUtcHourAsLocal(peakHour)
+      : localPeakHour != null
+        ? formatHour(localPeakHour)
+        : null;
+
+  const buckets = Array.from({ length: 24 }, (_, hour) => {
+    const match = localByHour.find(
       (b) => b.key === String(hour) || b.label === String(hour) || Number(b.key) === hour,
     );
     return match ?? { key: String(hour), label: String(hour), count: 0, percent: 0 };
@@ -27,21 +45,18 @@ export function HourOfDayChart({ byHour, peakHour }: HourOfDayChartProps) {
 
   return (
     <div>
-      {peakHour !== null && peakHour !== undefined ? (
+      {peakLabel ? (
         <p className="mb-4 text-xs text-slate-500">
-          Peak hour: <span className="font-semibold text-violet-700">{formatHour(peakHour)}</span>
+          Peak hour: <span className="font-semibold text-violet-700">{peakLabel}</span>
         </p>
       ) : null}
-      <div
-        className="flex gap-0.5 overflow-x-auto pb-1"
-        role="img"
-        aria-label="Responses by hour of day"
-      >
+      <div className="flex gap-0.5 overflow-x-auto pb-1" role="img" aria-label="Responses by hour">
         {buckets.map((bucket) => {
           const hour = Number(bucket.key);
           const heightPct =
             bucket.count === 0 ? 0 : Math.max(8, Math.round((bucket.count / maxCount) * 100));
-          const isPeak = peakHour !== null && peakHour !== undefined && hour === peakHour;
+          const isPeak = localPeakHour != null && hour === localPeakHour;
+
           return (
             <div
               key={bucket.key}
@@ -61,7 +76,9 @@ export function HourOfDayChart({ byHour, peakHour }: HourOfDayChartProps) {
                 )}
               </div>
               {hour % 3 === 0 ? (
-                <span className="mt-1.5 text-[9px] tabular-nums text-slate-400">{hour}</span>
+                <span className="mt-1.5 text-[9px] tabular-nums text-slate-400">
+                  {formatHour(hour).replace(" ", "")}
+                </span>
               ) : (
                 <span className="mt-1.5 h-3" />
               )}

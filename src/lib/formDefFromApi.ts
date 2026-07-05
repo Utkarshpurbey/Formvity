@@ -8,7 +8,6 @@ export type FormLoadSource =
   | { type: "public"; slug: string }
   | { type: "workspace"; workspaceId: string; formId: string };
 
-/** Read FormDef from API payloads shaped as `{ data: { formDef } }` (with fallbacks). */
 export function formDefFromApiPayload(payload: unknown): FormDef | null {
   if (!payload || typeof payload !== "object") return null;
   const root = payload as Record<string, unknown>;
@@ -60,7 +59,6 @@ export async function fetchFormDef(source: FormLoadSource, signal?: AbortSignal)
   return parseFormDefResponse(response, payload);
 }
 
-/** Server-side fetch for public forms — enables SSR so FCP/LCP are not blocked on client JS + fetch. */
 export async function fetchPublicFormDefServer(slug: string, revalidateSeconds = 60): Promise<FormDef> {
   const response = await fetch(apiUrl.publicForm(slug), {
     method: "GET",
@@ -80,7 +78,6 @@ export async function fetchPublicFormDefServer(slug: string, revalidateSeconds =
 
 export type PublicFormLoadResult = { formDef: FormDef | null; error: string | null };
 
-/** Per-request deduped loader for `generateMetadata` + page render. */
 export const getCachedPublicFormDef = cache(async (slug: string): Promise<PublicFormLoadResult> => {
   try {
     const formDef = await fetchPublicFormDefServer(slug);
