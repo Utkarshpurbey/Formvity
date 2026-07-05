@@ -10,8 +10,8 @@ type AppPageContainerProps = {
 /** Consistent left-aligned page width across workspace, settings, and list views. */
 export function AppPageContainer({ children, narrow, className = "" }: AppPageContainerProps) {
   return (
-    <div className={`page-enter w-full px-4 py-8 sm:px-8 ${className}`}>
+    <main id="main-content" className={`page-enter w-full px-4 py-8 sm:px-8 ${className}`}>
       <div className={`mx-auto w-full ${narrow ? "max-w-4xl" : "max-w-6xl"}`}>{children}</div>
-    </div>
+    </main>
   );
 }

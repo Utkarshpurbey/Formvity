@@ -179,7 +179,7 @@ export function MembersPanel({
                     {member.email ? (
                       <p className="truncate text-xs text-slate-500">{member.email}</p>
                     ) : (
-                      <p className="truncate font-mono text-xs text-slate-400">{member.userId}</p>
+                      <p className="truncate font-mono text-xs text-slate-600">{member.userId}</p>
                     )}
                   </div>
                   {showRoleSelect ? (

@@ -96,6 +96,8 @@ export function createPageMetadata(input: PageMetaInput = {}): Metadata {
   const url = absoluteUrl(canonicalPath);
   const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
 
+  const isPublic = !input.noIndex;
+
   return {
     title,
     description,
@@ -104,13 +106,17 @@ export function createPageMetadata(input: PageMetaInput = {}): Metadata {
     creator: siteConfig.creator,
     publisher: siteConfig.creator,
     metadataBase: new URL(getSiteUrl()),
-    alternates: {
-      canonical: url,
-    },
+    ...(isPublic
+      ? {
+          alternates: {
+            canonical: url,
+          },
+        }
+      : {}),
     openGraph: {
       type: "website",
       locale: siteConfig.locale,
-      url,
+      ...(isPublic ? { url } : {}),
       siteName: siteConfig.name,
       title,
       description,
@@ -120,9 +126,8 @@ export function createPageMetadata(input: PageMetaInput = {}): Metadata {
       title,
       description,
     },
-    robots: input.noIndex
-      ? { index: false, follow: false }
-      : {
+    robots: isPublic
+      ? {
           index: true,
           follow: true,
           googleBot: {
@@ -132,7 +137,8 @@ export function createPageMetadata(input: PageMetaInput = {}): Metadata {
             "max-image-preview": "large",
             "max-snippet": -1,
           },
-        },
+        }
+      : { index: false, follow: false },
     ...(googleVerification
       ? {
           verification: {
@@ -146,7 +152,7 @@ export function createPageMetadata(input: PageMetaInput = {}): Metadata {
 /** Metadata for authenticated or utility routes that should not appear in search results. */
 export function createPrivateRouteMetadata(title: string): Metadata {
   return {
-    ...createPageMetadata({ title, noIndex: true }),
+    title,
     robots: { index: false, follow: false },
   };
 }
