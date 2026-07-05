@@ -425,20 +425,42 @@ export function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row">
-          <p className="text-sm text-slate-500">© {new Date().getFullYear()} Formvity. All rights reserved.</p>
-          <nav className="flex gap-6 text-sm font-medium text-slate-600" aria-label="Footer">
-            <Link href="/templates" className="hover:text-slate-900">
-              Templates
-            </Link>
-            <Link href="/login" className="hover:text-slate-900">
-              Sign in
-            </Link>
-            <Link href="/register" className="hover:text-slate-900">
-              Create account
-            </Link>
-          </nav>
+      <footer className="border-t border-slate-200 bg-white py-10">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Formvity</p>
+              <p className="mt-1 text-sm text-slate-500">
+                © {new Date().getFullYear()} Formvity. All rights reserved.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-x-10 gap-y-6">
+              <nav className="flex flex-col gap-2 text-sm" aria-label="Site">
+                <p className="font-semibold text-slate-900">Product</p>
+                <Link href="/templates" className="text-slate-600 hover:text-slate-900">
+                  Templates
+                </Link>
+                <Link href="/register" className="text-slate-600 hover:text-slate-900">
+                  Create account
+                </Link>
+                <Link href="/login" className="text-slate-600 hover:text-slate-900">
+                  Sign in
+                </Link>
+              </nav>
+              <nav className="flex flex-col gap-2 text-sm" aria-label="Legal">
+                <p className="font-semibold text-slate-900">Legal</p>
+                <Link href="/privacy" className="text-slate-600 hover:text-slate-900">
+                  Privacy Policy
+                </Link>
+                <Link href="/terms" className="text-slate-600 hover:text-slate-900">
+                  Terms of Service
+                </Link>
+                <Link href="/license" className="text-slate-600 hover:text-slate-900">
+                  License
+                </Link>
+              </nav>
+            </div>
+          </div>
         </div>
       </footer>
     </main>
