@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ClientProviders } from "../src/components/ClientProviders";
 import { JsonLd } from "../src/components/seo/JsonLd";
+import { GA_MEASUREMENT_ID } from "../src/lib/googleAnalytics";
 import { createPageMetadata, organizationJsonLd, siteConfig, websiteJsonLd } from "../src/lib/seo";
 import "../src/index.css";
 
@@ -14,8 +15,6 @@ const sans = Plus_Jakarta_Sans({
   variable: "--font-sans",
   display: "swap",
 });
-
-const GA_MEASUREMENT_ID = "G-H5233755B3";
 
 export const metadata: Metadata = {
   ...createPageMetadata(),

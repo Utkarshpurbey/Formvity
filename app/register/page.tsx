@@ -7,6 +7,7 @@ import { AuthShell } from "@/src/components/layout/AuthShell";
 import { PageLoader, Spinner } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { clearAuthError, registerUser } from "@/src/store/slices/authSlice";
+import { trackEvent } from "@/src/lib/googleAnalytics";
 
 function RegisterPageContent() {
   const router = useRouter();
@@ -35,6 +36,7 @@ function RegisterPageContent() {
     dispatch(registerUser({ displayName, email, password }))
       .unwrap()
       .then(() => {
+        trackEvent("sign_up", { method: "email" });
         notifySuccess("Account created. Welcome!");
         router.push("/workspaces");
       })

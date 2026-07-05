@@ -7,6 +7,7 @@ import { AppToastContainer } from "./ui/AppToast";
 import { AuthBootstrap } from "./AuthBootstrap";
 import { NavigationProgress } from "./layout/NavigationProgress";
 import { AppShellChrome } from "./layout/AppShellChrome";
+import { GoogleAnalyticsPageView } from "./analytics/GoogleAnalyticsPageView";
 import { stripAppBasePath } from "../utils/appBasePath";
 import { store } from "../store/store";
 
@@ -24,6 +25,7 @@ function AppShellWrapper({ children }: { children: ReactNode }) {
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <Provider store={store}>
+      <GoogleAnalyticsPageView />
       <AuthBootstrap />
       <NavigationProgress />
       <AppShellWrapper>{children}</AppShellWrapper>

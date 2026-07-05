@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAppSelector } from "../../store/hooks";
 import { TEMPLATE_CATALOG } from "../../lib/templates";
+import { trackEvent } from "../../lib/googleAnalytics";
 import { BreakdownChart } from "../form/analytics/BreakdownChart";
 import { ChartViewToggle, type ChartViewMode } from "../form/analytics/ChartViewToggle";
 import { ProductMockup } from "./ProductMockup";
@@ -171,12 +172,26 @@ export function HomePage() {
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link
                   href={primaryCta.href}
+                  onClick={() =>
+                    trackEvent("cta_click", {
+                      cta_location: "hero",
+                      cta_label: primaryCta.label,
+                      cta_href: primaryCta.href,
+                    })
+                  }
                   className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-8 text-sm font-semibold text-slate-950 shadow-lg shadow-violet-500/25 transition hover:bg-slate-100"
                 >
                   {primaryCta.label}
                 </Link>
                 <Link
                   href={secondaryCta.href}
+                  onClick={() =>
+                    trackEvent("cta_click", {
+                      cta_location: "hero",
+                      cta_label: secondaryCta.label,
+                      cta_href: secondaryCta.href,
+                    })
+                  }
                   className="inline-flex h-12 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-8 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10"
                 >
                   {secondaryCta.label}
