@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAppSelector } from "../../store/hooks";
 import { TEMPLATE_CATALOG } from "../../lib/templates";
 import { BreakdownChart } from "../form/analytics/BreakdownChart";
@@ -123,7 +123,6 @@ function FeatureIcon({ name }: { name: string }) {
 }
 
 export function HomePage() {
-  const router = useRouter();
   const user = useAppSelector((s) => s.auth.user);
   const [demoChartView, setDemoChartView] = useState<ChartViewMode>("pie");
 
@@ -135,7 +134,7 @@ export function HomePage() {
     : { label: "View templates", href: "/templates" };
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto scroll-smooth">
+    <main className="min-h-0 flex-1 overflow-y-auto scroll-smooth">
       {/* Hero */}
       <section className="relative overflow-hidden bg-slate-950 text-white">
         <div className="pointer-events-none absolute -left-32 top-0 size-96 rounded-full bg-violet-600/30 blur-3xl" aria-hidden />
@@ -157,7 +156,7 @@ export function HomePage() {
               </div>
 
               <h1 className="mt-8 text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.25rem]">
-                Build forms.
+                Formvity — build forms.
                 <br />
                 <span className="bg-gradient-to-r from-violet-300 via-white to-cyan-200 bg-clip-text text-transparent">
                   Understand every response.
@@ -170,20 +169,18 @@ export function HomePage() {
               </p>
 
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <button
-                  type="button"
-                  onClick={() => router.push(primaryCta.href)}
+                <Link
+                  href={primaryCta.href}
                   className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-8 text-sm font-semibold text-slate-950 shadow-lg shadow-violet-500/25 transition hover:bg-slate-100"
                 >
                   {primaryCta.label}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => router.push(secondaryCta.href)}
+                </Link>
+                <Link
+                  href={secondaryCta.href}
                   className="inline-flex h-12 items-center justify-center rounded-xl border border-white/20 bg-white/5 px-8 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10"
                 >
                   {secondaryCta.label}
-                </button>
+                </Link>
               </div>
 
               <dl className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
@@ -373,13 +370,12 @@ export function HomePage() {
             ))}
           </ul>
           <div className="mt-10 text-center">
-            <button
-              type="button"
-              onClick={() => router.push("/templates")}
+            <Link
+              href="/templates"
               className="inline-flex h-11 items-center rounded-xl border border-violet-200 bg-violet-50 px-6 text-sm font-semibold text-violet-700 transition hover:bg-violet-100"
             >
               Explore template library →
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -397,20 +393,18 @@ export function HomePage() {
               : "Free to start. No credit card. Publish and collect responses in minutes."}
           </p>
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => router.push(primaryCta.href)}
-              className="h-12 rounded-xl bg-white px-8 text-sm font-semibold text-slate-950 shadow-lg transition hover:bg-slate-100"
+            <Link
+              href={primaryCta.href}
+              className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-8 text-sm font-semibold text-slate-950 shadow-lg transition hover:bg-slate-100"
             >
               {primaryCta.label}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push(user ? "/builder" : "/login")}
-              className="h-12 rounded-xl border border-white/20 px-8 text-sm font-semibold text-white transition hover:bg-white/10"
+            </Link>
+            <Link
+              href={user ? "/builder" : "/login"}
+              className="inline-flex h-12 items-center justify-center rounded-xl border border-white/20 px-8 text-sm font-semibold text-white transition hover:bg-white/10"
             >
               {user ? "Open builder" : "Log in"}
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -419,19 +413,19 @@ export function HomePage() {
       <footer className="border-t border-slate-200 bg-white py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row">
           <p className="text-sm text-slate-500">© {new Date().getFullYear()} Formvity. Form builder with analytics.</p>
-          <div className="flex gap-6 text-sm font-medium text-slate-600">
-            <button type="button" onClick={() => router.push("/templates")} className="hover:text-slate-900">
+          <nav className="flex gap-6 text-sm font-medium text-slate-600" aria-label="Footer">
+            <Link href="/templates" className="hover:text-slate-900">
               Templates
-            </button>
-            <button type="button" onClick={() => router.push("/login")} className="hover:text-slate-900">
+            </Link>
+            <Link href="/login" className="hover:text-slate-900">
               Log in
-            </button>
-            <button type="button" onClick={() => router.push("/register")} className="hover:text-slate-900">
+            </Link>
+            <Link href="/register" className="hover:text-slate-900">
               Register
-            </button>
-          </div>
+            </Link>
+          </nav>
         </div>
       </footer>
-    </div>
+    </main>
   );
 }

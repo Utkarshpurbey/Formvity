@@ -1,24 +1,13 @@
 import type { MetadataRoute } from "next";
-import { absoluteUrl, getSiteUrl } from "../src/lib/seo";
+import { absoluteUrl } from "../src/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [
-      {
-        userAgent: "*",
-        allow: ["/", "/login", "/register"],
-        disallow: [
-          "/workspaces",
-          "/workspaces/",
-          "/workspace",
-          "/builder",
-          "/invite",
-          "/r/",
-          "/welcome",
-        ],
-      },
-    ],
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/workspaces", "/workspace", "/builder", "/templates", "/invite", "/r/", "/welcome"],
+    },
     sitemap: absoluteUrl("/sitemap.xml"),
-    host: getSiteUrl(),
   };
 }

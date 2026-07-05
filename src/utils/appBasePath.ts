@@ -24,5 +24,10 @@ export function getAppOrigin(): string {
   if (typeof window !== "undefined") {
     return window.location.origin;
   }
-  return (process.env.NEXT_PUBLIC_APP_URL ?? "").trim().replace(/\/+$/, "");
+  const fromEnv = (process.env.NEXT_PUBLIC_APP_URL ?? process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "").trim().replace(/\/+$/, "");
+  if (fromEnv) {
+    if (fromEnv.startsWith("http://") || fromEnv.startsWith("https://")) return fromEnv;
+    return `https://${fromEnv}`;
+  }
+  return "https://formvity.in";
 }

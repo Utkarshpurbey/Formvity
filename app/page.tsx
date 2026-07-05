@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { HomePage } from "../src/components/home/HomePage";
 import { JsonLd } from "../src/components/seo/JsonLd";
-import { createPageMetadata, siteConfig, softwareApplicationJsonLd } from "../src/lib/seo";
+import { createPageMetadata, faqPageJsonLd, siteConfig, softwareApplicationJsonLd } from "../src/lib/seo";
 
 export const metadata: Metadata = createPageMetadata({
   title: siteConfig.title,
@@ -12,7 +12,7 @@ export const metadata: Metadata = createPageMetadata({
 export default function IndexPage() {
   return (
     <>
-      <JsonLd data={softwareApplicationJsonLd()} />
+      <JsonLd data={[softwareApplicationJsonLd(), faqPageJsonLd()]} />
       <HomePage />
     </>
   );
