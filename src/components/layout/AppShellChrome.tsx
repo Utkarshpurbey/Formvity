@@ -20,7 +20,8 @@ export function AppShellChrome({ children }: { children: ReactNode }) {
   const routePath = stripAppBasePath(pathname);
   const user = useAppSelector((s) => s.auth.user);
   const isPublicResponder = routePath.startsWith("/r/");
-  const showSidebar = Boolean(user) && !isMarketingRoute(routePath) && !isPublicResponder;
+  const isMarketing = isMarketingRoute(routePath);
+  const showSidebar = Boolean(user) && !isMarketing && !isPublicResponder;
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
@@ -44,7 +45,7 @@ export function AppShellChrome({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafc]">
+    <div className={`flex min-h-screen ${isMarketing ? "bg-slate-950" : "bg-[#f8fafc]"}`}>
       {showSidebar ? <AppSidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} /> : null}
       <div className="flex min-w-0 flex-1 flex-col">
         {!isPublicResponder ? (

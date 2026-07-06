@@ -21,7 +21,12 @@ const exploreNav = [
   { href: "/templates", label: "Templates" },
 ];
 
-function navLinkClass(active: boolean) {
+function navLinkClass(active: boolean, marketing = false) {
+  if (marketing) {
+    return `rounded-lg px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
+      active ? "bg-white/10 text-white" : "text-slate-300 hover:bg-white/5 hover:text-white"
+    }`;
+  }
   return `rounded-lg px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
     active ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
   }`;
@@ -73,12 +78,13 @@ export function AppShellHeader() {
   };
 
   const isHome = routePath === "/";
+  const marketingHeader = isHome && !user;
   const userLabel = user?.displayName ?? "Account";
   const primaryNav = user ? workspaceNav : exploreNav;
 
   if (!ready) {
     return (
-      <header className="sticky top-0 z-40 h-14 shrink-0 border-b border-slate-200/90 bg-white/90 backdrop-blur-md">
+      <header className={`sticky top-0 z-40 h-14 shrink-0 backdrop-blur-md ${marketingHeader ? "border-b border-white/10 bg-slate-950/60" : "border-b border-slate-200/90 bg-white/90"}`}>
         <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4">
           <div className="h-8 w-32 animate-pulse rounded-lg bg-slate-100" aria-hidden />
           <Spinner size="sm" label="Loading account" />
@@ -88,8 +94,14 @@ export function AppShellHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 shrink-0 border-b border-slate-200/90 bg-white/90 shadow-sm backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
+    <header
+      className={`sticky top-0 z-40 shrink-0 backdrop-blur-xl ${
+        marketingHeader
+          ? "border-b border-white/10 bg-slate-950/70 shadow-none"
+          : "border-b border-slate-200/90 bg-white/90 shadow-sm"
+      }`}
+    >
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 flex-1 items-center gap-6 md:gap-8">
           <button
             type="button"
@@ -105,8 +117,12 @@ export function AppShellHeader() {
               </svg>
             </div>
             <div className="min-w-0 leading-tight">
-              <p className="text-sm font-semibold tracking-tight text-slate-900">Formvity</p>
-              <p className="hidden text-[11px] font-medium text-slate-500 sm:block">Form builder</p>
+              <p className={`text-sm font-semibold tracking-tight ${marketingHeader ? "text-white" : "text-slate-900"}`}>
+                Formvity
+              </p>
+              <p className={`hidden text-[11px] font-medium sm:block ${marketingHeader ? "text-slate-400" : "text-slate-500"}`}>
+                Form builder
+              </p>
             </div>
           </button>
 
@@ -117,13 +133,16 @@ export function AppShellHeader() {
                 type="button"
                 onClick={() => router.push(href)}
                 aria-current={routePath === href ? "page" : undefined}
-                className={navLinkClass(routePath === href || (href === "/workspaces" && routePath.startsWith("/workspaces")))}
+                className={navLinkClass(
+                  routePath === href || (href === "/workspaces" && routePath.startsWith("/workspaces")),
+                  marketingHeader,
+                )}
               >
                 {label}
               </button>
             ))}
             {user && isHome ? (
-              <button type="button" onClick={() => router.push("/")} className={navLinkClass(true)}>
+              <button type="button" onClick={() => router.push("/")} className={navLinkClass(true, marketingHeader)}>
                 Home
               </button>
             ) : null}
@@ -184,14 +203,16 @@ export function AppShellHeader() {
               <button
                 type="button"
                 onClick={() => router.push("/login")}
-                className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 sm:inline-flex"
+                className={`hidden rounded-lg px-3 py-2 text-sm font-medium transition sm:inline-flex ${
+                  marketingHeader ? "text-slate-300 hover:bg-white/5 hover:text-white" : "text-slate-700 hover:bg-slate-100"
+                }`}
               >
                 Sign in
               </button>
               <button
                 type="button"
                 onClick={() => router.push("/register")}
-                className="inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                className="inline-flex items-center rounded-lg bg-violet-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500"
               >
                 Get started
               </button>
@@ -201,7 +222,11 @@ export function AppShellHeader() {
                 aria-label="Open menu"
                 aria-expanded={menuOpen}
                 onClick={() => setMenuOpen((o) => !o)}
-                className="inline-flex size-10 items-center justify-center rounded-lg border border-slate-200 text-slate-700 md:hidden"
+                className={`inline-flex size-10 items-center justify-center rounded-lg border md:hidden ${
+                  marketingHeader
+                    ? "border-white/15 text-white hover:bg-white/5"
+                    : "border-slate-200 text-slate-700"
+                }`}
               >
                 <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                   {menuOpen ? (
@@ -217,7 +242,10 @@ export function AppShellHeader() {
       </div>
 
       {menuOpen && !user ? (
-        <div ref={guestMenuRef} className="border-t border-slate-100 bg-white px-4 py-3 md:hidden">
+        <div
+          ref={guestMenuRef}
+          className={`border-t px-4 py-3 md:hidden ${marketingHeader ? "border-white/10 bg-slate-950/95" : "border-slate-100 bg-white"}`}
+        >
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {exploreNav.map(({ href, label }) => (
               <button
@@ -227,7 +255,9 @@ export function AppShellHeader() {
                   closeMenus();
                   router.push(href);
                 }}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className={`rounded-lg px-3 py-2.5 text-sm font-medium ${
+                  marketingHeader ? "text-slate-200 hover:bg-white/5" : "text-slate-700 hover:bg-slate-50"
+                }`}
               >
                 {label}
               </button>
@@ -238,7 +268,9 @@ export function AppShellHeader() {
                 closeMenus();
                 router.push("/login");
               }}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className={`rounded-lg px-3 py-2.5 text-sm font-medium ${
+                marketingHeader ? "text-slate-200 hover:bg-white/5" : "text-slate-700 hover:bg-slate-50"
+              }`}
             >
               Sign in
             </button>

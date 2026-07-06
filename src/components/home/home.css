@@ -1,0 +1,42 @@
+@keyframes home-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes home-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+.home-mockup-float {
+  animation: home-float 6s ease-in-out infinite;
+}
+
+.home-gradient-text {
+  background: linear-gradient(135deg, #c4b5fd 0%, #ffffff 45%, #a5f3fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.home-shimmer-border {
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: home-shimmer 4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-mockup-float,
+  .home-shimmer-border {
+    animation: none;
+  }
+}

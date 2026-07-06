@@ -1,0 +1,132 @@
+@keyframes wt-scene-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wt-stagger {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wt-field-appear {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes wt-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wt-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes wt-bar-grow {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes wt-highlight-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+  }
+}
+
+@keyframes wt-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.wt-scene-enter {
+  animation: wt-scene-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.wt-stagger {
+  animation: wt-stagger 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.wt-field-appear {
+  animation: wt-field-appear 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.wt-slide-up {
+  animation: wt-slide-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.wt-fade-in {
+  animation: wt-fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+}
+
+.wt-bar-grow {
+  transform-origin: bottom;
+  animation: wt-bar-grow 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.wt-highlight {
+  animation: wt-highlight-pulse 2s ease-in-out infinite;
+}
+
+.wt-progress {
+  animation: wt-progress var(--wt-duration, 5.2s) linear forwards;
+}
+
+.wt-paused .wt-progress {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wt-scene-enter,
+  .wt-stagger,
+  .wt-field-appear,
+  .wt-slide-up,
+  .wt-fade-in,
+  .wt-bar-grow,
+  .wt-highlight,
+  .wt-progress {
+    animation: none;
+  }
+}
