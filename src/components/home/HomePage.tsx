@@ -30,6 +30,7 @@ export function HomePage() {
 
   return (
     <main className="min-h-0 flex-1 overflow-y-auto scroll-smooth">
+      <p>Developer mode</p>
       <HomeHero cta={{ primary: primaryCta, secondary: secondaryCta }} />
       <HomeLogoStrip />
       <HomeValueProps />
