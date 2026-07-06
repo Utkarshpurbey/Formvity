@@ -6,13 +6,23 @@ const nextConfig = {
     optimizePackageImports: ["react-toastify"],
   },
   async headers() {
+    const isDev = process.env.NODE_ENV === "development";
+    const devConnectOrigins = isDev
+      ? [
+          "http://localhost:8081",
+          "http://127.0.0.1:8081",
+          process.env.NEXT_PUBLIC_API_URL,
+          process.env.API_PROXY_TARGET,
+        ].filter((origin) => origin?.startsWith("http://") || origin?.startsWith("https://"))
+      : [];
+
     const csp = [
       "default-src 'self'",
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://va.vercel-scripts.com",
-      "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vitals.vercel-insights.com https://api-formvity.onrender.com",
+      `connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vitals.vercel-insights.com https://api-formvity.onrender.com${devConnectOrigins.length ? ` ${[...new Set(devConnectOrigins)].join(" ")}` : ""}`,
       "img-src 'self' data: blob: https:",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
@@ -29,25 +39,6 @@ const nextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Content-Security-Policy", value: csp },
         ],
-      },
-    ];
-  },
-  async redirects() {
-    return [
-      {
-        source: "/builder/v2",
-        destination: "/builder",
-        permanent: true,
-      },
-      {
-        source: "/welcome",
-        destination: "/invite",
-        permanent: false,
-      },
-      {
-        source: "/home",
-        destination: "/",
-        permanent: true,
       },
     ];
   },

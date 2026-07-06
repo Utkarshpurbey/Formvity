@@ -270,11 +270,10 @@ const PALETTE_ICONS: Record<string, React.ReactNode> = {
 
 interface ComponentPaletteProps {
   onDragStart?: (type: string) => void;
-  builderVersion?: "v1" | "v2";
 }
 
-function ComponentPalette({ onDragStart, builderVersion = "v1" }: ComponentPaletteProps) {
-  const paletteSpecs = getPaletteSpecs(builderVersion);
+function ComponentPalette({ onDragStart }: ComponentPaletteProps) {
+  const paletteSpecs = getPaletteSpecs();
   return (
     <div className="flex flex-col h-full min-h-0 bg-white">
       <header className="shrink-0 px-4 py-3 border-b border-slate-200 bg-white">
@@ -316,7 +315,6 @@ type BuilderSidebarProps = {
   onActivePageChange: (pageId: string) => void;
   onFormDefChange: (updater: (prev: FormDef) => FormDef) => void;
   onClearSelection: () => void;
-  builderVersion?: "v1" | "v2";
 };
 
 export default function BuilderSidebar({
@@ -325,7 +323,6 @@ export default function BuilderSidebar({
   onActivePageChange,
   onFormDefChange,
   onClearSelection,
-  builderVersion = "v1",
 }: BuilderSidebarProps) {
   return (
     <div className="flex h-full min-h-0 flex-col bg-white">
@@ -344,7 +341,7 @@ export default function BuilderSidebar({
         </div>
       </div>
       <div className="flex min-h-0 flex-1 flex-col">
-        <ComponentPalette builderVersion={builderVersion} />
+        <ComponentPalette />
       </div>
     </div>
   );
@@ -363,19 +360,16 @@ function generateComponentId(type: PageComponentType): string {
 }
 
 /** Resolve palette id (e.g. "TextField") to concrete PageComponentType (e.g. "text"). */
-function resolveToConcreteType(paletteIdOrType: string, builderVersion: "v1" | "v2" = "v1"): PageComponentType | null {
-  const palette = getPaletteSpecs(builderVersion).find((p) => p.id === paletteIdOrType);
+function resolveToConcreteType(paletteIdOrType: string): PageComponentType | null {
+  const palette = getPaletteSpecs().find((p) => p.id === paletteIdOrType);
   if (palette) return palette.defaultType as PageComponentType;
   if (COMPONENT_SPECS.some((s) => s.type === paletteIdOrType)) return paletteIdOrType as PageComponentType;
   return null;
 }
 
 /** Return default PageComponentDef for a palette id (e.g. "TextField") or concrete type (e.g. "text"). */
-export function getDefaultComponentDef(
-  paletteIdOrType: string,
-  builderVersion: "v1" | "v2" = "v1",
-): PageComponentDef | null {
-  const type = resolveToConcreteType(paletteIdOrType, builderVersion);
+export function getDefaultComponentDef(paletteIdOrType: string): PageComponentDef | null {
+  const type = resolveToConcreteType(paletteIdOrType);
   if (!type) return null;
   const spec = COMPONENT_SPECS.find((s) => s.type === type);
   const example = spec ? (spec.exampleJson as Record<string, unknown>) : {};

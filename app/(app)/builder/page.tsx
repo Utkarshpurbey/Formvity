@@ -8,11 +8,11 @@ import { PublishFlowModal } from "../../../src/components/publish/PublishFlowMod
 import { PageLoader } from "../../../src/components/ui/index";
 import { isEditableFormLifecycle } from "../../../src/lib/publish";
 import { resolveRespondentIntake } from "../../../src/lib/respondentIntake";
-import { useBuilderV2Page } from "../../../src/hooks/useBuilderV2Page";
-import { BuilderV2TopBar } from "../../../src/components/page-def/builder-v2/BuilderV2TopBar";
-import { IntakeConfigPanel } from "../../../src/components/page-def/builder-v2/IntakeConfigPanel";
-import { BuilderGuideModal } from "../../../src/components/page-def/builder-v2/BuilderGuideModal";
-import { BuilderV2Preview } from "../../../src/components/page-def/builder-v2/BuilderV2Preview";
+import { useBuilderPage } from "../../../src/hooks/useBuilderPage";
+import { BuilderTopBar } from "../../../src/components/page-def/builder/BuilderTopBar";
+import { IntakeConfigPanel } from "../../../src/components/page-def/builder/IntakeConfigPanel";
+import { BuilderGuideModal } from "../../../src/components/page-def/builder/BuilderGuideModal";
+import { BuilderPreview } from "../../../src/components/page-def/builder/BuilderPreview";
 
 function BuilderPageInner() {
   const {
@@ -61,7 +61,7 @@ function BuilderPageInner() {
     openGuide,
     updateRespondentIntake,
     intakeIsDefault,
-  } = useBuilderV2Page();
+  } = useBuilderPage();
 
   const intake = resolveRespondentIntake(formDef);
 
@@ -84,7 +84,6 @@ function BuilderPageInner() {
           <IntakeConfigPanel intake={intake} onChange={updateRespondentIntake} />
         ) : (
           <BuilderSidebar
-            builderVersion="v2"
             formDef={formDef}
             activePageId={activePageId}
             onActivePageChange={setActivePageId}
@@ -95,7 +94,7 @@ function BuilderPageInner() {
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden p-4">
-        <BuilderV2TopBar
+        <BuilderTopBar
           formTitle={formDef.title}
           saveState={saveState}
           apiMode={apiMode}
@@ -133,7 +132,6 @@ function BuilderPageInner() {
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/40 shadow-inner">
             <PageCanvas
               key={activePage.id}
-              builderVersion="v2"
               formDef={formDef}
               page={activePage}
               pageIndex={pageIndex}
@@ -197,7 +195,7 @@ function BuilderPageInner() {
       ) : null}
 
       <BuilderGuideModal open={guideOpen} onClose={dismissGuide} />
-      <BuilderV2Preview open={previewOpen} formDef={formDef} onClose={() => setPreviewOpen(false)} />
+      <BuilderPreview open={previewOpen} formDef={formDef} onClose={() => setPreviewOpen(false)} />
     </div>
   );
 }

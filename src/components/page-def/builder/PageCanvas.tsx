@@ -42,7 +42,6 @@ interface PageCanvasProps {
   onPageChange: (updater: (prev: FormPageDef) => FormPageDef) => void;
   isLastPage?: boolean;
   isFirstPage?: boolean;
-  builderVersion?: "v1" | "v2";
 }
 
 export default function PageCanvas({
@@ -56,7 +55,6 @@ export default function PageCanvas({
   onPageChange,
   isLastPage = true,
   isFirstPage = true,
-  builderVersion = "v1",
 }: PageCanvasProps) {
   const progressPct = totalPages > 1 ? ((pageIndex + 1) / totalPages) * 100 : 100;
   const appearance = getAppearance(formDef);
@@ -88,7 +86,7 @@ export default function PageCanvas({
       return;
     }
     if (!type) return;
-    const def = getDefaultComponentDef(type, builderVersion);
+    const def = getDefaultComponentDef(type);
     if (!def) return;
     onPageChange((prev) => ({
       ...prev,
@@ -115,7 +113,7 @@ export default function PageCanvas({
       return;
     }
     if (type) {
-      const def = getDefaultComponentDef(type, builderVersion);
+      const def = getDefaultComponentDef(type);
       if (def) {
         const dropIndex = page.components.findIndex((c) => c.id === dropTargetId);
         if (dropIndex === -1) return;

@@ -1,10 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import type { FormLifecycle } from "../../../lib/publish";
 import { FormLifecycleBadge } from "../../ui/FormLifecycleBadge";
-import { PublicLinkPanel } from "../../publish/PublicLinkPanel";
-import { Spinner } from "../../ui/index";
+import type { FormLifecycle } from "../../../lib/publish";
 
 export type SaveState = "saving" | "saved" | "unsaved";
 
@@ -13,140 +10,138 @@ type BuilderTopBarProps = {
   saveState: SaveState;
   apiMode: boolean;
   lifecycle: FormLifecycle | null;
+  builderMode: "intake" | "pages";
+  intakeIsDefault: boolean;
   showJson: boolean;
+  saving: boolean;
+  publishing: boolean;
+  onModeChange: (mode: "intake" | "pages") => void;
   onToggleJson: () => void;
   onSave: () => void;
   onPublish: () => void;
   onShare: () => void;
   onUpdateLive: () => void;
-  saving: boolean;
-  publishing?: boolean;
+  onPreview: () => void;
+  onOpenGuide: () => void;
 };
-
-function SaveIndicator({ state }: { state: SaveState }) {
-  if (state === "saving") {
-    return (
-      <span className="flex items-center gap-1.5 text-xs text-slate-500">
-        <Spinner size="sm" />
-        Saving…
-      </span>
-    );
-  }
-  if (state === "unsaved") {
-    return <span className="text-xs font-medium text-amber-600">Unsaved changes</span>;
-  }
-  return (
-    <span className="flex items-center gap-1 text-xs text-slate-500">
-      <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden />
-      Saved
-    </span>
-  );
-}
 
 export function BuilderTopBar({
   formTitle,
   saveState,
   apiMode,
   lifecycle,
+  builderMode,
+  intakeIsDefault,
   showJson,
+  saving,
+  publishing,
+  onModeChange,
   onToggleJson,
   onSave,
   onPublish,
   onShare,
   onUpdateLive,
-  saving,
-  publishing = false,
+  onPreview,
+  onOpenGuide,
 }: BuilderTopBarProps) {
-  const router = useRouter();
-  const isLive = lifecycle?.kind === "live";
-  const hasDraftDrift = Boolean(lifecycle?.draftChangedSincePublish);
-  const isUnpublished = lifecycle?.kind === "unpublished";
-  const isNeverPublished = lifecycle?.kind === "never_published";
+  const saveLabel =
+    saveState === "saving" ? "Saving…" : saveState === "unsaved" ? "Unsaved changes" : "Saved";
 
   return (
-    <header className="mb-3 flex shrink-0 flex-col gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <button
-            type="button"
-            onClick={() => router.push("/workspaces")}
-            className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
-          >
-            ← Workspace
-          </button>
-          <span className="hidden h-4 w-px bg-slate-200 sm:block" aria-hidden />
-          <p className="min-w-0 truncate text-sm font-semibold text-slate-900">{formTitle.trim() || "Untitled form"}</p>
-          {apiMode && lifecycle ? <FormLifecycleBadge lifecycle={lifecycle} /> : null}
+    <header className="mb-4 flex shrink-0 flex-wrap items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="truncate text-sm font-semibold text-slate-900">{formTitle.trim() || "Untitled form"}</h1>
+          {apiMode && lifecycle ? <FormLifecycleBadge lifecycle={lifecycle} size="sm" /> : null}
         </div>
-
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            onClick={onToggleJson}
-            className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
-              showJson ? "bg-slate-800 text-white" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-            }`}
-            title="Edit raw FormDef JSON"
-          >
-            JSON
-          </button>
-          <SaveIndicator state={saveState} />
-          {!apiMode ? (
-            <button
-              type="button"
-              onClick={onSave}
-              disabled={saving}
-              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-            >
-              Save
-            </button>
-          ) : (
-            <>
-              {isLive && !hasDraftDrift ? (
-                <button
-                  type="button"
-                  onClick={onShare}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                >
-                  Share
-                </button>
-              ) : null}
-              {isLive && hasDraftDrift ? (
-                <button
-                  type="button"
-                  onClick={onUpdateLive}
-                  className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
-                >
-                  Update live
-                </button>
-              ) : null}
-              {(isNeverPublished || isUnpublished) && !isLive ? (
-                <button
-                  type="button"
-                  onClick={onPublish}
-                  disabled={publishing}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {publishing ? (
-                    <>
-                      <Spinner size="sm" className="border-white/30 border-t-white" />
-                      Publishing…
-                    </>
-                  ) : isUnpublished ? (
-                    "Publish again"
-                  ) : (
-                    "Publish"
-                  )}
-                </button>
-              ) : null}
-            </>
-          )}
-        </div>
+        <p className="mt-0.5 text-xs text-slate-500">{saveLabel}</p>
       </div>
 
-      {apiMode && isLive && lifecycle.publicUrl ? (
-        <PublicLinkPanel publicUrl={lifecycle.publicUrl} compact />
-      ) : null}
+      <nav className="flex rounded-xl bg-slate-100 p-1" aria-label="Builder mode">
+        <button
+          type="button"
+          onClick={() => onModeChange("intake")}
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+            builderMode === "intake" ? "bg-white text-violet-700 shadow-sm" : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Intake
+          {intakeIsDefault ? (
+            <span className="ml-1 text-[10px] font-normal text-slate-400">(default)</span>
+          ) : null}
+        </button>
+        <button
+          type="button"
+          onClick={() => onModeChange("pages")}
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+            builderMode === "pages" ? "bg-white text-violet-700 shadow-sm" : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Form pages
+        </button>
+      </nav>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={onOpenGuide}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+        >
+          How to build
+        </button>
+        <button
+          type="button"
+          onClick={onPreview}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+        >
+          Preview
+        </button>
+        <button
+          type="button"
+          onClick={onToggleJson}
+          className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
+            showJson ? "border-violet-300 bg-violet-50 text-violet-700" : "border-slate-200 text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          JSON
+        </button>
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={saving}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-60"
+        >
+          Save
+        </button>
+        {apiMode && lifecycle?.kind === "live" ? (
+          <>
+            <button
+              type="button"
+              onClick={onShare}
+              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Share
+            </button>
+            <button
+              type="button"
+              onClick={onUpdateLive}
+              disabled={publishing}
+              className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700 disabled:opacity-60"
+            >
+              Update live
+            </button>
+          </>
+        ) : apiMode ? (
+          <button
+            type="button"
+            onClick={onPublish}
+            disabled={publishing}
+            className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-700 disabled:opacity-60"
+          >
+            Publish
+          </button>
+        ) : null}
+      </div>
     </header>
   );
 }

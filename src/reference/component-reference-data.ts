@@ -258,8 +258,8 @@ export const V2_PALETTE_SPECS: PaletteSpec[] = [
   { id: "Signature", label: "Signature", description: "Draw a signature.", defaultType: "signature" },
 ];
 
-export function getPaletteSpecs(version: "v1" | "v2" = "v1"): PaletteSpec[] {
-  return version === "v2" ? V2_PALETTE_SPECS : PALETTE_SPECS;
+export function getPaletteSpecs(): PaletteSpec[] {
+  return V2_PALETTE_SPECS;
 }
 
 /** For Config panel: which types show a Type dropdown and what options they get. */

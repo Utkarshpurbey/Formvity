@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { notifyError, notifyInfo, notifySuccess } from "@/src/components/ui/AppToast";
-import type { FormDef, FormPageDef } from "../components/page-def/builder/pageDef";
+import type { FormDef, FormPageDef, RespondentIntakeSettings } from "../components/page-def/builder/pageDef";
 import type { SaveState } from "../components/page-def/builder/BuilderTopBar";
 import type { PublishModalMode } from "../components/publish/PublishFlowModal";
 import { ApiError } from "../api/http";
 import { deriveFormLifecycle, isEditableFormLifecycle } from "../lib/publish";
 import { EMPTY_FORM_DEF, getActivePage, getPageIndex, normalizeFormDef } from "../lib/normalizeFormDef";
 import { PAGE_DEF_TEMPLATES } from "../lib/page-def-templates";
+import { DEFAULT_RESPONDENT_INTAKE, isDefaultRespondentIntake } from "../lib/respondentIntake";
 import { cloneTemplatePageDef, toBuilderFormDef } from "../lib/template-to-builder-page-def";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
@@ -24,6 +25,9 @@ import {
 import { buildPublicUrl } from "../utils/publicUrl";
 
 const DEBOUNCE_MS = 400;
+const GUIDE_KEY = "formvity.builderGuide";
+
+export type BuilderMode = "intake" | "pages";
 
 export function useBuilderPage(builderBasePath = "/builder") {
   const router = useRouter();
@@ -55,6 +59,40 @@ export function useBuilderPage(builderBasePath = "/builder") {
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [publishModalMode, setPublishModalMode] = useState<PublishModalMode>("publish");
+  const [builderMode, setBuilderMode] = useState<BuilderMode>("pages");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem(GUIDE_KEY) !== "1") setGuideOpen(true);
+  }, []);
+
+  const dismissGuide = useCallback(() => {
+    localStorage.setItem(GUIDE_KEY, "1");
+    setGuideOpen(false);
+  }, []);
+
+  const openGuide = useCallback(() => setGuideOpen(true), []);
+
+  const updateRespondentIntake = useCallback(
+    (updater: (prev: RespondentIntakeSettings) => RespondentIntakeSettings) => {
+      setFormDef((prev) => {
+        const current = prev.formSettings?.respondentIntake ?? DEFAULT_RESPONDENT_INTAKE;
+        const next = updater(current);
+        return {
+          ...prev,
+          formSettings: {
+            ...prev.formSettings,
+            respondentIntake: next,
+          },
+        };
+      });
+    },
+    [],
+  );
+
+  const intakeIsDefault = isDefaultRespondentIntake(formDef);
 
   const activePage = useMemo(
     () => getActivePage(formDef, activePageId) ?? formDef.pages[0]!,
@@ -278,5 +316,14 @@ export function useBuilderPage(builderBasePath = "/builder") {
     closePublishModal,
     handlePublish,
     formFromList,
+    builderMode,
+    setBuilderMode,
+    previewOpen,
+    setPreviewOpen,
+    guideOpen,
+    dismissGuide,
+    openGuide,
+    updateRespondentIntake,
+    intakeIsDefault,
   };
 }

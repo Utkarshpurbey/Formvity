@@ -1,15 +1,15 @@
 "use client";
 
-import type { FormDef } from "../builder/pageDef";
+import type { FormDef } from "./pageDef";
 import { FormRuntime } from "../runtime/FormRuntime";
 
-type BuilderV2PreviewProps = {
+type BuilderPreviewProps = {
   open: boolean;
   formDef: FormDef;
   onClose: () => void;
 };
 
-export function BuilderV2Preview({ open, formDef, onClose }: BuilderV2PreviewProps) {
+export function BuilderPreview({ open, formDef, onClose }: BuilderPreviewProps) {
   if (!open) return null;
 
   return (

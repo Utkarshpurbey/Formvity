@@ -1,6 +1,6 @@
 "use client";
 
-import type { RespondentIntakeField, RespondentFieldType, RespondentIntakeSettings } from "../builder/pageDef";
+import type { RespondentIntakeField, RespondentFieldType, RespondentIntakeSettings } from "./pageDef";
 
 const inputClass =
   "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400";

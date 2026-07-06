@@ -72,7 +72,7 @@ export function AppShellHeader() {
     router.push("/");
   };
 
-  const isHome = routePath === "/" || routePath === "/home";
+  const isHome = routePath === "/";
   const userLabel = user?.displayName ?? "Account";
   const primaryNav = user ? workspaceNav : exploreNav;
 

@@ -12,7 +12,7 @@ import { stripAppBasePath } from "../utils/appBasePath";
 import { store } from "../store/store";
 
 function isAuthRoute(path: string): boolean {
-  return path === "/login" || path === "/register" || path === "/invite" || path.startsWith("/invite/");
+  return path === "/login" || path === "/register" || path === "/welcome" || path.startsWith("/welcome/");
 }
 
 function AppShellWrapper({ children }: { children: ReactNode }) {
