@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   },
   applicationName: siteConfig.name,
   category: "technology",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

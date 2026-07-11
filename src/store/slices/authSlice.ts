@@ -19,20 +19,6 @@ const initialState: AuthState = {
   error: null,
 };
 
-export const loginUser = createAsyncThunk(
-  "auth/login",
-  async ({ userName, password }: { userName: string; password: string }, { rejectWithValue }) => {
-    try {
-      const res = await api.login(userName, password);
-      setAuthToken(res.token);
-      return { id: res.id, displayName: res.displayName, email: userName };
-    } catch (e) {
-      clearAuthToken();
-      return rejectWithValue(e instanceof ApiError ? e.message : "Unable to sign in. Please check your credentials and try again.");
-    }
-  },
-);
-
 export const registerUser = createAsyncThunk(
   "auth/register",
   async ({ displayName, email, password }: { displayName: string; email: string; password: string }, { rejectWithValue }) => {
@@ -97,20 +83,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loginUser.pending, (s) => {
-        s.loading = true;
-        s.error = null;
-      })
-      .addCase(loginUser.fulfilled, (s, a) => {
-        s.loading = false;
-        s.ready = true;
-        s.user = a.payload;
-        setCachedUser(a.payload);
-      })
-      .addCase(loginUser.rejected, (s, a) => {
-        s.loading = false;
-        s.error = (a.payload as string) ?? a.error.message ?? "Unable to sign in. Please try again.";
-      })
       .addCase(registerUser.pending, (s) => {
         s.loading = true;
         s.error = null;

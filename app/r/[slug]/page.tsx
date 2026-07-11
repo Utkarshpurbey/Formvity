@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PublicFormPageClient from "./PublicFormPageClient";
 import { getCachedPublicFormDef } from "../../../src/lib/formDefFromApi";
 import { resolveRespondentIntake } from "../../../src/lib/respondentIntake";
+import { createPageMetadata } from "../../../src/lib/seo";
 
 type Props = { params: { slug: string } };
 
@@ -13,13 +14,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const intake = resolveRespondentIntake(formDef);
   const title = formDef.title?.trim() || intake.title?.trim() || "Form";
-  const description = formDef.description?.trim() || intake.description?.trim();
+  const description =
+    formDef.description?.trim() ||
+    intake.description?.trim() ||
+    `Complete ${title} — powered by Formvity.`;
 
-  return {
+  return createPageMetadata({
     title,
-    ...(description ? { description } : {}),
-    robots: { index: true, follow: true },
-  };
+    description,
+    path: `/r/${params.slug}`,
+    noIndex: true,
+  });
 }
 
 export default async function PublicFormPage({ params }: Props) {

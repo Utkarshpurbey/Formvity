@@ -13,10 +13,8 @@ import {
 } from "../lib/apiNormalize";
 import {
   normalizeAnalyticsSummary,
-  normalizeAnalyticsTimeline,
   normalizeFormAnalyticsInsightsOnly,
   normalizeFormAnalyticsOverview,
-  normalizeQuestionAnalyticsList,
   normalizeSubmissionsPage,
 } from "../lib/analyticsNormalize";
 import { ApiPath } from "../utils/apiPath";
@@ -25,7 +23,6 @@ import type { PublicSubmissionPayload } from "../lib/submissionPayload";
 import type {
   AnalyticsInsights,
   AnalyticsSummary,
-  AnalyticsTimelinePoint,
   CurrentUser,
   DraftPageDef,
   FormAnalyticsOverview,
@@ -34,7 +31,6 @@ import type {
   LoginResponse,
   PublishResponse,
   PublishStatus,
-  QuestionAnalytics,
   SubmissionsPage,
   WorkspaceDashboard,
   WorkspaceMember,
@@ -238,25 +234,6 @@ export async function getFormAnalyticsSummary(
   return normalizeAnalyticsSummary(raw);
 }
 
-/** GET …/analytics/timeline?days= — data is List<TimelineBucketDto> */
-export async function getFormAnalyticsTimeline(
-  workspaceId: string,
-  formId: string,
-  days = 7,
-): Promise<AnalyticsTimelinePoint[]> {
-  const raw = await apiData<unknown>(ApiPath.forms.analyticsTimeline(workspaceId, formId, days));
-  return normalizeAnalyticsTimeline(raw, days).points;
-}
-
-/** GET …/analytics/questions — data is List<QuestionAnalyticsDto> */
-export async function getFormQuestionAnalytics(
-  workspaceId: string,
-  formId: string,
-): Promise<QuestionAnalytics[]> {
-  const raw = await apiData<unknown>(ApiPath.forms.analyticsQuestions(workspaceId, formId));
-  return normalizeQuestionAnalyticsList(raw);
-}
-
 /** GET …/analytics/insights?days= */
 export async function getFormAnalyticsInsights(
   workspaceId: string,
@@ -277,5 +254,3 @@ export async function listFormSubmissions(
   const raw = await apiData<unknown>(ApiPath.forms.submissions(workspaceId, formId, page, size));
   return normalizeSubmissionsPage(raw);
 }
-
-export type { PublicSubmissionPayload } from "../lib/submissionPayload";

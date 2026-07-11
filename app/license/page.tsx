@@ -1,16 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { createPageMetadata } from "../../src/lib/seo";
+import { JsonLd } from "../../src/components/seo/JsonLd";
+import { createPageMetadata, marketingPageJsonLd } from "../../src/lib/seo";
+
+const LICENSE_DESCRIPTION = "Software license and usage terms for Formvity.";
 
 export const metadata: Metadata = createPageMetadata({
   title: "License",
-  description: "Software license and usage terms for Formvity.",
+  description: LICENSE_DESCRIPTION,
   path: "/license",
 });
 
 export default function LicensePage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16 text-slate-700">
+    <>
+      <JsonLd
+        data={marketingPageJsonLd({
+          title: "License",
+          description: LICENSE_DESCRIPTION,
+          path: "/license",
+        })}
+      />
+      <main className="mx-auto max-w-3xl px-4 py-16 text-slate-700">
       <Link href="/" className="text-sm font-medium text-violet-600 hover:text-violet-700">
         ← Back to home
       </Link>
@@ -77,5 +88,6 @@ export default function LicensePage() {
         </section>
       </div>
     </main>
+    </>
   );
 }

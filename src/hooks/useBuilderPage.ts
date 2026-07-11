@@ -10,7 +10,7 @@ import type { PublishModalMode } from "../components/publish/PublishFlowModal";
 import { ApiError } from "../api/http";
 import { deriveFormLifecycle, isEditableFormLifecycle } from "../lib/publish";
 import { EMPTY_FORM_DEF, getActivePage, getPageIndex, normalizeFormDef } from "../lib/normalizeFormDef";
-import { PAGE_DEF_TEMPLATES } from "../lib/page-def-templates";
+import { PAGE_DEF_TEMPLATES } from "../lib/templates";
 import { DEFAULT_RESPONDENT_INTAKE, isDefaultRespondentIntake } from "../lib/respondentIntake";
 import { cloneTemplatePageDef, toBuilderFormDef } from "../lib/template-to-builder-page-def";
 import { useAppDispatch, useAppSelector } from "../store/hooks";

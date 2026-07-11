@@ -22,8 +22,6 @@ export const PAGE_DEF_TEMPLATES = Object.fromEntries(
   TEMPLATE_CATALOG.map((entry) => [entry.key, entry.pageDef]),
 );
 
-export const DEFAULT_PAGE_DEF_TEMPLATE_KEY = "job-application";
-
 export function getTemplateCatalogEntry(key: string): TemplateCatalogEntry | undefined {
   return TEMPLATE_CATALOG_BY_KEY[key];
 }
@@ -31,8 +29,4 @@ export function getTemplateCatalogEntry(key: string): TemplateCatalogEntry | und
 export function getTemplatesByCategory(category: TemplateCategory | "all"): TemplateCatalogEntry[] {
   if (category === "all") return TEMPLATE_CATALOG;
   return TEMPLATE_CATALOG.filter((entry) => entry.category === category);
-}
-
-export function getDefaultPageDefTemplate() {
-  return PAGE_DEF_TEMPLATES[DEFAULT_PAGE_DEF_TEMPLATE_KEY];
 }

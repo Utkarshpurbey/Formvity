@@ -99,6 +99,14 @@ export const USE_CASES = [
 
 export const FAQ_ITEMS = [
   {
+    q: "What is Formvity?",
+    a: "Formvity is a free online form builder with built-in analytics. Teams use it to create multi-page forms, publish shareable links, and analyze responses without writing code.",
+  },
+  {
+    q: "Is Formvity free to start?",
+    a: "Yes. Create an account and start building — no credit card required to publish and collect responses.",
+  },
+  {
     q: "Do respondents need an account?",
     a: "No. Published forms are accessible via a public link — respondents fill and submit without signing up.",
   },
@@ -108,11 +116,11 @@ export const FAQ_ITEMS = [
   },
   {
     q: "What analytics are included?",
-    a: "Every form gets overview metrics, audience & traffic breakdowns, per-question distributions, response timelines, and searchable individual responses.",
+    a: "Every form gets overview metrics, audience and traffic breakdowns, per-question distributions, response timelines, and searchable individual responses.",
   },
   {
-    q: "Is Formvity free to start?",
-    a: "Yes. Create an account and start building — no credit card required to publish and collect responses.",
+    q: "Can I create multi-page forms?",
+    a: "Yes. Formvity supports multi-page forms, respondent intake steps, themed appearance, and validation — all from a visual builder.",
   },
 ] as const;
 

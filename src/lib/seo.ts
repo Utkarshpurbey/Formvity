@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { TEMPLATE_CATALOG } from "./templates";
 
 const DEFAULT_SITE_URL = "https://formvity.in";
+const OG_IMAGE_PATH = "/opengraph-image";
+const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
 
 function normalizeSiteUrl(raw: string): string {
   const trimmed = raw.trim().replace(/\/+$/, "");
@@ -81,11 +84,16 @@ export function absoluteUrl(path = "/"): string {
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+export function defaultOgImageUrl(): string {
+  return absoluteUrl(OG_IMAGE_PATH);
+}
+
 type PageMetaInput = {
   title?: string;
   description?: string;
   path?: string;
   noIndex?: boolean;
+  ogImagePath?: string;
 };
 
 /** Shared metadata fields for public marketing/auth pages. */
@@ -94,6 +102,7 @@ export function createPageMetadata(input: PageMetaInput = {}): Metadata {
   const description = input.description ?? siteConfig.description;
   const canonicalPath = input.path ?? "/";
   const url = absoluteUrl(canonicalPath);
+  const ogImage = absoluteUrl(input.ogImagePath ?? OG_IMAGE_PATH);
   const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
 
   const isPublic = !input.noIndex;
@@ -120,11 +129,20 @@ export function createPageMetadata(input: PageMetaInput = {}): Metadata {
       siteName: siteConfig.name,
       title,
       description,
+      images: [
+        {
+          url: ogImage,
+          width: OG_IMAGE_SIZE.width,
+          height: OG_IMAGE_SIZE.height,
+          alt: title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [ogImage],
     },
     robots: isPublic
       ? {
@@ -157,6 +175,9 @@ export function createPrivateRouteMetadata(title: string): Metadata {
   };
 }
 
+export type FaqItem = { q: string; a: string };
+export type BreadcrumbItem = { name: string; path: string };
+
 export function organizationJsonLd() {
   return {
     "@context": "https://schema.org",
@@ -165,6 +186,7 @@ export function organizationJsonLd() {
     url: getSiteUrl(),
     logo: absoluteUrl("/icon"),
     description: siteConfig.description,
+    areaServed: "IN",
   };
 }
 
@@ -176,6 +198,19 @@ export function websiteJsonLd() {
     url: getSiteUrl(),
     description: siteConfig.description,
     inLanguage: "en-IN",
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: getSiteUrl(),
+    },
+    potentialAction: {
+      "@type": "RegisterAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: absoluteUrl("/register"),
+      },
+      name: "Create a free Formvity account",
+    },
   };
 }
 
@@ -203,43 +238,83 @@ export function softwareApplicationJsonLd() {
   };
 }
 
-export function faqPageJsonLd() {
+export function faqPageJsonLd(items: readonly FaqItem[]) {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "What is Formvity?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Formvity is a free online form builder with built-in analytics. Teams use it to create multi-page forms, publish shareable links, and analyze responses without writing code.",
-        },
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
       },
-      {
-        "@type": "Question",
-        name: "Is Formvity free to use?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. Formvity is free to start. You can create an account, build forms, publish links, and collect responses at no cost.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Does Formvity include form analytics?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. Every published form includes analytics with response timelines, audience breakdowns, device traffic, question-level distributions, and individual response details.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Can I create multi-page forms on Formvity?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. Formvity supports multi-page forms, respondent intake steps, themed appearance, and validation — all from a visual builder.",
-        },
-      },
-    ],
+    })),
+  };
+}
+
+export function webPageJsonLd(input: { name: string; description: string; path: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    isPartOf: {
+      "@type": "WebSite",
+      name: siteConfig.name,
+      url: getSiteUrl(),
+    },
+  };
+}
+
+export function breadcrumbJsonLd(items: readonly BreadcrumbItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
+  };
+}
+
+export function marketingPageJsonLd(input: { title: string; description: string; path: string }) {
+  return [
+    webPageJsonLd({ name: input.title, description: input.description, path: input.path }),
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: input.title, path: input.path },
+    ]),
+  ];
+}
+
+export function templateCollectionJsonLd() {
+  const description = `Browse ${TEMPLATE_CATALOG.length} free form templates for HR, sales, events, healthcare, education, and more.`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Form templates",
+    description,
+    url: absoluteUrl("/templates"),
+    isPartOf: {
+      "@type": "WebSite",
+      name: siteConfig.name,
+      url: getSiteUrl(),
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: TEMPLATE_CATALOG.length,
+      itemListElement: TEMPLATE_CATALOG.map((entry, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: entry.pageDef.title,
+        description: entry.longDescription,
+        url: absoluteUrl("/templates"),
+      })),
+    },
   };
 }

@@ -1,6 +1,5 @@
 import type { PageComponentDef } from "../page-def";
 import type { FormAppearanceSettings } from "../../components/page-def/builder/pageDef";
-import type { TemplateCatalogEntry } from "./types";
 
 const FIELD_TYPE_LABELS: Record<string, string> = {
   TextAnswerInput: "Text",
@@ -80,8 +79,4 @@ export function formatAppearanceSummary(appearance: FormAppearanceSettings): str
     APPEARANCE_LABELS[submit] ?? submit,
     APPEARANCE_LABELS[input] ?? input,
   ];
-}
-
-export function getTemplateStats(entry: TemplateCatalogEntry): TemplateFieldStats {
-  return getTemplateFieldStats(entry.pageDef.components);
 }

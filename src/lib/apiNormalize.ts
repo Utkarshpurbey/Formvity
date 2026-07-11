@@ -60,9 +60,6 @@ export function normalizeInviteMemberResponse(raw: unknown): InviteMemberRespons
   };
 }
 
-/** @deprecated Use normalizeInviteMemberResponse */
-export const normalizeInviteMemberResult = normalizeInviteMemberResponse;
-
 export function normalizeInvitePreview(raw: unknown): InvitePreview {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   return {

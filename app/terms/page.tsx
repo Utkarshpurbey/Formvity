@@ -1,16 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { createPageMetadata } from "../../src/lib/seo";
+import { JsonLd } from "../../src/components/seo/JsonLd";
+import { createPageMetadata, marketingPageJsonLd } from "../../src/lib/seo";
+
+const TERMS_DESCRIPTION = "Terms and conditions for using Formvity.";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Terms of Service",
-  description: "Terms and conditions for using Formvity.",
+  description: TERMS_DESCRIPTION,
   path: "/terms",
 });
 
 export default function TermsPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16 text-slate-700">
+    <>
+      <JsonLd
+        data={marketingPageJsonLd({
+          title: "Terms of Service",
+          description: TERMS_DESCRIPTION,
+          path: "/terms",
+        })}
+      />
+      <main className="mx-auto max-w-3xl px-4 py-16 text-slate-700">
       <Link href="/" className="text-sm font-medium text-violet-600 hover:text-violet-700">
         ← Back to home
       </Link>
@@ -76,5 +87,6 @@ export default function TermsPage() {
         </section>
       </div>
     </main>
+    </>
   );
 }

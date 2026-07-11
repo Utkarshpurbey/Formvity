@@ -3,20 +3,6 @@
  * Used by `page-def/builder` (palette, defaults, config panel).
  */
 
-export const BASE_PROPS_DOC = {
-  id: { type: "string", required: true, description: "Unique component id (used as key in values)." },
-  type: { type: "PageComponentType", required: true, description: "Component type (e.g. \"text\", \"select\")." },
-  label: { type: "string", required: false, description: "Label shown above the control." },
-  helperText: { type: "string", required: false, description: "Helper or hint text below the label." },
-  required: { type: "boolean", required: false, description: "If true, form validation requires a value." },
-  disabled: { type: "boolean", required: false, description: "If true, the control is disabled." },
-  onChange: {
-    type: "string",
-    required: false,
-    description: "Optional action ref, e.g. \"@actionDef.myAction\" — runs JS from the page actions map when the value changes.",
-  },
-} as const;
-
 export interface ComponentSpec {
   type: string;
   description: string;

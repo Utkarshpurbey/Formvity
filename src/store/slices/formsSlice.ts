@@ -17,7 +17,6 @@ type FormsState = {
   publishing: boolean;
   unpublishing: boolean;
   error: string | null;
-  currentFormId: string | null;
   publishStatusByForm: Record<string, PublishStatus>;
   publishStatusLoadingByForm: Record<string, boolean>;
   lastPublishResult: PublishResponse | null;
@@ -33,7 +32,6 @@ const initialState: FormsState = {
   publishing: false,
   unpublishing: false,
   error: null,
-  currentFormId: null,
   publishStatusByForm: {},
   publishStatusLoadingByForm: {},
   lastPublishResult: null,
@@ -170,19 +168,8 @@ const formsSlice = createSlice({
   name: "forms",
   initialState,
   reducers: {
-    setCurrentFormId(state, action: { payload: string | null }) {
-      state.currentFormId = action.payload;
-    },
     clearFormsError(state) {
       state.error = null;
-    },
-    clearPublishStatus(state, action: { payload?: string }) {
-      if (action.payload) {
-        delete state.publishStatusByForm[action.payload];
-      } else {
-        state.publishStatusByForm = {};
-      }
-      state.lastPublishResult = null;
     },
   },
   extraReducers: (builder) => {
@@ -214,7 +201,6 @@ const formsSlice = createSlice({
       })
       .addCase(createForm.fulfilled, (s, a) => {
         upsertForm(s, a.payload);
-        s.currentFormId = a.payload.id;
       })
       .addCase(saveFormDraft.pending, (s) => {
         s.saving = true;
@@ -324,5 +310,5 @@ const formsSlice = createSlice({
   },
 });
 
-export const { setCurrentFormId, clearFormsError, clearPublishStatus } = formsSlice.actions;
+export const { clearFormsError } = formsSlice.actions;
 export default formsSlice.reducer;

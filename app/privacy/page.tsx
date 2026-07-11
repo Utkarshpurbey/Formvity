@@ -1,16 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { createPageMetadata } from "../../src/lib/seo";
+import { JsonLd } from "../../src/components/seo/JsonLd";
+import { createPageMetadata, marketingPageJsonLd } from "../../src/lib/seo";
+
+const PRIVACY_DESCRIPTION = "How Formvity collects, uses, and protects your data.";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Privacy Policy",
-  description: "How Formvity collects, uses, and protects your data.",
+  description: PRIVACY_DESCRIPTION,
   path: "/privacy",
 });
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16 text-slate-700">
+    <>
+      <JsonLd
+        data={marketingPageJsonLd({
+          title: "Privacy Policy",
+          description: PRIVACY_DESCRIPTION,
+          path: "/privacy",
+        })}
+      />
+      <main className="mx-auto max-w-3xl px-4 py-16 text-slate-700">
       <Link href="/" className="text-sm font-medium text-violet-600 hover:text-violet-700">
         ← Back to home
       </Link>
@@ -72,5 +83,6 @@ export default function PrivacyPage() {
         </section>
       </div>
     </main>
+    </>
   );
 }

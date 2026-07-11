@@ -1,5 +1,5 @@
 /**
- * JSON shape for the visual builder and JSON playground (`JsonPlayground`).
+ * JSON shape for the visual builder and JSON editor.
  * Distinct from `lib/page-def`, which is the template / marketing schema.
  */
 export type PageComponentType =

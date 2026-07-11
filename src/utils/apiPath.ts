@@ -68,12 +68,6 @@ export const ApiPath = {
     /** GET …/analytics/summary */
     analyticsSummary: (workspaceId: string, formId: string) =>
       `workspaces/${workspaceId}/forms/${formId}/analytics/summary`,
-    /** GET …/analytics/timeline?days= */
-    analyticsTimeline: (workspaceId: string, formId: string, days = 7) =>
-      `workspaces/${workspaceId}/forms/${formId}/analytics/timeline?days=${days}`,
-    /** GET …/analytics/questions */
-    analyticsQuestions: (workspaceId: string, formId: string) =>
-      `workspaces/${workspaceId}/forms/${formId}/analytics/questions`,
     /** GET …/analytics/insights */
     analyticsInsights: (workspaceId: string, formId: string, days = 7) =>
       `workspaces/${workspaceId}/forms/${formId}/analytics/insights?days=${days}`,
@@ -90,7 +84,6 @@ export const ApiPath = {
 /** Full URLs for requests that bypass `apiFetch` (e.g. raw `fetch` with AbortSignal). */
 export const apiUrl = {
   publicForm: (slug: string) => getCompleteHost(ApiPath.public.form(slug)),
-  publicSubmit: (slug: string) => getCompleteHost(ApiPath.public.submit(slug)),
   workspaceForm: (workspaceId: string, formId: string) =>
     getCompleteHost(ApiPath.forms.byId(workspaceId, formId)),
 };

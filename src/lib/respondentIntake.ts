@@ -3,7 +3,6 @@ import type {
   RespondentIntakeField,
   RespondentIntakeSettings,
 } from "../components/page-def/builder/pageDef";
-import { allFormComponents } from "./formValidation";
 
 export const DEFAULT_RESPONDENT_INTAKE: RespondentIntakeSettings = {
   title: "Before we begin",
@@ -66,26 +65,4 @@ export function isDefaultRespondentIntake(formDef: FormDef): boolean {
   const configured = formDef.formSettings?.respondentIntake;
   if (!configured?.fields?.length) return true;
   return JSON.stringify(configured) === JSON.stringify(DEFAULT_RESPONDENT_INTAKE);
-}
-
-export function splitSubmissionValues(
-  formDef: FormDef,
-  respondentValues: Record<string, string>,
-  formValues: Record<string, string>,
-): { respondent: Record<string, string>; answers: Record<string, string> } {
-  const intake = resolveRespondentIntake(formDef);
-  const intakeIds = new Set(intake.fields.map((f) => f.id));
-  const componentIds = new Set(allFormComponents(formDef).map((c) => c.id));
-
-  const respondent: Record<string, string> = {};
-  intakeIds.forEach((id) => {
-    if (respondentValues[id] !== undefined) respondent[id] = respondentValues[id]!;
-  });
-
-  const answers: Record<string, string> = {};
-  Object.entries(formValues).forEach(([id, val]) => {
-    if (componentIds.has(id)) answers[id] = val;
-  });
-
-  return { respondent, answers };
 }

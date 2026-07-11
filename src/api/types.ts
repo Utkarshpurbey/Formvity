@@ -25,12 +25,6 @@ export type LoginResponse = {
   displayName: string;
 };
 
-export type UserDto = {
-  id: string;
-  displayName: string;
-  email: string;
-};
-
 export type WorkspaceRole = "ADMIN" | "EDITOR" | "VIEWER" | "ATTENDEE";
 
 export type WorkspaceSummary = {
@@ -50,11 +44,6 @@ export type WorkspaceMember = {
   userId: string;
   displayName?: string;
   email?: string;
-  role: WorkspaceRole;
-};
-
-export type InviteMemberRequest = {
-  email: string;
   role: WorkspaceRole;
 };
 

@@ -112,18 +112,7 @@ export const selectAnalyticsError = (
 const analyticsSlice = createSlice({
   name: "analytics",
   initialState,
-  reducers: {
-    invalidateFormAnalytics(state, action: { payload: { workspaceId: string; formId: string } }) {
-      const prefix = `${action.payload.workspaceId}:${action.payload.formId}:`;
-      for (const key of Object.keys(state.byKey)) {
-        if (key.startsWith(prefix)) {
-          delete state.byKey[key];
-          delete state.loadingByKey[key];
-          delete state.errorByKey[key];
-        }
-      }
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchFormAnalytics.pending, (s, a) => {
@@ -152,5 +141,4 @@ const analyticsSlice = createSlice({
   },
 });
 
-export const { invalidateFormAnalytics } = analyticsSlice.actions;
 export default analyticsSlice.reducer;

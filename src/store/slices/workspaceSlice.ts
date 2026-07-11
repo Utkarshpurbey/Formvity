@@ -46,9 +46,6 @@ export const selectDashboardForWorkspace = (
   workspaceId: string | null,
 ) => (workspaceId ? state.workspace.dashboardByWorkspace[workspaceId] : undefined);
 
-export const selectDashboardLoading = (state: { workspace: WorkspaceState }, workspaceId: string | null) =>
-  Boolean(workspaceId && state.workspace.dashboardLoadingByWorkspace[workspaceId]);
-
 export const fetchWorkspaces = createAsyncThunk(
   "workspace/list",
   api.listWorkspaces,
