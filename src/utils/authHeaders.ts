@@ -27,11 +27,6 @@ export function clearAuthToken(): void {
 export function getApiHeaders(): Record<string, string> {
   const headers: Record<string, string> = { Accept: "application/json" };
   const token = getAuthToken();
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  } else {
-    const basicAuth = process.env.NEXT_PUBLIC_BASIC_AUTH || "Basic dXR0dTpQYXBhQDE5NjU=";
-    if (basicAuth) headers.Authorization = basicAuth;
-  }
+  if (token) headers.Authorization = `Bearer ${token}`;
   return headers;
 }

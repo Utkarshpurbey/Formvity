@@ -27,13 +27,11 @@ export async function serverLogin(userName: string, password: string): Promise<S
 
   try {
     const url = getCompleteHost(ApiPath.auth.login);
-    const basicAuth = process.env.BASIC_AUTH || process.env.NEXT_PUBLIC_BASIC_AUTH || "Basic dXR0dTpQYXBhQDE5NjU=";
     const res = await fetch(url, {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: basicAuth,
       },
       body: JSON.stringify({ email, userName: email, password }),
       cache: "no-store",
