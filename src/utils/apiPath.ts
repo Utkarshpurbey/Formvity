@@ -30,8 +30,14 @@ function resolveApiBase(): string {
 }
 
 /** Resolve a relative API path to a full request URL. */
-export const getCompleteHost = (endpoint: string) =>
-  joinUrl(resolveApiBase(), API_PATH, endpoint);
+export const getCompleteHost = (endpoint: string) => {
+  const base = resolveApiBase();
+  const apiPath = API_PATH;
+  if (base.endsWith(apiPath) || base.endsWith(`/${apiPath}`)) {
+    return joinUrl(base, endpoint);
+  }
+  return joinUrl(base, apiPath, endpoint);
+};
 
 /**
  * Relative paths under `/api/v1`. Pass to `apiFetch` / `apiData` or wrap with `getCompleteHost`.

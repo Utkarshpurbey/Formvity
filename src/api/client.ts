@@ -50,9 +50,10 @@ import type {
 // — Auth —
 
 export function login(userName: string, password: string) {
+  const email = userName.trim();
   return apiFetch<LoginResponse>(ApiPath.auth.login, {
     method: "POST",
-    body: JSON.stringify({ userName, password }),
+    body: JSON.stringify({ email, userName: email, password }),
   });
 }
 
