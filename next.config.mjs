@@ -7,14 +7,16 @@ const nextConfig = {
   },
   async headers() {
     const isDev = process.env.NODE_ENV === "development";
-    const devConnectOrigins = isDev
-      ? [
-          "http://localhost:8081",
-          "http://127.0.0.1:8081",
-          process.env.NEXT_PUBLIC_API_URL,
-          process.env.API_PROXY_TARGET,
-        ].filter((origin) => origin?.startsWith("http://") || origin?.startsWith("https://"))
-      : [];
+    const extraConnectOrigins = [
+      process.env.NEXT_PUBLIC_API_URL,
+      process.env.API_PROXY_TARGET,
+      "https://api-formvity.onrender.com",
+      "https://formvity-backend.onrender.com",
+      ...(isDev ? ["http://localhost:8081", "http://127.0.0.1:8081"] : []),
+    ]
+      .filter(Boolean)
+      .map((origin) => origin.trim().replace(/\/+$/, ""))
+      .filter((origin) => origin.startsWith("http://") || origin.startsWith("https://"));
 
     const csp = [
       "default-src 'self'",
@@ -22,7 +24,7 @@ const nextConfig = {
       "form-action 'self'",
       "frame-ancestors 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://va.vercel-scripts.com",
-      `connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vitals.vercel-insights.com https://api-formvity.onrender.com${devConnectOrigins.length ? ` ${[...new Set(devConnectOrigins)].join(" ")}` : ""}`,
+      `connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://vitals.vercel-insights.com ${[...new Set(extraConnectOrigins)].join(" ")}`,
       "img-src 'self' data: blob: https:",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
