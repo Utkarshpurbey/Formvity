@@ -280,42 +280,28 @@ export async function listFormSubmissions(
   return normalizeSubmissionsPage(raw);
 }
 
-/** Download Excel (.xlsx), XML, or OOXML (.docx) submissions export */
+/** Download Excel (.xlsx) submissions export */
 export async function downloadSubmissionsExport(
   workspaceId: string,
   formId: string,
-  format: "excel" | "xml" | "ooxml",
 ): Promise<void> {
-  const path =
-    format === "excel"
-      ? ApiPath.forms.exportExcel(workspaceId, formId)
-      : format === "xml"
-        ? ApiPath.forms.exportXml(workspaceId, formId)
-        : ApiPath.forms.exportOoxml(workspaceId, formId);
+  const path = ApiPath.forms.exportExcel(workspaceId, formId);
   const url = getCompleteHost(path);
-
-  const acceptHeader =
-    format === "excel"
-      ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, */*"
-      : format === "xml"
-        ? "application/xml, text/xml, */*"
-        : "application/vnd.openxmlformats-officedocument.wordprocessingml.document, */*";
 
   const res = await fetch(url, {
     method: "GET",
     headers: {
       ...getApiHeaders(),
-      Accept: acceptHeader,
+      Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, */*",
     },
   });
 
   if (!res.ok) {
-    throw new ApiError(`Failed to export submissions as ${format.toUpperCase()}`, res.status);
+    throw new ApiError(`Failed to export submissions to Excel`, res.status);
   }
 
   const blob = await res.blob();
-  const extension = format === "excel" ? "xlsx" : format === "xml" ? "xml" : "docx";
-  const filename = `submissions-export.${extension}`;
+  const filename = `submissions-export.xlsx`;
 
   const blobUrl = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -327,16 +313,8 @@ export async function downloadSubmissionsExport(
   URL.revokeObjectURL(blobUrl);
 }
 
-export function exportFormSubmissionsXml(workspaceId: string, formId: string) {
-  return downloadSubmissionsExport(workspaceId, formId, "xml");
-}
-
-export function exportFormSubmissionsOoxml(workspaceId: string, formId: string) {
-  return downloadSubmissionsExport(workspaceId, formId, "ooxml");
-}
-
 export function exportFormSubmissionsExcel(workspaceId: string, formId: string) {
-  return downloadSubmissionsExport(workspaceId, formId, "excel");
+  return downloadSubmissionsExport(workspaceId, formId);
 }
 
 export type { PublicSubmissionPayload } from "../lib/submissionPayload";

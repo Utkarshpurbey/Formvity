@@ -258,26 +258,6 @@ function ExcelIcon({ className = "h-3.5 w-3.5" }: { className?: string }) {
   );
 }
 
-function XmlIcon({ className = "h-3.5 w-3.5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-    </svg>
-  );
-}
-
-function DocumentIcon({ className = "h-3.5 w-3.5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-      />
-    </svg>
-  );
-}
-
 export function SubmissionsTable({
   rows,
   loading = false,
@@ -291,20 +271,20 @@ export function SubmissionsTable({
   onPageChange,
 }: SubmissionsTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [exportingFormat, setExportingFormat] = useState<"excel" | "xml" | "ooxml" | null>(null);
+  const [exporting, setExporting] = useState(false);
 
-  const handleExport = async (format: "excel" | "xml" | "ooxml") => {
-    if (!workspaceId || !formId || exportingFormat) return;
-    setExportingFormat(format);
+  const handleExport = async () => {
+    if (!workspaceId || !formId || exporting) return;
+    setExporting(true);
     try {
-      await downloadSubmissionsExport(workspaceId, formId, format);
-      notifySuccess(`${format === "excel" ? "Excel" : format.toUpperCase()} export downloaded.`);
+      await downloadSubmissionsExport(workspaceId, formId);
+      notifySuccess("Excel export downloaded.");
     } catch (err) {
       notifyError(
-        err instanceof Error ? err.message : `Failed to export as ${format.toUpperCase()}`,
+        err instanceof Error ? err.message : "Failed to export submissions to Excel",
       );
     } finally {
-      setExportingFormat(null);
+      setExporting(false);
     }
   };
 
@@ -324,33 +304,13 @@ export function SubmissionsTable({
             <div className="flex items-center gap-2 border-l border-slate-200 pl-3">
               <button
                 type="button"
-                disabled={exportingFormat !== null || totalElements === 0}
-                onClick={() => handleExport("excel")}
+                disabled={exporting || totalElements === 0}
+                onClick={handleExport}
                 title="Export submissions to Excel (.xlsx)"
                 className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-2.5 py-1 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-100/80 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-50 transition"
               >
-                {exportingFormat === "excel" ? <Spinner size="sm" /> : <ExcelIcon className="h-3.5 w-3.5 text-emerald-600" />}
-                <span>Excel (.xlsx)</span>
-              </button>
-              <button
-                type="button"
-                disabled={exportingFormat !== null || totalElements === 0}
-                onClick={() => handleExport("xml")}
-                title="Export submissions as XML"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50/60 px-2.5 py-1 text-xs font-semibold text-indigo-700 shadow-sm hover:bg-indigo-100/80 hover:text-indigo-800 disabled:cursor-not-allowed disabled:opacity-50 transition"
-              >
-                {exportingFormat === "xml" ? <Spinner size="sm" /> : <XmlIcon className="h-3.5 w-3.5 text-indigo-600" />}
-                <span>XML</span>
-              </button>
-              <button
-                type="button"
-                disabled={exportingFormat !== null || totalElements === 0}
-                onClick={() => handleExport("ooxml")}
-                title="Export submissions as OOXML (.docx)"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50/60 px-2.5 py-1 text-xs font-semibold text-blue-700 shadow-sm hover:bg-blue-100/80 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-50 transition"
-              >
-                {exportingFormat === "ooxml" ? <Spinner size="sm" /> : <DocumentIcon className="h-3.5 w-3.5 text-blue-600" />}
-                <span>OOXML (.docx)</span>
+                {exporting ? <Spinner size="sm" /> : <ExcelIcon className="h-3.5 w-3.5 text-emerald-600" />}
+                <span>Export Excel (.xlsx)</span>
               </button>
             </div>
           ) : null}

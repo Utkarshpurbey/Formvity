@@ -89,12 +89,6 @@ export const ApiPath = {
     /** GET …/export/excel */
     exportExcel: (workspaceId: string, formId: string) =>
       `workspaces/${workspaceId}/forms/${formId}/export/excel`,
-    /** GET …/export/xml */
-    exportXml: (workspaceId: string, formId: string) =>
-      `workspaces/${workspaceId}/forms/${formId}/export/xml`,
-    /** GET …/export/ooxml */
-    exportOoxml: (workspaceId: string, formId: string) =>
-      `workspaces/${workspaceId}/forms/${formId}/export/ooxml`,
   },
   public: {
     form: (slug: string) => `public/forms/${slug}`,
