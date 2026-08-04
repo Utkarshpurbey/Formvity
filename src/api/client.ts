@@ -291,9 +291,17 @@ export async function downloadSubmissionsExport(
       ? ApiPath.forms.exportXml(workspaceId, formId)
       : ApiPath.forms.exportOoxml(workspaceId, formId);
   const url = getCompleteHost(path);
+  const acceptHeader =
+    format === "xml"
+      ? "application/xml, text/xml, */*"
+      : "application/vnd.openxmlformats-officedocument.wordprocessingml.document, */*";
+
   const res = await fetch(url, {
     method: "GET",
-    headers: getApiHeaders(),
+    headers: {
+      ...getApiHeaders(),
+      Accept: acceptHeader,
+    },
   });
 
   if (!res.ok) {
