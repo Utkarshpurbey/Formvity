@@ -327,4 +327,16 @@ export async function downloadSubmissionsExport(
   URL.revokeObjectURL(blobUrl);
 }
 
+export function exportFormSubmissionsXml(workspaceId: string, formId: string) {
+  return downloadSubmissionsExport(workspaceId, formId, "xml");
+}
+
+export function exportFormSubmissionsOoxml(workspaceId: string, formId: string) {
+  return downloadSubmissionsExport(workspaceId, formId, "ooxml");
+}
+
+export function exportFormSubmissionsExcel(workspaceId: string, formId: string) {
+  return downloadSubmissionsExport(workspaceId, formId, "excel");
+}
+
 export type { PublicSubmissionPayload } from "../lib/submissionPayload";
