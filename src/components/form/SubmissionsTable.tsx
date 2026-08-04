@@ -327,7 +327,7 @@ export function SubmissionsTable({
                 disabled={exportingFormat !== null || totalElements === 0}
                 onClick={() => handleExport("excel")}
                 title="Export submissions to Excel (.xlsx)"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/50 px-2.5 py-1 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-100/60 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-50 transition"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-2.5 py-1 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-100/80 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-50 transition"
               >
                 {exportingFormat === "excel" ? <Spinner size="sm" /> : <ExcelIcon className="h-3.5 w-3.5 text-emerald-600" />}
                 <span>Excel (.xlsx)</span>
@@ -337,9 +337,9 @@ export function SubmissionsTable({
                 disabled={exportingFormat !== null || totalElements === 0}
                 onClick={() => handleExport("xml")}
                 title="Export submissions as XML"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 transition"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50/60 px-2.5 py-1 text-xs font-semibold text-indigo-700 shadow-sm hover:bg-indigo-100/80 hover:text-indigo-800 disabled:cursor-not-allowed disabled:opacity-50 transition"
               >
-                {exportingFormat === "xml" ? <Spinner size="sm" /> : <XmlIcon />}
+                {exportingFormat === "xml" ? <Spinner size="sm" /> : <XmlIcon className="h-3.5 w-3.5 text-indigo-600" />}
                 <span>XML</span>
               </button>
               <button
@@ -347,9 +347,9 @@ export function SubmissionsTable({
                 disabled={exportingFormat !== null || totalElements === 0}
                 onClick={() => handleExport("ooxml")}
                 title="Export submissions as OOXML (.docx)"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 transition"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50/60 px-2.5 py-1 text-xs font-semibold text-blue-700 shadow-sm hover:bg-blue-100/80 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-50 transition"
               >
-                {exportingFormat === "ooxml" ? <Spinner size="sm" /> : <DocumentIcon />}
+                {exportingFormat === "ooxml" ? <Spinner size="sm" /> : <DocumentIcon className="h-3.5 w-3.5 text-blue-600" />}
                 <span>OOXML (.docx)</span>
               </button>
             </div>
