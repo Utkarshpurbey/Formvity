@@ -316,6 +316,8 @@ export default function FormAnalyticsPage() {
             totalElements={submissions?.totalElements ?? 0}
             pageSize={submissions?.size ?? PAGE_SIZE}
             fieldLabels={fieldLabels}
+            workspaceId={workspaceId}
+            formId={formId}
             onPageChange={setPage}
           />
         </section>

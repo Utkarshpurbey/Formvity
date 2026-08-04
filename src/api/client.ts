@@ -19,7 +19,8 @@ import {
   normalizeQuestionAnalyticsList,
   normalizeSubmissionsPage,
 } from "../lib/analyticsNormalize";
-import { ApiPath } from "../utils/apiPath";
+import { ApiPath, getCompleteHost } from "../utils/apiPath";
+import { getApiHeaders } from "../utils/authHeaders";
 import { ApiError, apiData, apiFetch, unwrapData } from "./http";
 import type { PublicSubmissionPayload } from "../lib/submissionPayload";
 import type {
@@ -277,6 +278,40 @@ export async function listFormSubmissions(
 ): Promise<SubmissionsPage> {
   const raw = await apiData<unknown>(ApiPath.forms.submissions(workspaceId, formId, page, size));
   return normalizeSubmissionsPage(raw);
+}
+
+/** Download XML or OOXML (.docx) submissions export */
+export async function downloadSubmissionsExport(
+  workspaceId: string,
+  formId: string,
+  format: "xml" | "ooxml",
+): Promise<void> {
+  const path =
+    format === "xml"
+      ? ApiPath.forms.exportXml(workspaceId, formId)
+      : ApiPath.forms.exportOoxml(workspaceId, formId);
+  const url = getCompleteHost(path);
+  const res = await fetch(url, {
+    method: "GET",
+    headers: getApiHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new ApiError(`Failed to export submissions as ${format.toUpperCase()}`, res.status);
+  }
+
+  const blob = await res.blob();
+  const extension = format === "xml" ? "xml" : "docx";
+  const filename = `submissions-export.${extension}`;
+
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(blobUrl);
 }
 
 export type { PublicSubmissionPayload } from "../lib/submissionPayload";
