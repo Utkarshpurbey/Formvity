@@ -86,6 +86,9 @@ export const ApiPath = {
     /** GET …/submissions?page=&size= */
     submissions: (workspaceId: string, formId: string, page = 0, size = 20) =>
       `workspaces/${workspaceId}/forms/${formId}/submissions?page=${page}&size=${size}`,
+    /** GET …/export/excel */
+    exportExcel: (workspaceId: string, formId: string) =>
+      `workspaces/${workspaceId}/forms/${formId}/export/excel`,
     /** GET …/export/xml */
     exportXml: (workspaceId: string, formId: string) =>
       `workspaces/${workspaceId}/forms/${formId}/export/xml`,

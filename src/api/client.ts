@@ -280,21 +280,26 @@ export async function listFormSubmissions(
   return normalizeSubmissionsPage(raw);
 }
 
-/** Download XML or OOXML (.docx) submissions export */
+/** Download Excel (.xlsx), XML, or OOXML (.docx) submissions export */
 export async function downloadSubmissionsExport(
   workspaceId: string,
   formId: string,
-  format: "xml" | "ooxml",
+  format: "excel" | "xml" | "ooxml",
 ): Promise<void> {
   const path =
-    format === "xml"
-      ? ApiPath.forms.exportXml(workspaceId, formId)
-      : ApiPath.forms.exportOoxml(workspaceId, formId);
+    format === "excel"
+      ? ApiPath.forms.exportExcel(workspaceId, formId)
+      : format === "xml"
+        ? ApiPath.forms.exportXml(workspaceId, formId)
+        : ApiPath.forms.exportOoxml(workspaceId, formId);
   const url = getCompleteHost(path);
+
   const acceptHeader =
-    format === "xml"
-      ? "application/xml, text/xml, */*"
-      : "application/vnd.openxmlformats-officedocument.wordprocessingml.document, */*";
+    format === "excel"
+      ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, */*"
+      : format === "xml"
+        ? "application/xml, text/xml, */*"
+        : "application/vnd.openxmlformats-officedocument.wordprocessingml.document, */*";
 
   const res = await fetch(url, {
     method: "GET",
@@ -309,7 +314,7 @@ export async function downloadSubmissionsExport(
   }
 
   const blob = await res.blob();
-  const extension = format === "xml" ? "xml" : "docx";
+  const extension = format === "excel" ? "xlsx" : format === "xml" ? "xml" : "docx";
   const filename = `submissions-export.${extension}`;
 
   const blobUrl = URL.createObjectURL(blob);

@@ -246,6 +246,18 @@ function SubmissionDetail({
   );
 }
 
+function ExcelIcon({ className = "h-3.5 w-3.5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+      />
+    </svg>
+  );
+}
+
 function XmlIcon({ className = "h-3.5 w-3.5" }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -279,16 +291,18 @@ export function SubmissionsTable({
   onPageChange,
 }: SubmissionsTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [exportingFormat, setExportingFormat] = useState<"xml" | "ooxml" | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<"excel" | "xml" | "ooxml" | null>(null);
 
-  const handleExport = async (format: "xml" | "ooxml") => {
+  const handleExport = async (format: "excel" | "xml" | "ooxml") => {
     if (!workspaceId || !formId || exportingFormat) return;
     setExportingFormat(format);
     try {
       await downloadSubmissionsExport(workspaceId, formId, format);
-      notifySuccess(`${format.toUpperCase()} export downloaded.`);
+      notifySuccess(`${format === "excel" ? "Excel" : format.toUpperCase()} export downloaded.`);
     } catch (err) {
-      notifyError(err instanceof Error ? err.message : `Failed to export as ${format.toUpperCase()}`);
+      notifyError(
+        err instanceof Error ? err.message : `Failed to export as ${format.toUpperCase()}`,
+      );
     } finally {
       setExportingFormat(null);
     }
@@ -308,6 +322,16 @@ export function SubmissionsTable({
           <p className="text-xs text-slate-500">{pageLabel}</p>
           {workspaceId && formId ? (
             <div className="flex items-center gap-2 border-l border-slate-200 pl-3">
+              <button
+                type="button"
+                disabled={exportingFormat !== null || totalElements === 0}
+                onClick={() => handleExport("excel")}
+                title="Export submissions to Excel (.xlsx)"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/50 px-2.5 py-1 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-100/60 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-50 transition"
+              >
+                {exportingFormat === "excel" ? <Spinner size="sm" /> : <ExcelIcon className="h-3.5 w-3.5 text-emerald-600" />}
+                <span>Excel (.xlsx)</span>
+              </button>
               <button
                 type="button"
                 disabled={exportingFormat !== null || totalElements === 0}
