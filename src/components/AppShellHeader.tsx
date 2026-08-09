@@ -11,6 +11,7 @@ import { Spinner } from "./ui/index";
 /** Signed-in maker nav — shared forms for respondents will live on public links later, not here. */
 const workspaceNav = [
   { href: "/workspaces", label: "Workspaces" },
+  { href: "/builder?ai=true", label: "AI Generator" },
   { href: "/templates", label: "Templates" },
   { href: "/builder", label: "Builder" },
 ];

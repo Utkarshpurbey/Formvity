@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import BuilderSidebar from "../../../src/components/page-def/builder/BuilderSidebar";
 import PageCanvas from "../../../src/components/page-def/builder/PageCanvas";
 import ComponentConfigPanel from "../../../src/components/page-def/builder/ComponentConfigPanel";
@@ -13,8 +14,12 @@ import { BuilderTopBar } from "../../../src/components/page-def/builder/BuilderT
 import { IntakeConfigPanel } from "../../../src/components/page-def/builder/IntakeConfigPanel";
 import { BuilderGuideModal } from "../../../src/components/page-def/builder/BuilderGuideModal";
 import { BuilderPreview } from "../../../src/components/page-def/builder/BuilderPreview";
+import { AiBuilderChatbot } from "../../../src/components/page-def/builder/AiBuilderChatbot";
 
 function BuilderPageInner() {
+  const searchParams = useSearchParams();
+  const [floatingChatOpen, setFloatingChatOpen] = useState(false);
+
   const {
     apiMode,
     loaded,
@@ -63,6 +68,12 @@ function BuilderPageInner() {
     intakeIsDefault,
   } = useBuilderPage();
 
+  useEffect(() => {
+    if (searchParams.get("ai") === "true") {
+      setBuilderMode("ai");
+    }
+  }, [searchParams, setBuilderMode]);
+
   const intake = resolveRespondentIntake(formDef);
 
   if (apiMode && !loaded) {
@@ -78,9 +89,23 @@ function BuilderPageInner() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 bg-gradient-to-br from-slate-100 via-white to-violet-50/80">
-      <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-r border-slate-200/80 bg-white shadow-sm">
-        {builderMode === "intake" ? (
+    <div className="relative flex h-full min-h-0 flex-1 overflow-hidden bg-gradient-to-br from-slate-100 via-white to-violet-50/80">
+      {/* Sidebar - Switches between AI Copilot Chatbot, Intake, or Component Palette */}
+      <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-r border-slate-200/80 bg-white shadow-sm">
+        {builderMode === "ai" ? (
+          <AiBuilderChatbot
+            embedded
+            currentFormDef={formDef}
+            onApplyFormDef={(newDef) => {
+              setFormDef(newDef);
+              if (newDef.pages[0]) {
+                setActivePageId(newDef.pages[0].id);
+              }
+            }}
+            onOpenPublish={() => openPublishModal("publish")}
+            onOpenJson={() => setShowJson(true)}
+          />
+        ) : builderMode === "intake" ? (
           <IntakeConfigPanel intake={intake} onChange={updateRespondentIntake} />
         ) : (
           <BuilderSidebar
@@ -112,6 +137,7 @@ function BuilderPageInner() {
           onUpdateLive={() => openPublishModal("republish")}
           onPreview={() => setPreviewOpen(true)}
           onOpenGuide={openGuide}
+          onOpenAiModal={() => setBuilderMode("ai")}
         />
 
         {builderMode === "intake" ? (
@@ -129,7 +155,7 @@ function BuilderPageInner() {
             </button>
           </div>
         ) : !showJson ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/40 shadow-inner">
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/40 shadow-inner">
             <PageCanvas
               key={activePage.id}
               formDef={formDef}
@@ -163,7 +189,7 @@ function BuilderPageInner() {
       </main>
 
       <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-l border-slate-200/80 bg-white shadow-sm">
-        {builderMode === "pages" ? (
+        {builderMode === "pages" || builderMode === "ai" ? (
           <ComponentConfigPanel
             formDef={formDef}
             selectedComponent={selectedComponent}
@@ -178,6 +204,23 @@ function BuilderPageInner() {
           </div>
         )}
       </aside>
+
+      {/* Floating Chatbot option when not in sidebar AI mode */}
+      {builderMode !== "ai" ? (
+        <AiBuilderChatbot
+          open={floatingChatOpen}
+          onToggle={() => setFloatingChatOpen((o) => !o)}
+          currentFormDef={formDef}
+          onApplyFormDef={(newDef) => {
+            setFormDef(newDef);
+            if (newDef.pages[0]) {
+              setActivePageId(newDef.pages[0].id);
+            }
+          }}
+          onOpenPublish={() => openPublishModal("publish")}
+          onOpenJson={() => setShowJson(true)}
+        />
+      ) : null}
 
       {apiMode ? (
         <PublishFlowModal

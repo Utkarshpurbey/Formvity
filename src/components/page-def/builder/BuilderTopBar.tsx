@@ -3,6 +3,8 @@
 import { FormLifecycleBadge } from "../../ui/FormLifecycleBadge";
 import type { FormLifecycle } from "../../../lib/publish";
 
+import type { BuilderMode } from "../../../hooks/useBuilderPage";
+
 export type SaveState = "saving" | "saved" | "unsaved";
 
 type BuilderTopBarProps = {
@@ -10,12 +12,12 @@ type BuilderTopBarProps = {
   saveState: SaveState;
   apiMode: boolean;
   lifecycle: FormLifecycle | null;
-  builderMode: "intake" | "pages";
+  builderMode: BuilderMode;
   intakeIsDefault: boolean;
   showJson: boolean;
   saving: boolean;
   publishing: boolean;
-  onModeChange: (mode: "intake" | "pages") => void;
+  onModeChange: (mode: BuilderMode) => void;
   onToggleJson: () => void;
   onSave: () => void;
   onPublish: () => void;
@@ -23,6 +25,7 @@ type BuilderTopBarProps = {
   onUpdateLive: () => void;
   onPreview: () => void;
   onOpenGuide: () => void;
+  onOpenAiModal?: () => void;
 };
 
 export function BuilderTopBar({

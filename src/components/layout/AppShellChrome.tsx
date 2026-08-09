@@ -43,20 +43,24 @@ export function AppShellChrome({ children }: { children: ReactNode }) {
     });
   };
 
+  const isBuilder = routePath.startsWith("/builder");
+
   return (
-    <div className="flex min-h-screen bg-[#f8fafc]">
+    <div className={`flex bg-[#f8fafc] ${isBuilder ? "h-screen overflow-hidden" : "min-h-screen"}`}>
       {showSidebar ? <AppSidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} /> : null}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {!isPublicResponder ? (
           showSidebar ? (
-            <div className="lg:hidden">
+            <div className="lg:hidden shrink-0">
               <AppShellHeader />
             </div>
           ) : (
-            <AppShellHeader />
+            <div className="shrink-0">
+              <AppShellHeader />
+            </div>
           )
         ) : null}
-        <div className="page-enter flex min-h-0 flex-1 flex-col">
+        <div className={`page-enter flex min-h-0 flex-1 flex-col ${isBuilder ? "overflow-hidden" : ""}`}>
           {children}
         </div>
       </div>

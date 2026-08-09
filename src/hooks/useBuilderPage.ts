@@ -27,7 +27,7 @@ import { buildPublicUrl } from "../utils/publicUrl";
 const DEBOUNCE_MS = 400;
 const GUIDE_KEY = "formvity.builderGuide";
 
-export type BuilderMode = "intake" | "pages";
+export type BuilderMode = "intake" | "pages" | "ai";
 
 export function useBuilderPage(builderBasePath = "/builder") {
   const router = useRouter();
