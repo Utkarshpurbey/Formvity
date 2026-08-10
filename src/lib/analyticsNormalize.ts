@@ -16,6 +16,10 @@ import type {
   QuestionDistribution,
   SubmissionRow,
   SubmissionsPage,
+  Tag,
+  TagAnalyticsItem,
+  TagAnalyticsSummary,
+  TagSource,
   TopTextAnswer,
 } from "../api/types";
 
@@ -400,6 +404,38 @@ function normalizePublications(raw: unknown): AnalyticsPublicationInsights {
   return { versions };
 }
 
+function normalizeTagAnalyticsItem(raw: unknown): TagAnalyticsItem | null {
+  const r = asRecord(raw);
+  const tagId = pickString(r.tagId, r.id);
+  if (!tagId) return null;
+  return {
+    tagId,
+    name: pickString(r.name, r.tagName, r.title) ?? "Tag",
+    hexCode: pickString(r.hexCode, r.hex_code, r.color) ?? "#3B82F6",
+    taggedSubmissionsCount: pickNumber(r.taggedSubmissionsCount, r.count, r.submissionsCount),
+    percentage: pickNumber(r.percentage, r.percent, r.pct),
+    manualCount: pickNumber(r.manualCount, r.manual),
+    aiCount: pickNumber(r.aiCount, r.ai),
+    importCount: pickNumber(r.importCount, r.import),
+  };
+}
+
+export function normalizeTagAnalytics(raw: unknown): TagAnalyticsSummary | null {
+  if (!raw || (typeof raw === "object" && Object.keys(asRecord(raw)).length === 0)) return null;
+  const r = asRecord(raw);
+  const tags = asArray(r.tags ?? r.tagList ?? r.items)
+    .map(normalizeTagAnalyticsItem)
+    .filter((t): t is TagAnalyticsItem => t !== null);
+
+  return {
+    totalSubmissions: pickNumber(r.totalSubmissions, r.total),
+    totalTaggedSubmissions: pickNumber(r.totalTaggedSubmissions, r.taggedCount),
+    totalUntaggedSubmissions: pickNumber(r.totalUntaggedSubmissions, r.untaggedCount),
+    totalTagAssignments: pickNumber(r.totalTagAssignments, r.assignmentsCount),
+    tags,
+  };
+}
+
 export function normalizeAnalyticsInsights(raw: unknown): AnalyticsInsights | null {
   if (!raw || (typeof raw === "object" && Object.keys(asRecord(raw)).length === 0)) return null;
   const r = asRecord(raw);
@@ -409,6 +445,7 @@ export function normalizeAnalyticsInsights(raw: unknown): AnalyticsInsights | nu
     temporal: normalizeTemporal(r.temporal ?? r.timing ?? {}),
     completion: normalizeCompletion(r.completion ?? {}),
     publications: normalizePublications(r.publications ?? r.versions ?? {}),
+    tags: normalizeTagAnalytics(r.tags ?? r.tagAnalytics),
   };
 }
 
@@ -543,11 +580,14 @@ export function normalizeFormAnalyticsOverview(raw: unknown, fallbackDays = 7): 
   const r = asRecord(raw);
   const timelineRaw = r.timeline ?? r.buckets ?? r.points;
   const insightsRaw = r.insights ?? r.analyticsInsights;
+  const normalizedInsights = insightsRaw ? normalizeAnalyticsInsights(insightsRaw) : null;
+  const tagsSummary = normalizeTagAnalytics(r.tags ?? r.tagAnalytics ?? normalizedInsights?.tags);
   return {
     summary: normalizeAnalyticsSummary(r.summary ?? r),
     timeline: normalizeTimelinePoints(extractTimelineRaw(timelineRaw)),
     questions: normalizeQuestionAnalyticsList(r.questions ?? r.questionAnalytics ?? []),
-    insights: insightsRaw ? normalizeAnalyticsInsights(insightsRaw) : null,
+    insights: normalizedInsights,
+    tags: tagsSummary,
   };
 }
 
@@ -561,6 +601,26 @@ export function normalizeFormAnalyticsInsightsOnly(raw: unknown): AnalyticsInsig
     completion: emptyCompletion(),
     publications: { versions: [] },
   };
+}
+
+function normalizeTag(raw: unknown): Tag | null {
+  const r = asRecord(raw);
+  const id = pickString(r.id, r.tagId);
+  if (!id) return null;
+  const name = pickString(r.name, r.tagName, r.title) ?? "Tag";
+  const hexCode = pickString(r.hexCode, r.hex_code, r.color) ?? "#3B82F6";
+  const sourceRaw = pickString(r.source);
+  const source =
+    sourceRaw === "MANUAL" || sourceRaw === "AI" || sourceRaw === "IMPORT"
+      ? (sourceRaw as TagSource)
+      : undefined;
+  return { id, name, hexCode, source };
+}
+
+function normalizeTagList(raw: unknown): Tag[] {
+  return asArray(raw)
+    .map(normalizeTag)
+    .filter((t): t is Tag => t !== null);
 }
 
 function normalizeSubmissionRow(raw: unknown): SubmissionRow | null {
@@ -580,6 +640,7 @@ function normalizeSubmissionRow(raw: unknown): SubmissionRow | null {
       r.totalFieldCount !== undefined ? pickNumber(r.totalFieldCount, r.totalFields) : undefined,
     completionRate:
       r.completionRate !== undefined ? pickNumber(r.completionRate, r.completionPercent) : undefined,
+    tags: normalizeTagList(r.tags ?? r.submissionTags),
   };
 }
 

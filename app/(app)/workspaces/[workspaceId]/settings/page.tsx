@@ -14,6 +14,7 @@ import {
   workspaceCan,
 } from "@/src/components/workspace/index";
 import { WorkspaceNameEditor } from "@/src/components/workspace/WorkspaceNameEditor";
+import { WorkspaceTagManager } from "@/src/components/tags/WorkspaceTagManager";
 import { PageLoader } from "@/src/components/ui/index";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import {
@@ -174,6 +175,11 @@ export default function WorkspaceSettingsPage() {
           loading={membersLoading}
           currentUserId={user?.id}
           canManageMembers={can("workspace.manage_members")}
+        />
+
+        <WorkspaceTagManager
+          workspaceId={workspaceId}
+          canManage={can("workspace.manage_members")}
         />
 
         <PermissionGate

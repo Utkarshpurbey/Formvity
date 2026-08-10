@@ -58,6 +58,13 @@ const SubmissionsTable = dynamic(
     })),
   { loading: () => <Skeleton className="h-64 rounded-2xl" /> },
 );
+const TagAnalyticsPanel = dynamic(
+  () =>
+    import("@/src/components/form/analytics/TagAnalyticsPanel").then((m) => ({
+      default: m.TagAnalyticsPanel,
+    })),
+  { loading: () => <Skeleton className="h-64 rounded-2xl" /> },
+);
 import { useFormAnalytics } from "@/src/hooks/useFormAnalytics";
 import { useFormFieldLabels } from "@/src/hooks/useFormFieldLabels";
 import { deriveFormLifecycle } from "@/src/lib/publish";
@@ -110,7 +117,7 @@ export default function FormAnalyticsPage() {
     [form?.status, ready, formsLoading, form, publishStatus, publication, lastPublishResult],
   );
 
-  const { summary, timeline, questions, insights, submissions, loading, refreshing, error, reload } =
+  const { summary, timeline, questions, insights, tags, submissions, loading, refreshing, error, reload } =
     useFormAnalytics(workspaceId, formId, { days, page, size: PAGE_SIZE });
   const fieldLabels = useFormFieldLabels(workspaceId, formId, Boolean(form));
 
@@ -296,6 +303,24 @@ export default function FormAnalyticsPage() {
           ) : (
             <QuestionBreakdownPanel questions={questions} chartView={chartView} fieldLabels={fieldLabels} />
           )}
+        </section>
+      ) : null}
+
+      {activeTab === "tags" ? (
+        <section className="mt-8 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">Tag Analytics</h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Tag coverage, submission distribution, density metrics, and origin channel breakdown (Manual vs AI vs Import)
+            </p>
+          </div>
+          <TagAnalyticsPanel
+            tagsSummary={tags ?? insights?.tags ?? null}
+            loading={loading}
+            onSelectTagFilter={() => {
+              setActiveTab("responses");
+            }}
+          />
         </section>
       ) : null}
 
