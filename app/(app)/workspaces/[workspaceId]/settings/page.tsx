@@ -1,232 +1,96 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { notifyError, notifySuccess } from "@/src/components/ui/AppToast";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { AppPageContainer } from "@/src/components/layout/AppPageContainer";
-import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
-import {
-  MembersPanel,
-  PermissionGate,
-  RoleBadge,
-  WorkspaceSubNav,
-  useWorkspaceRole,
-  workspaceCan,
-} from "@/src/components/workspace/index";
-import { WorkspaceNameEditor } from "@/src/components/workspace/WorkspaceNameEditor";
 import { WorkspaceTagManager } from "@/src/components/tags/WorkspaceTagManager";
 import { PageLoader } from "@/src/components/ui/index";
-import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
+import { MembersPanel, RoleBadge, useWorkspacePage, workspaceCan } from "@/src/components/workspace/index";
 import {
-  fetchMembers,
-  fetchWorkspaceDashboard,
-  fetchWorkspaces,
-  removeWorkspace,
-  renameWorkspace,
-  selectDashboardForWorkspace,
-  selectMembersForWorkspace,
-  selectMembersLoading,
-  setActiveWorkspace,
-} from "@/src/store/slices/workspaceSlice";
+  WorkspaceDangerSettings,
+  WorkspaceGeneralSettings,
+  parseSettingsSection,
+} from "@/src/components/workspace/settings";
+import { selectMembersLoading } from "@/src/store/slices/workspaceSlice";
+import { useAppSelector } from "@/src/store/hooks";
 
-export default function WorkspaceSettingsPage() {
-  const params = useParams();
-  const router = useRouter();
-  const dispatch = useAppDispatch();
-  const workspaceId = typeof params.workspaceId === "string" ? params.workspaceId : "";
-  const { user, ready } = useAppSelector((s) => s.auth);
-  const workspaces = useAppSelector((s) => s.workspace.list);
-  const dashboard = useAppSelector((s) => selectDashboardForWorkspace(s, workspaceId));
-  const members = useAppSelector((s) => selectMembersForWorkspace(s, workspaceId));
+const SECTION_TITLES = {
+  general: { title: "General", description: "Basic information about this workspace." },
+  members: { title: "Members", description: "Invite teammates and manage roles." },
+  tags: { title: "Tags", description: "Create labels for organizing submissions." },
+  danger: { title: "Danger zone", description: "Irreversible workspace actions." },
+} as const;
+
+function WorkspaceSettingsContent() {
+  const searchParams = useSearchParams();
+  const section = parseSettingsSection(searchParams.get("section"));
+  const { workspaceId, workspaceName, dashboard, workspace, members, user, role, ready } = useWorkspacePage();
   const membersLoading = useAppSelector((s) => selectMembersLoading(s, workspaceId));
-  const deleting = useAppSelector((s) => Boolean(s.workspace.deletingWorkspaceIds[workspaceId]));
-  const renaming = useAppSelector((s) => Boolean(s.workspace.renamingWorkspaceIds[workspaceId]));
-  const role = useWorkspaceRole(workspaceId);
-  const can = (p: Parameters<typeof workspaceCan>[1]) => workspaceCan(role, p);
-
-  const [deleteOpen, setDeleteOpen] = useState(false);
-
-  const workspace = useMemo(() => {
-    const fromList = workspaces.find((w) => w.workSpaceId === workspaceId);
-    if (fromList) return fromList;
-    if (dashboard) {
-      return {
-        workSpaceId: dashboard.workspaceId,
-        workSpaceName: dashboard.workspaceName,
-        formCount: dashboard.formCount,
-      };
-    }
-    return undefined;
-  }, [workspaces, workspaceId, dashboard]);
-
-  useEffect(() => {
-    if (!ready) return;
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
-    dispatch(fetchWorkspaces());
-  }, [ready, user, router, dispatch]);
-
-  useEffect(() => {
-    if (!workspaceId) return;
-    dispatch(setActiveWorkspace(workspaceId));
-    dispatch(fetchWorkspaceDashboard(workspaceId));
-    dispatch(fetchMembers(workspaceId));
-  }, [workspaceId, dispatch]);
-
-  const handleDelete = useCallback(async () => {
-    try {
-      await dispatch(removeWorkspace(workspaceId)).unwrap();
-      notifySuccess("Workspace deactivated.");
-      router.push("/workspaces");
-    } catch (e) {
-      notifyError(e instanceof Error ? e.message : "Unable to deactivate this workspace. Please try again.");
-    }
-  }, [dispatch, workspaceId, router]);
-
-  const handleRename = useCallback(
-    async (nextName: string) => {
-      try {
-        await dispatch(renameWorkspace({ workspaceId, workspaceName: nextName })).unwrap();
-        notifySuccess("Workspace name updated.");
-      } catch (e) {
-        notifyError(e instanceof Error ? e.message : "Unable to update the workspace name. Please try again.");
-      }
-    },
-    [dispatch, workspaceId],
-  );
+  const canManage = workspaceCan(role, "workspace.manage_members");
+  const meta = SECTION_TITLES[section];
 
   if (!ready) return <PageLoader message="Loading settings…" className="min-h-[50vh]" />;
 
   if (!workspaceId) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-sm text-slate-600">
-        Invalid workspace. Return to your <button type="button" onClick={() => router.push("/workspaces")} className="font-medium text-violet-600 hover:text-violet-700">workspaces</button>.
+        Invalid workspace.
       </div>
     );
   }
 
-  const workspaceName = workspace?.workSpaceName ?? "Workspace";
+  const formCount = dashboard?.formCount ?? workspace?.formCount ?? "—";
 
   return (
     <AppPageContainer>
-      <nav className="text-sm text-slate-500">
-        <button type="button" onClick={() => router.push("/workspaces")} className="hover:text-violet-600">
-          Workspaces
-        </button>
-        <span className="mx-2">/</span>
-        <button
-          type="button"
-          onClick={() => router.push(`/workspaces/${workspaceId}`)}
-          className="hover:text-violet-600"
-        >
-          {workspaceName}
-        </button>
-        <span className="mx-2">/</span>
-        <span className="font-medium text-slate-800">Settings</span>
-      </nav>
-
-      <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">{workspaceName}</h1>
-          <p className="mt-2 text-sm text-slate-600">Manage your workspace name, team members, and account settings.</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-600">
+            Settings · {meta.title}
+          </p>
+          <h1 className="mt-1.5 text-lg font-semibold tracking-tight text-slate-900">{workspaceName}</h1>
+          <p className="mt-1 text-xs text-slate-500">{meta.description}</p>
         </div>
         {role ? <RoleBadge role={role} /> : null}
       </div>
 
-      <WorkspaceSubNav workspaceId={workspaceId} workspaceName={workspaceName} />
+      <div className="mt-8">
+        {section === "general" ? (
+          <WorkspaceGeneralSettings
+            workspaceId={workspaceId}
+            workspaceName={workspaceName}
+            formCount={formCount}
+            role={role}
+            canEdit={canManage}
+          />
+        ) : null}
 
-      <div className="mt-8 space-y-8">
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">General</h2>
-          <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <dt className="text-slate-500">Workspace name</dt>
-              <dd>
-                <WorkspaceNameEditor
-                  name={workspaceName}
-                  canEdit={can("workspace.manage_members")}
-                  saving={renaming}
-                  onSave={handleRename}
-                />
-              </dd>
-            </div>
-            <div>
-              <dt className="text-slate-500">Workspace ID</dt>
-              <dd className="mt-1 font-mono text-xs text-slate-800">{workspaceId}</dd>
-            </div>
-            <div>
-              <dt className="text-slate-500">Forms</dt>
-              <dd className="mt-1 font-medium text-slate-900">
-                {dashboard?.formCount ?? workspace?.formCount ?? "—"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-slate-500">Your role</dt>
-              <dd className="mt-1">{role ? <RoleBadge role={role} /> : <span className="text-slate-500">—</span>}</dd>
-            </div>
-          </dl>
-        </section>
+        {section === "members" ? (
+          <MembersPanel
+            workspaceId={workspaceId}
+            members={members}
+            loading={membersLoading}
+            currentUserId={user?.id}
+            canManageMembers={canManage}
+          />
+        ) : null}
 
-        <MembersPanel
-          workspaceId={workspaceId}
-          members={members}
-          loading={membersLoading}
-          currentUserId={user?.id}
-          canManageMembers={can("workspace.manage_members")}
-        />
+        {section === "tags" ? (
+          <WorkspaceTagManager workspaceId={workspaceId} canManage={canManage} />
+        ) : null}
 
-        <WorkspaceTagManager
-          workspaceId={workspaceId}
-          canManage={can("workspace.manage_members")}
-        />
-
-        <PermissionGate
-          workspaceId={workspaceId}
-          permission="workspace.delete"
-          fallback={
-            <section className="rounded-2xl border border-slate-200/80 bg-slate-50 p-6 text-sm text-slate-500">
-              Only workspace administrators can deactivate this workspace.
-            </section>
-          }
-        >
-          <section className="rounded-2xl border border-rose-200/80 bg-white p-6 shadow-sm">
-            <h2 className="text-sm font-semibold text-rose-800">Danger zone</h2>
-            <p className="mt-2 text-sm text-slate-600">
-              Deactivating removes this workspace from your dashboard. Published forms may remain accessible until you
-              take them offline separately.
-            </p>
-            {can("workspace.delete") ? (
-              <button
-                type="button"
-                onClick={() => setDeleteOpen(true)}
-                disabled={deleting}
-                className="mt-4 rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
-              >
-                Deactivate workspace
-              </button>
-            ) : null}
-          </section>
-        </PermissionGate>
+        {section === "danger" ? (
+          <WorkspaceDangerSettings workspaceId={workspaceId} workspaceName={workspaceName} role={role} />
+        ) : null}
       </div>
-
-      <ConfirmDialog
-        open={deleteOpen}
-        title="Deactivate workspace?"
-        description={
-          <>
-            <span className="font-medium text-slate-800">{workspaceName}</span> will be deactivated and removed from
-            your dashboard. Forms in this workspace will no longer appear in your account. Contact your administrator
-            if you need to restore access.
-          </>
-        }
-        confirmLabel="Deactivate workspace"
-        confirmingLabel="Deactivating…"
-        confirming={deleting}
-        onClose={() => setDeleteOpen(false)}
-        onConfirm={handleDelete}
-      />
     </AppPageContainer>
+  );
+}
+
+export default function WorkspaceSettingsPage() {
+  return (
+    <Suspense fallback={<PageLoader message="Loading settings…" className="min-h-[50vh]" />}>
+      <WorkspaceSettingsContent />
+    </Suspense>
   );
 }
