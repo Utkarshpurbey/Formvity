@@ -1,7 +1,15 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import * as api from "../../api/client";
 import { normalizeWorkspaceSummary, normalizeWorkspaceList } from "../../lib/apiNormalize";
+import { persistActiveWorkspaceId, readActiveWorkspaceId } from "../../lib/activeWorkspaceStorage";
 import type { InviteMemberResponse, WorkspaceDashboard, WorkspaceMember, WorkspaceRole, WorkspaceSummary } from "../../api/types";
+
+function resolveActiveWorkspaceId(list: WorkspaceSummary[], current: string | null): string | null {
+  const stored = readActiveWorkspaceId();
+  if (stored && list.some((w) => w.workSpaceId === stored)) return stored;
+  if (current && list.some((w) => w.workSpaceId === current)) return current;
+  return list[0]?.workSpaceId ?? null;
+}
 
 type WorkspaceState = {
   list: WorkspaceSummary[];
@@ -60,6 +68,8 @@ export const fetchWorkspaces = createAsyncThunk(
     },
   },
 );
+
+export const refreshWorkspaces = createAsyncThunk("workspace/refreshList", api.listWorkspaces);
 
 export const fetchWorkspaceDashboard = createAsyncThunk(
   "workspace/dashboard",
@@ -148,6 +158,7 @@ const workspaceSlice = createSlice({
   reducers: {
     setActiveWorkspace(state, action: PayloadAction<string | null>) {
       state.activeId = action.payload;
+      persistActiveWorkspaceId(action.payload);
     },
     clearWorkspaceError(state) {
       state.error = null;
@@ -162,9 +173,22 @@ const workspaceSlice = createSlice({
       .addCase(fetchWorkspaces.fulfilled, (s, a) => {
         s.loading = false;
         s.list = normalizeWorkspaceList(a.payload);
-        if (!s.activeId && s.list[0]) s.activeId = s.list[0].workSpaceId;
+        s.activeId = resolveActiveWorkspaceId(s.list, s.activeId);
       })
       .addCase(fetchWorkspaces.rejected, (s, a) => {
+        s.loading = false;
+        s.error = a.error.message ?? "Unable to load workspaces. Please try again.";
+      })
+      .addCase(refreshWorkspaces.pending, (s) => {
+        s.loading = true;
+        s.error = null;
+      })
+      .addCase(refreshWorkspaces.fulfilled, (s, a) => {
+        s.loading = false;
+        s.list = normalizeWorkspaceList(a.payload);
+        s.activeId = resolveActiveWorkspaceId(s.list, s.activeId);
+      })
+      .addCase(refreshWorkspaces.rejected, (s, a) => {
         s.loading = false;
         s.error = a.error.message ?? "Unable to load workspaces. Please try again.";
       })
@@ -259,7 +283,10 @@ const workspaceSlice = createSlice({
         s.list = s.list.filter((w) => w.workSpaceId !== a.payload);
         delete s.dashboardByWorkspace[a.payload];
         delete s.membersByWorkspace[a.payload];
-        if (s.activeId === a.payload) s.activeId = s.list[0]?.workSpaceId ?? null;
+        if (s.activeId === a.payload) {
+          s.activeId = resolveActiveWorkspaceId(s.list, null);
+          persistActiveWorkspaceId(s.activeId);
+        }
       })
       .addCase(removeWorkspace.rejected, (s, a) => {
         delete s.deletingWorkspaceIds[a.meta.arg];

@@ -94,6 +94,13 @@ export const ApiPath = {
     form: (slug: string) => `public/forms/${slug}`,
     submit: (slug: string) => `public/forms/${slug}/submit`,
   },
+  tags: {
+    workspaceTags: (workspaceId: string) => `workspaces/${workspaceId}/tags`,
+    byId: (tagId: string) => `tags/${tagId}`,
+    submissionTags: (submissionId: string) => `submissions/${submissionId}/tags`,
+    submissionBulkTags: (submissionId: string) => `submissions/${submissionId}/tags/bulk`,
+    submissionTagById: (submissionId: string, tagId: string) => `submissions/${submissionId}/tags/${tagId}`,
+  },
 } as const;
 
 /** Full URLs for requests that bypass `apiFetch` (e.g. raw `fetch` with AbortSignal). */

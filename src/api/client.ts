@@ -46,6 +46,11 @@ import type {
   PatchMemberRoleRequest,
   PatchWorkspaceRequest,
   WorkspaceRole,
+  Tag,
+  CreateTagPayload,
+  UpdateTagPayload,
+  AssignTagPayload,
+  BulkAssignTagsPayload,
 } from "./types";
 
 // — Auth —
@@ -315,6 +320,60 @@ export async function downloadSubmissionsExport(
 
 export function exportFormSubmissionsExcel(workspaceId: string, formId: string) {
   return downloadSubmissionsExport(workspaceId, formId);
+}
+
+// — Tags (Workspace Tag Management & Submission Tag Assignment) —
+
+export function createWorkspaceTag(workspaceId: string, payload: CreateTagPayload): Promise<Tag> {
+  return apiData<Tag>(ApiPath.tags.workspaceTags(workspaceId), {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getWorkspaceTags(workspaceId: string): Promise<Tag[]> {
+  return apiData<Tag[]>(ApiPath.tags.workspaceTags(workspaceId));
+}
+
+export function getTag(tagId: string): Promise<Tag> {
+  return apiData<Tag>(ApiPath.tags.byId(tagId));
+}
+
+export function updateTag(tagId: string, payload: UpdateTagPayload): Promise<Tag> {
+  return apiData<Tag>(ApiPath.tags.byId(tagId), {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteTag(tagId: string): Promise<string> {
+  return apiData<string>(ApiPath.tags.byId(tagId), {
+    method: "DELETE",
+  });
+}
+
+export function getSubmissionTags(submissionId: string): Promise<Tag[]> {
+  return apiData<Tag[]>(ApiPath.tags.submissionTags(submissionId));
+}
+
+export function assignSubmissionTag(submissionId: string, payload: AssignTagPayload): Promise<Tag[]> {
+  return apiData<Tag[]>(ApiPath.tags.submissionTags(submissionId), {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function bulkAssignSubmissionTags(submissionId: string, payload: BulkAssignTagsPayload): Promise<Tag[]> {
+  return apiData<Tag[]>(ApiPath.tags.submissionBulkTags(submissionId), {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function removeSubmissionTag(submissionId: string, tagId: string): Promise<Tag[]> {
+  return apiData<Tag[]>(ApiPath.tags.submissionTagById(submissionId, tagId), {
+    method: "DELETE",
+  });
 }
 
 export type { PublicSubmissionPayload } from "../lib/submissionPayload";

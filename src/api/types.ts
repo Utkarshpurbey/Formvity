@@ -220,12 +220,32 @@ export type AnalyticsPublicationInsights = {
   versions: PublicationVersionInsight[];
 };
 
+export type TagAnalyticsItem = {
+  tagId: string;
+  name: string;
+  hexCode: string;
+  taggedSubmissionsCount: number;
+  percentage: number;
+  manualCount: number;
+  aiCount: number;
+  importCount: number;
+};
+
+export type TagAnalyticsSummary = {
+  totalSubmissions: number;
+  totalTaggedSubmissions: number;
+  totalUntaggedSubmissions: number;
+  totalTagAssignments: number;
+  tags: TagAnalyticsItem[];
+};
+
 export type AnalyticsInsights = {
   audience: AnalyticsAudienceInsights;
   traffic: AnalyticsTrafficInsights;
   temporal: AnalyticsTemporalInsights;
   completion: AnalyticsCompletionInsights;
   publications: AnalyticsPublicationInsights;
+  tags?: TagAnalyticsSummary | null;
 };
 
 export type AnalyticsTimelinePoint = {
@@ -271,7 +291,37 @@ export type FormAnalyticsOverview = {
   timeline: AnalyticsTimelinePoint[];
   questions: QuestionAnalytics[];
   insights?: AnalyticsInsights | null;
+  tags?: TagAnalyticsSummary | null;
 };
+
+export type TagSource = "MANUAL" | "AI" | "IMPORT";
+
+export interface Tag {
+  id: string;
+  name: string;
+  hexCode: string;
+  source?: TagSource;
+}
+
+export interface CreateTagPayload {
+  name: string;
+  hexCode: string;
+}
+
+export interface UpdateTagPayload {
+  name?: string;
+  hexCode?: string;
+}
+
+export interface AssignTagPayload {
+  tagId: string;
+  source?: TagSource;
+}
+
+export interface BulkAssignTagsPayload {
+  tagIds: string[];
+  source?: TagSource;
+}
 
 export type SubmissionRow = {
   id: string;
@@ -283,6 +333,7 @@ export type SubmissionRow = {
   answeredFieldCount?: number;
   totalFieldCount?: number;
   completionRate?: number;
+  tags?: Tag[];
 };
 
 export type SubmissionsPage = {
@@ -294,3 +345,4 @@ export type SubmissionsPage = {
   first: boolean;
   last: boolean;
 };
+

@@ -1,9 +1,10 @@
-export type AnalyticsTab = "overview" | "insights" | "questions" | "responses";
+export type AnalyticsTab = "overview" | "insights" | "questions" | "tags" | "responses";
 
 const TABS: { id: AnalyticsTab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "insights", label: "Audience & traffic" },
   { id: "questions", label: "Questions" },
+  { id: "tags", label: "Tag Analytics" },
   { id: "responses", label: "Responses" },
 ];
 

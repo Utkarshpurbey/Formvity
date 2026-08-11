@@ -1,10 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AppShellHeader } from "../AppShellHeader";
 import { AppSidebar } from "./AppSidebar";
+import { Spinner } from "../ui/index";
 import { stripAppBasePath } from "../../utils/appBasePath";
 import { useAppSelector } from "../../store/hooks";
 
@@ -45,7 +46,17 @@ export function AppShellChrome({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-[#f8fafc]">
-      {showSidebar ? <AppSidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} /> : null}
+      {showSidebar ? (
+        <Suspense
+          fallback={
+            <aside className="hidden w-[260px] shrink-0 items-center justify-center border-r border-slate-200/80 bg-white lg:flex">
+              <Spinner size="md" />
+            </aside>
+          }
+        >
+          <AppSidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+        </Suspense>
+      ) : null}
       <div className="flex min-w-0 flex-1 flex-col">
         {!isPublicResponder ? (
           showSidebar ? (

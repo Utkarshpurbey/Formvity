@@ -7,6 +7,7 @@ import type {
   AnalyticsTimelinePoint,
   QuestionAnalytics,
   SubmissionsPage,
+  TagAnalyticsSummary,
 } from "../../api/types";
 
 type AnalyticsCacheEntry = {
@@ -14,6 +15,7 @@ type AnalyticsCacheEntry = {
   timeline: AnalyticsTimelinePoint[];
   questions: QuestionAnalytics[];
   insights: AnalyticsInsights | null;
+  tags: TagAnalyticsSummary | null;
   submissions: SubmissionsPage | null;
 };
 
@@ -73,12 +75,14 @@ export const fetchFormAnalytics = createAsyncThunk(
         insights = null;
       }
     }
+    const tags = overview.tags ?? insights?.tags ?? null;
     return {
       key: analyticsCacheKey(workspaceId, formId, days, page, size),
       summary: overview.summary,
       timeline: overview.timeline,
       questions: overview.questions,
       insights,
+      tags,
       submissions,
     };
   },
@@ -140,6 +144,7 @@ const analyticsSlice = createSlice({
           timeline: a.payload.timeline,
           questions: a.payload.questions,
           insights: a.payload.insights,
+          tags: a.payload.tags,
           submissions: a.payload.submissions,
         };
       })
