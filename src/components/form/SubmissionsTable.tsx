@@ -337,7 +337,8 @@ export function SubmissionsTable({
 
   // Filter states
   const [textSearch, setTextSearch] = useState<string>("");
-  const [selectedTagFilterId, setSelectedTagFilterId] = useState<string | null>(null);
+  const [selectedTagFilterIds, setSelectedTagFilterIds] = useState<Set<string>>(new Set());
+  const [tagFilterMatchMode, setTagFilterMatchMode] = useState<"ANY" | "ALL">("ANY");
 
   // Sync props rows tags to local state map
   useEffect(() => {
@@ -392,14 +393,32 @@ export function SubmissionsTable({
     setRowTagsMap((prev) => ({ ...prev, [submissionId]: newTags }));
   };
 
-  // Filter logic
+  const toggleTagFilter = (tagId: string) => {
+    setSelectedTagFilterIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(tagId)) {
+        next.delete(tagId);
+      } else {
+        next.add(tagId);
+      }
+      return next;
+    });
+  };
+
+  // Multi-tag filter logic
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {
-      // 1. Tag filter
-      if (selectedTagFilterId) {
+      // 1. Multi-tag filter
+      if (selectedTagFilterIds.size > 0) {
         const assigned = rowTagsMap[r.id] ?? r.tags ?? [];
-        const hasTag = assigned.some((t) => t.id === selectedTagFilterId);
-        if (!hasTag) return false;
+        const assignedTagIds = new Set(assigned.map((t) => t.id));
+        if (tagFilterMatchMode === "ALL") {
+          const matchesAll = Array.from(selectedTagFilterIds).every((id) => assignedTagIds.has(id));
+          if (!matchesAll) return false;
+        } else {
+          const matchesAny = Array.from(selectedTagFilterIds).some((id) => assignedTagIds.has(id));
+          if (!matchesAny) return false;
+        }
       }
 
       // 2. Text search filter
@@ -421,7 +440,7 @@ export function SubmissionsTable({
 
       return true;
     });
-  }, [rows, rowTagsMap, selectedTagFilterId, textSearch]);
+  }, [rows, rowTagsMap, selectedTagFilterIds, tagFilterMatchMode, textSearch]);
 
   // Tag usage count map for pills
   const tagCountsMap = useMemo(() => {
@@ -555,15 +574,15 @@ export function SubmissionsTable({
 
         {/* Interactive Tag Filter Chips Bar */}
         {workspaceTags.length > 0 ? (
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-0.5 text-xs scrollbar-none">
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 pb-0.5 text-xs">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0 mr-1">
               Filter:
             </span>
             <button
               type="button"
-              onClick={() => setSelectedTagFilterId(null)}
+              onClick={() => setSelectedTagFilterIds(new Set())}
               className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition shrink-0 ${
-                selectedTagFilterId === null
+                selectedTagFilterIds.size === 0
                   ? "bg-slate-900 text-white shadow-2xs"
                   : "bg-slate-200/70 text-slate-600 hover:bg-slate-200"
               }`}
@@ -571,34 +590,83 @@ export function SubmissionsTable({
               All ({rows.length})
             </button>
             {workspaceTags.map((tag) => {
-              const active = selectedTagFilterId === tag.id;
+              const active = selectedTagFilterIds.has(tag.id);
               const count = tagCountsMap[tag.id] ?? 0;
               return (
                 <button
                   key={tag.id}
                   type="button"
-                  onClick={() => setSelectedTagFilterId(active ? null : tag.id)}
+                  onClick={() => toggleTagFilter(tag.id)}
                   style={{
                     backgroundColor: active ? tag.hexCode : undefined,
                     borderColor: tag.hexCode,
                   }}
                   className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition shrink-0 ${
                     active
-                      ? "text-white shadow-2xs font-semibold"
+                      ? "text-white shadow-2xs font-semibold ring-2 ring-slate-900/10"
                       : "bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: active ? "#ffffff" : tag.hexCode }}
-                  />
+                  {active ? (
+                    <svg className="h-3 w-3 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  ) : (
+                    <span
+                      className="h-1.5 w-1.5 rounded-full shrink-0"
+                      style={{ backgroundColor: tag.hexCode }}
+                    />
+                  )}
                   <span>{tag.name}</span>
-                  <span className={`text-[10px] ${active ? "text-white/80" : "text-slate-400"}`}>
+                  <span className={`text-[10px] ${active ? "text-white/90" : "text-slate-400"}`}>
                     ({count})
                   </span>
                 </button>
               );
             })}
+
+            {/* Multi-tag mode toggle controls when 2+ tags are selected */}
+            {selectedTagFilterIds.size >= 2 ? (
+              <div className="flex items-center gap-1 border-l border-slate-200/80 pl-2 ml-1">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  Match:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setTagFilterMatchMode("ANY")}
+                  className={`rounded-md px-2 py-0.5 text-[10px] font-bold transition ${
+                    tagFilterMatchMode === "ANY"
+                      ? "bg-violet-600 text-white shadow-2xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                  title="Show responses matching ANY selected tag"
+                >
+                  ANY (OR)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTagFilterMatchMode("ALL")}
+                  className={`rounded-md px-2 py-0.5 text-[10px] font-bold transition ${
+                    tagFilterMatchMode === "ALL"
+                      ? "bg-violet-600 text-white shadow-2xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                  title="Show responses matching ALL selected tags"
+                >
+                  ALL (AND)
+                </button>
+              </div>
+            ) : null}
+
+            {selectedTagFilterIds.size > 0 ? (
+              <button
+                type="button"
+                onClick={() => setSelectedTagFilterIds(new Set())}
+                className="text-[11px] font-medium text-slate-400 hover:text-slate-700 ml-1 underline"
+              >
+                Clear ({selectedTagFilterIds.size})
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -647,7 +715,7 @@ export function SubmissionsTable({
           </svg>
           <p className="mt-2 text-sm font-semibold text-slate-700">No responses found</p>
           <p className="text-xs text-slate-400 mt-0.5">
-            {textSearch || selectedTagFilterId
+            {textSearch || selectedTagFilterIds.size > 0
               ? "Try adjusting your search query or tag filters."
               : "No responses recorded yet for this form."}
           </p>

@@ -84,3 +84,6 @@ export function PageLoader({
     </div>
   );
 }
+
+export { PopoverPortal } from "./PopoverPortal";
+export type { PopoverPortalProps } from "./PopoverPortal";
